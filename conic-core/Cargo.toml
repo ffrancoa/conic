@@ -1,0 +1,9 @@
+[package]
+name        = "conic-core"
+version     = "0.1.0"
+edition     = "2024"
+license     = "MPL-2.0"
+description = "Command-line interface for `conic`"
+
+[dependencies]
+polars  = { version = "0.50", features = ["lazy"] }
