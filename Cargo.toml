@@ -1,5 +1,6 @@
 [workspace]
-members = [
+members     = [
     "conic-core",
     "conic-cli",
 ]
+resolver    = "3"
