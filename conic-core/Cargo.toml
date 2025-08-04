@@ -12,5 +12,5 @@ polars      = { version = "0.50", features = ["lazy", "is_in"] }
 criterion   = { version = "0.7" }
 
 [[bench]]
-name        = "clean_nan"
+name        = "filter_out_rows"
 harness     = false
