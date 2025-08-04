@@ -6,4 +6,4 @@ license     = "MPL-2.0"
 description = "Command-line interface for `conic`"
 
 [dependencies]
-polars  = { version = "0.50", features = ["lazy"] }
+polars  = { version = "0.50", features = ["lazy", "is_in"] }
