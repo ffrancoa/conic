@@ -1,10 +1,10 @@
 use conic_core::{calc, io, CoreError};
 
 fn main() -> Result<(), CoreError> {
-    let indicators = vec![-9999.0, -8888.0, -7777.0];
+    let filter_values = vec![-9999.0, -8888.0, -7777.0];
 
     let df = io::read_csv("test/sh23-104.csv")?;
-    let clean_df = calc::filter_value_rows(df, indicators)?;
+    let clean_df = calc::filter_rows(df, filter_values)?;
 
     println!("{:?}", clean_df.head(Some(8)));
 
