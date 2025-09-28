@@ -1,37 +1,15 @@
-use std::fmt;
-use std::error::Error;
+use thiserror::Error;
 use polars::error::PolarsError;
 
 /// Generic error.
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum CoreError {
-    Io(std::io::Error),
-    Polars(PolarsError),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Polars error: {0}")]
+    Polars(#[from] PolarsError),
+
+    #[error("Invalid data: {0}")]
     InvalidData(String),
-}
-
-impl fmt::Display for CoreError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            CoreError::Io(e) => write!(f, "I/O error: {e}"),
-            CoreError::Polars(e) => write!(f, "Polars error: {e}"),
-            CoreError::InvalidData(msg) => write!(f, "Invalid data: {msg}"),
-        }
-    }
-}
-
-impl Error for CoreError {}
-
-/// Conversión automática de `std::io::Error` → `CoreError`
-impl From<std::io::Error> for CoreError {
-    fn from(err: std::io::Error) -> Self {
-        CoreError::Io(err)
-    }
-}
-
-/// Conversión automática de `polars::error::PolarsError` → `CoreError`
-impl From<PolarsError> for CoreError {
-    fn from(err: PolarsError) -> Self {
-        CoreError::Polars(err)
-    }
 }

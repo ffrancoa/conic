@@ -7,6 +7,7 @@ description = "Command-line interface for `conic`"
 
 [dependencies]
 polars      = { version = "0.51", features = ["lazy", "is_in"] }
+thiserror   = { version = "2.0.16" }
 
 [dev-dependencies]
 criterion   = { version = "0.7" }
