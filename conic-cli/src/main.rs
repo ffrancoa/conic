@@ -5,9 +5,10 @@ fn main() -> Result<(), CoreError> {
     let gamma = 18.7;
     let a = 0.80;
 
-    let df = io::read_csv("test/sh23-104.csv")?;
-    let clean_df = calc::filter_rows(df, filter_values)?;
-    let out_df = calc::compute_basic(clean_df, a, gamma)?;
+    let df = io::read_csv("test/sh23-101.csv")?;
+    let clean_df = calc::clean::filter_rows(df, filter_values)?;
+    let mut out_df = calc::compute::basic_params(clean_df, a, gamma)?;
+    out_df = calc::compute::derived_params(out_df)?;
 
     println!("{:?}", out_df.head(Some(8)));
 

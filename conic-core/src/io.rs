@@ -3,7 +3,7 @@ use polars::prelude::*;
 use crate::CoreError;
 
 /// Required columns for downstream calculations.
-const REQUIRED_COLUMNS: [&str; 3] = ["Depth (m)", "qc (MPa)", "fs (kPa)"];
+const REQUIRED_COLUMNS: [&str; 4] = ["Depth (m)", "qc (MPa)", "fs (kPa)", "u2 (kPa)"];
 
 /// Reads a CSV file into a `DataFrame`, inferring the schema.
 pub fn read_csv(file_path: &str) -> Result<DataFrame, CoreError> {
