@@ -2,45 +2,38 @@ use polars::prelude::*;
 
 use crate::CoreError;
 
-/// Required columns for downstream calculations.
-const REQUIRED_COLUMNS: [&str; 4] = ["Depth (m)", "qc (MPa)", "fs (kPa)", "u2 (kPa)"];
 
-/// Reads a CSV file into a `DataFrame`, inferring the schema.
+const COL_DEPTH: &str = "Depth (m)";
+const COL_QC: &str = "qc (MPa)";
+const COL_FS: &str = "fs (kPa)";
+const COL_U2: &str = "u2 (kPa)";
+const COL_U0: &str = "u0 (kPa)";
+
+const REQUIRED_COLUMNS: [&str; 5] = [COL_DEPTH, COL_QC, COL_FS, COL_U2, COL_U0];
+
+
+/// Reads a CSV file into a `DataFrame` with predefined schema.
+///
+/// All columns are read as `Float64`.
 pub fn read_csv(file_path: &str) -> Result<DataFrame, CoreError> {
-    let data = CsvReadOptions::default()
+    let schema = Schema::from_iter(
+        REQUIRED_COLUMNS
+            .iter()
+            .map(|&name| Field::new(name.into(), DataType::Float64))
+    );
+
+    let raw_data = CsvReadOptions::default()
         .with_has_header(true)
-        .with_infer_schema_length(None)
+        .with_schema(Some(Arc::new(schema)))
         .try_into_reader_with_file_path(Some(file_path.into()))?
-        .finish()?;
-
-    validate_columns(&data)?;
-
-    let schema = data.schema().clone();
-
-    let raw_data = data
-        .lazy()
-        .with_columns(
-            schema
-                .iter_names()
-                .map(|name| col(name.as_str()).cast(DataType::Float64))
-                .collect::<Vec<_>>(),
-        )
-        .collect()?;
+        .finish()
+        .map_err(|_err| {
+            CoreError::InvalidData(format!(
+                "Failed to read CSV file. Ensure all required columns \
+                 are present: {:?}.",
+                REQUIRED_COLUMNS,
+            ))
+        })?;
 
     Ok(raw_data)
-}
-
-/// Validates that all required columns are present in the DataFrame.
-fn validate_columns(data: &DataFrame) -> Result<(), CoreError> {
-    let schema = data.schema();
-
-    if let Some(missing) = REQUIRED_COLUMNS
-        .iter()
-        .find(|col| !schema.contains(col.as_ref()))
-    {
-        return Err(CoreError::InvalidData(format!(
-            "Missing required column: {missing}"
-        )));
-    }
-    Ok(())
 }

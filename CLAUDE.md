@@ -75,6 +75,33 @@ cargo fmt -- --check
   let sigma_v = gamma * depth;
   ```
 
+### Variable Naming
+
+**Use descriptive names, avoid single-letter variables.**
+
+- **Good**: `name`, `err`, `col_name`, `value`
+- **Bad**: `s`, `e`, `n`, `v`
+
+Exception: Standard iterator variables (`i`, `j`, `k`) in simple loops are acceptable.
+
+### Line Length
+
+**Maximum line length is 88 characters for Rust code (`.rs` files).**
+
+Use line breaks and string continuation for longer lines:
+```rust
+// bad - exceeds 88 chars
+CoreError::InvalidData(format!("Failed to read CSV file. Ensure all required columns are present: {:?}. Error: {}", REQUIRED_COLUMNS, err))
+
+// good - within 88 chars
+CoreError::InvalidData(format!(
+    "Failed to read CSV file. Ensure all required columns \
+     are present: {:?}. Error: {}",
+    REQUIRED_COLUMNS,
+    err
+))
+```
+
 ## Architecture
 
 ### Workspace Structure
