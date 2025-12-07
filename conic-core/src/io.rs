@@ -12,6 +12,7 @@ pub fn read_csv(file_path: &str) -> Result<DataFrame, CoreError> {
         .finish()?;
     
     let schema = lazy_frame.collect_schema()?;
+    
     validate_columns(&schema)?;
 
     let raw_df = lazy_frame
