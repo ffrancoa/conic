@@ -8,6 +8,8 @@ description = "Command-line interface for `conic`"
 [dependencies]
 polars      = { version = "0.52.0", features = ["is_in", "lazy", "timezones"] }
 thiserror   = { version = "2.0.17" }
+serde       = { version = "1.0", features = ["derive"] }
+toml        = { version = "0.8" }
 
 [dev-dependencies]
 criterion   = { version = "0.8.0" }

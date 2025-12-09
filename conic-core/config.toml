@@ -1,0 +1,17 @@
+[columns.input]
+depth   = "Depth (m)"
+qc      = "qc (MPa)"
+fs      = "fs (kPa)"
+u2      = "u2 (kPa)"
+u0      = "u0 (kPa)"
+
+[columns.output]
+sigv_tot    = "σv_tot (kPa)"
+sigv_eff    = "σv_eff (kPa)"
+qt          = "qt (MPa)"
+fr          = "Fr (%)"
+bq          = "Bq (adim.)"
+n           = "n (adim.)"
+qtn         = "Qtn (adim.)"
+ic          = "Ic (adim.)"
+convg       = "convg (?)"

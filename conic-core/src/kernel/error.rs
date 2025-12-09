@@ -1,7 +1,7 @@
 use thiserror::Error;
 use polars::error::PolarsError;
 
-/// Generic error.
+/// Generic error type for the conic library.
 #[derive(Debug, Error)]
 pub enum CoreError {
     #[error("I/O error: {0}")]

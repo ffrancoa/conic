@@ -1,15 +1,12 @@
 use polars::prelude::*;
-use crate::CoreError;
+use crate::kernel::CoreError;
+use crate::kernel::config::COL_DEPTH;
 
-const COL_DEPTH: &str = "Depth (m)";
 
-/// Returns a DataFrame excluding all rows where any column contains any value
-/// from `indicators`.
-pub fn remove_rows(
-        data: DataFrame,
-        indicators: &[f64],
-    ) -> Result<DataFrame, CoreError> {
-        
+pub(crate) fn remove_rows(
+    data: DataFrame,
+    indicators: &[f64],
+) -> Result<DataFrame, CoreError> {
     let indicators = Series::from_vec(
         "indicators".into(),
         indicators.to_vec(),
@@ -31,15 +28,11 @@ pub fn remove_rows(
     Ok(out_data)
 }
 
-/// Returns a DataFrame where rows with any column containing values from
-/// `indicators` have all their values (except depth) replaced with
-/// `replace_value`.
-pub fn replace_rows(
-        data: DataFrame,
-        indicators: &[f64],
-        replace_value: &f64,
-    ) -> Result<DataFrame, CoreError> {
-
+pub(crate) fn replace_rows(
+    data: DataFrame,
+    indicators: &[f64],
+    replace_value: &f64,
+) -> Result<DataFrame, CoreError> {
     let indicators = Series::from_vec(
         "indicators".into(),
         indicators.to_vec(),
@@ -57,7 +50,7 @@ pub fn replace_rows(
         .get_column_names_str()
         .into_iter()
         .map(|name| {
-            if name == COL_DEPTH {
+            if name == *COL_DEPTH {
                 col(name)
             } else {
                 when(mask_expr.clone())

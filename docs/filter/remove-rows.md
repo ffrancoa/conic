@@ -1,4 +1,4 @@
-# Documentation: calc/clean.rs - remove_rows()
+# Documentation: frame/filter.rs - remove_rows()
 
 ## Overview
 

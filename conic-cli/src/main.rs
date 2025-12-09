@@ -1,16 +1,19 @@
-use conic_core::{calc, io, CoreError};
+use conic_core::prelude::*;
 
 fn main() -> Result<(), CoreError> {
     let err_indicators = [-9999.0, -8888.0, -7777.0];
+    let a_ratio = 0.80;
     let gamma = 18.7;
-    let a = 0.80;
+    let max_iter = 999;
+    let tolerance = 1e-3;
 
-    let data = io::read_csv("test/sh23-101.csv")?;
-    let data = calc::clean::replace_rows(data, &err_indicators, &f64::NAN)?;
-    // let data = calc::clean::remove_rows(data, &[f64::NAN])?;
+    let data = read_csv("test/sh23-101.csv")?
+        .replace_rows(&err_indicators, &f64::NAN)?
+        .remove_rows(&[f64::NAN])?;
 
-    let mut out_data = calc::compute::basic_params(data, a, gamma)?;
-    out_data = calc::compute::derived_params(out_data)?;
+    let out_data = data
+        .add_stress_cols(a_ratio, gamma)?
+        .add_behavior_cols(max_iter, tolerance)?;
 
     println!("{:?}", out_data.head(Some(8)));
 

@@ -1,23 +1,15 @@
 use polars::prelude::*;
+use crate::kernel::{CoreError, ConicDataFrame};
+use crate::kernel::config::{COL_DEPTH, COL_QC, COL_FS, COL_U2, COL_U0};
 
-use crate::CoreError;
-
-
-const COL_DEPTH: &str = "Depth (m)";
-const COL_QC: &str = "qc (MPa)";
-const COL_FS: &str = "fs (kPa)";
-const COL_U2: &str = "u2 (kPa)";
-const COL_U0: &str = "u0 (kPa)";
-
-const REQUIRED_COLUMNS: [&str; 5] = [COL_DEPTH, COL_QC, COL_FS, COL_U2, COL_U0];
-
-
-/// Reads a CSV file into a `DataFrame` with predefined schema.
+/// Reads a CSV file into a `ConicDataFrame` with predefined schema.
 ///
 /// All columns are read as `Float64`.
-pub fn read_csv(file_path: &str) -> Result<DataFrame, CoreError> {
+pub fn read_csv(file_path: &str) -> Result<ConicDataFrame, CoreError> {
+    let required_columns = [*COL_DEPTH, *COL_QC, *COL_FS, *COL_U2, *COL_U0];
+
     let schema = Schema::from_iter(
-        REQUIRED_COLUMNS
+        required_columns
             .iter()
             .map(|&name| Field::new(name.into(), DataType::Float64))
     );
@@ -31,9 +23,9 @@ pub fn read_csv(file_path: &str) -> Result<DataFrame, CoreError> {
             CoreError::InvalidData(format!(
                 "Failed to read CSV file. Ensure all required columns \
                  are present: {:?}.",
-                REQUIRED_COLUMNS,
+                required_columns,
             ))
         })?;
 
-    Ok(raw_data)
+    Ok(ConicDataFrame::new(raw_data))
 }
