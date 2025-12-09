@@ -7,9 +7,8 @@ fn main() -> Result<(), CoreError> {
     let max_iter = 999;
     let tolerance = 1e-3;
 
-    let data = read_csv("test/sh23-101.csv")?
-        .replace_rows(&err_indicators, &f64::NAN)?
-        .remove_rows(&[f64::NAN])?;
+    let data = read_csv("data/sh23-101.csv")?
+        .remove_rows(&err_indicators)?;
 
     let out_data = data
         .add_stress_cols(a_ratio, gamma)?

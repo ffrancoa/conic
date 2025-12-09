@@ -21,7 +21,7 @@ pub struct InputColumns {
     pub qc: String,
     pub fs: String,
     pub u2: String,
-    pub u0: String,
+    pub u0: String
 }
 
 /// Output column names (derived parameters).
@@ -36,6 +36,8 @@ pub struct OutputColumns {
     pub qtn: String,
     pub ic: String,
     pub convg: String,
+    pub cd: String,
+    pub ib: String
 }
 
 /// Global configuration instance.
@@ -95,6 +97,8 @@ pub static COL_N: LazyLock<&str> = LazyLock::new(|| &output_cfg().n);
 pub static COL_QTN: LazyLock<&str> = LazyLock::new(|| &output_cfg().qtn);
 pub static COL_IC: LazyLock<&str> = LazyLock::new(|| &output_cfg().ic);
 pub static COL_CONVG: LazyLock<&str> = LazyLock::new(|| &output_cfg().convg);
+pub static COL_CD: LazyLock<&str> = LazyLock::new(|| &output_cfg().cd);
+pub static COL_IB: LazyLock<&str> = LazyLock::new(|| &output_cfg().ib);
 
 #[cfg(test)]
 mod tests {
