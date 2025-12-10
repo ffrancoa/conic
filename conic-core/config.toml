@@ -10,7 +10,7 @@ a_ratio     =   0.80
 gamma_w     =   9.81
 gamma_s     =   18.7
 p_ref       =   101.33
-rolling     =   5
+rolling     =   3
 
 [output.columns]
 sigv_tot    =   "σv_tot (kPa)"

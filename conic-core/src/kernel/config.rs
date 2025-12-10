@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use std::sync::{LazyLock, OnceLock};
+use super::CoreError;
 
 /// Main configuration structure.
 #[derive(Debug, Deserialize, Clone)]
@@ -74,7 +75,8 @@ static CONFIG: OnceLock<Config> = OnceLock::new();
 /// Subsequent calls return the cached configuration.
 ///
 /// # Panics
-/// Panics if the configuration file cannot be read or parsed.
+/// Panics if the configuration file cannot be read, parsed, or contains
+/// invalid values.
 fn config() -> &'static Config {
     CONFIG.get_or_init(|| {
         let config_path = "conic-core/config.toml";
@@ -86,13 +88,35 @@ fn config() -> &'static Config {
                 )
             });
 
-        toml::from_str(&config_content).unwrap_or_else(|err| {
+        let cfg: Config = toml::from_str(&config_content).unwrap_or_else(|err| {
             panic!(
                 "Failed to parse configuration file '{}': {}",
                 config_path, err
             )
-        })
+        });
+
+        // validate configuration
+        validate_config(&cfg).unwrap_or_else(|err| {
+            panic!("{}", err)
+        });
+
+        cfg
     })
+}
+
+/// Validates the loaded configuration.
+fn validate_config(cfg: &Config) -> Result<(), CoreError> {
+    // validate rolling parameter
+    if ![1, 3, 5].contains(&cfg.input.parameters.rolling) {
+        return Err(CoreError::InvalidConfig(
+            format!(
+                "Invalid rolling parameter: {}. Must be 1, 3, or 5",
+                cfg.input.parameters.rolling
+            )
+        ));
+    }
+
+    Ok(())
 }
 
 fn input_cols() -> &'static InputColumns {

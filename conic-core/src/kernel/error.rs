@@ -12,4 +12,7 @@ pub enum CoreError {
 
     #[error("Invalid data: {0}")]
     InvalidData(String),
+
+    #[error("Invalid configuration: {0}")]
+    InvalidConfig(String),
 }
