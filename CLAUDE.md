@@ -28,15 +28,9 @@ cargo run -p conic-cli --release
 cargo build --release
 ```
 
-## Testing & Benchmarking
+## Benchmarking
 
 ```bash
-# Run all tests (currently none implemented)
-cargo test
-
-# Run tests for specific crate
-cargo test -p conic-core
-
 # Run benchmarks (skeleton exists in conic-core/benches/conic_bench.rs, not implemented)
 cargo bench -p conic-core
 ```
@@ -56,6 +50,12 @@ cargo fmt
 # Check formatting without modifying
 cargo fmt -- --check
 ```
+
+## Workflow Preferences
+
+**Do not run verification commands automatically.**
+
+When completing a task, simply inform that the work is done without running `cargo check`, `cargo test`, or `cargo build`. The user will manually compile and verify changes.
 
 ## Code Style
 
@@ -184,7 +184,6 @@ All public functions return `Result<T, CoreError>`.
 - Functional CLI (main.rs is hardcoded demo)
 - Command-line argument parsing
 - Python API bindings
-- Unit tests
 - Benchmarks (stub exists)
 - Documentation (rustdoc)
 - Multiple dataset handling

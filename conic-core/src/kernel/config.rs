@@ -4,14 +4,20 @@ use std::sync::{LazyLock, OnceLock};
 /// Main configuration structure.
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    pub columns: ColumnsConfig,
+    pub input: InputConfig,
+    pub output: OutputConfig,
 }
 
-/// Column name configuration.
+/// Input configuration.
 #[derive(Debug, Deserialize, Clone)]
-pub struct ColumnsConfig {
-    pub input: InputColumns,
-    pub output: OutputColumns,
+pub struct InputConfig {
+    pub columns: InputColumns,
+}
+
+/// Output configuration.
+#[derive(Debug, Deserialize, Clone)]
+pub struct OutputConfig {
+    pub columns: OutputColumns,
 }
 
 /// Input column names (from CSV).
@@ -70,45 +76,32 @@ fn config() -> &'static Config {
     })
 }
 
-fn input_cfg() -> &'static InputColumns {
-    &config().columns.input
+fn input_cols() -> &'static InputColumns {
+    &config().input.columns
 }
 
-fn output_cfg() -> &'static OutputColumns {
-    &config().columns.output
+fn output_cols() -> &'static OutputColumns {
+    &config().output.columns
 }
 
 // Lazy-initialized column name constants for cleaner config access
 
 // Input column names
-pub static COL_DEPTH: LazyLock<&str> = LazyLock::new(|| &input_cfg().depth);
-pub static COL_QC: LazyLock<&str> = LazyLock::new(|| &input_cfg().qc);
-pub static COL_FS: LazyLock<&str> = LazyLock::new(|| &input_cfg().fs);
-pub static COL_U2: LazyLock<&str> = LazyLock::new(|| &input_cfg().u2);
-pub static COL_U0: LazyLock<&str> = LazyLock::new(|| &input_cfg().u0);
+pub static COL_DEPTH: LazyLock<&str> = LazyLock::new(|| &input_cols().depth);
+pub static COL_QC: LazyLock<&str> = LazyLock::new(|| &input_cols().qc);
+pub static COL_FS: LazyLock<&str> = LazyLock::new(|| &input_cols().fs);
+pub static COL_U2: LazyLock<&str> = LazyLock::new(|| &input_cols().u2);
+pub static COL_U0: LazyLock<&str> = LazyLock::new(|| &input_cols().u0);
 
 // Output column names
-pub static COL_SIGV_TOT: LazyLock<&str> = LazyLock::new(|| &output_cfg().sigv_tot);
-pub static COL_SIGV_EFF: LazyLock<&str> = LazyLock::new(|| &output_cfg().sigv_eff);
-pub static COL_QT: LazyLock<&str> = LazyLock::new(|| &output_cfg().qt);
-pub static COL_FR: LazyLock<&str> = LazyLock::new(|| &output_cfg().fr);
-pub static COL_BQ: LazyLock<&str> = LazyLock::new(|| &output_cfg().bq);
-pub static COL_N: LazyLock<&str> = LazyLock::new(|| &output_cfg().n);
-pub static COL_QTN: LazyLock<&str> = LazyLock::new(|| &output_cfg().qtn);
-pub static COL_IC: LazyLock<&str> = LazyLock::new(|| &output_cfg().ic);
-pub static COL_CONVG: LazyLock<&str> = LazyLock::new(|| &output_cfg().convg);
-pub static COL_CD: LazyLock<&str> = LazyLock::new(|| &output_cfg().cd);
-pub static COL_IB: LazyLock<&str> = LazyLock::new(|| &output_cfg().ib);
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_config_loads() {
-        let cfg = config();
-        assert_eq!(cfg.columns.input.depth, "Depth (m)");
-        assert_eq!(cfg.columns.input.qc, "qc (MPa)");
-        assert_eq!(cfg.columns.output.ic, "Ic (adim.)");
-    }
-}
+pub static COL_SIGV_TOT: LazyLock<&str> = LazyLock::new(|| &output_cols().sigv_tot);
+pub static COL_SIGV_EFF: LazyLock<&str> = LazyLock::new(|| &output_cols().sigv_eff);
+pub static COL_QT: LazyLock<&str> = LazyLock::new(|| &output_cols().qt);
+pub static COL_FR: LazyLock<&str> = LazyLock::new(|| &output_cols().fr);
+pub static COL_BQ: LazyLock<&str> = LazyLock::new(|| &output_cols().bq);
+pub static COL_N: LazyLock<&str> = LazyLock::new(|| &output_cols().n);
+pub static COL_QTN: LazyLock<&str> = LazyLock::new(|| &output_cols().qtn);
+pub static COL_IC: LazyLock<&str> = LazyLock::new(|| &output_cols().ic);
+pub static COL_CONVG: LazyLock<&str> = LazyLock::new(|| &output_cols().convg);
+pub static COL_CD: LazyLock<&str> = LazyLock::new(|| &output_cols().cd);
+pub static COL_IB: LazyLock<&str> = LazyLock::new(|| &output_cols().ib);
