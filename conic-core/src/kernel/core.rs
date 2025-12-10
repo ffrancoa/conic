@@ -20,8 +20,8 @@ impl ConicDataFrame {
     /// including total and effective vertical stresses.
     pub fn add_stress_cols(
         self,
-        a_ratio: f64,
-        gamma: f64,
+        a_ratio: Option<f64>,
+        gamma: Option<f64>,
     ) -> Result<Self, CoreError> {
         let out_data = crate::math::basic::add_stress_cols(
             self.0,
@@ -35,8 +35,8 @@ impl ConicDataFrame {
     /// and soil behavior type index `Ic` for each CPTu record.
     pub fn add_behavior_cols(
         self,
-        max_iter: usize,
-        tolerance: f64
+        max_iter: Option<usize>,
+        tolerance: Option<f64>
     ) -> Result<Self, CoreError> {
         let out_data = crate::math::basic::add_behavior_cols(
             self.0,

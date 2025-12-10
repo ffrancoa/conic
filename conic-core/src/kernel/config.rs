@@ -11,13 +11,31 @@ pub struct Config {
 /// Input configuration.
 #[derive(Debug, Deserialize, Clone)]
 pub struct InputConfig {
+    pub parameters: InputParameters,
     pub columns: InputColumns,
 }
 
 /// Output configuration.
 #[derive(Debug, Deserialize, Clone)]
 pub struct OutputConfig {
+    pub parameters: OutputParameters,
     pub columns: OutputColumns,
+}
+
+/// Input parameters for CPTu calculations.
+#[derive(Debug, Deserialize, Clone)]
+pub struct InputParameters {
+    pub a_ratio: f64,
+    pub gamma_w: f64,
+    pub gamma_s: f64,
+    pub p_ref: f64,
+}
+
+/// Output parameters for iterative calculations.
+#[derive(Debug, Deserialize, Clone)]
+pub struct OutputParameters {
+    pub max_iter: usize,
+    pub tolerance: f64,
 }
 
 /// Input column names (from CSV).
@@ -84,6 +102,14 @@ fn output_cols() -> &'static OutputColumns {
     &config().output.columns
 }
 
+fn input_params() -> &'static InputParameters {
+    &config().input.parameters
+}
+
+fn output_params() -> &'static OutputParameters {
+    &config().output.parameters
+}
+
 // Lazy-initialized column name constants for cleaner config access
 
 // Input column names
@@ -105,3 +131,14 @@ pub static COL_IC: LazyLock<&str> = LazyLock::new(|| &output_cols().ic);
 pub static COL_CONVG: LazyLock<&str> = LazyLock::new(|| &output_cols().convg);
 pub static COL_CD: LazyLock<&str> = LazyLock::new(|| &output_cols().cd);
 pub static COL_IB: LazyLock<&str> = LazyLock::new(|| &output_cols().ib);
+
+// Input parameters
+pub static A_RATIO: LazyLock<f64> = LazyLock::new(|| input_params().a_ratio);
+pub static GAMMA_S: LazyLock<f64> = LazyLock::new(|| input_params().gamma_s);
+pub static P_REF: LazyLock<f64> = LazyLock::new(|| input_params().p_ref);
+
+// Output parameters
+pub static MAX_ITER: LazyLock<usize> =
+    LazyLock::new(|| output_params().max_iter);
+pub static TOLERANCE: LazyLock<f64> =
+    LazyLock::new(|| output_params().tolerance);

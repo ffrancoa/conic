@@ -3,10 +3,9 @@ use crate::kernel::CoreError;
 use crate::kernel::config::{
     COL_DEPTH, COL_QC, COL_FS, COL_U2, COL_U0,
     COL_SIGV_TOT, COL_SIGV_EFF, COL_QT, COL_FR, COL_BQ,
-    COL_N, COL_QTN, COL_IC, COL_CONVG, COL_CD, COL_IB
+    COL_N, COL_QTN, COL_IC, COL_CONVG, COL_CD, COL_IB,
+    A_RATIO, GAMMA_S, P_REF, MAX_ITER, TOLERANCE
 };
-
-const P_REF: f64 = 100.0;  // in kPa
 
 /// Computes basic stress-related and normalized CPT parameters.
 ///
@@ -14,9 +13,12 @@ const P_REF: f64 = 100.0;  // in kPa
 /// including total and effective vertical stresses.
 pub(crate) fn add_stress_cols(
     data: DataFrame,
-    a_ratio: f64,
-    gamma: f64
+    a_ratio: Option<f64>,
+    gamma: Option<f64>
 ) -> Result<DataFrame, CoreError> {
+    let a_ratio = a_ratio.unwrap_or(*A_RATIO);
+    let gamma = gamma.unwrap_or(*GAMMA_S);
+
     let out_data = data
         .lazy()
         // total vertical stress = γ * z
@@ -53,9 +55,12 @@ pub(crate) fn add_stress_cols(
 /// and soil behavior type index `Ic` for each CPTu record.
 pub(crate) fn add_behavior_cols(
     data: DataFrame,
-    max_iter: usize,
-    tolerance: f64
+    max_iter: Option<usize>,
+    tolerance: Option<f64>
 ) -> Result<DataFrame, CoreError> {
+    let max_iter = max_iter.unwrap_or(*MAX_ITER);
+    let tolerance = tolerance.unwrap_or(*TOLERANCE);
+
     let sigv_tot = data.column(*COL_SIGV_TOT)?.f64()?;
     let sigv_eff = data.column(*COL_SIGV_EFF)?.f64()?;
     let qt = data.column(*COL_QT)?.f64()?;
@@ -133,7 +138,7 @@ pub(crate) fn add_behavior_cols(
 
 pub(crate) fn calc_n(ic: f64, sigv_eff: f64) -> f64 {
     let ic_term = 0.381 * ic;
-    let sigv_eff_term = 0.05 * (sigv_eff / P_REF);
+    let sigv_eff_term = 0.05 * (sigv_eff / *P_REF);
 
     (ic_term + sigv_eff_term - 0.15).min(1.0)
 }
@@ -143,8 +148,8 @@ pub(crate) fn calc_qtn(
     sigv_eff: f64,
     sigv_tot: f64
 ) -> f64 {
-    let cn = (P_REF / sigv_eff).powf(n);
-    let qt_term = (qt - sigv_tot) / P_REF;
+    let cn = (*P_REF / sigv_eff).powf(n);
+    let qt_term = (qt - sigv_tot) / *P_REF;
 
     qt_term * cn
 }
