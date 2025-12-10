@@ -53,7 +53,7 @@ impl ConicDataFrame {
     /// A row is eliminated if ANY column contains ANY value from the
     /// indicators list.
     pub fn remove_rows(self, indicators: &[f64]) -> Result<Self, CoreError> {
-        let out_data = crate::frame::filter::remove_rows(
+        let out_data = crate::frame::clean::remove_rows(
             self.0,
             indicators
         )?;
@@ -71,7 +71,7 @@ impl ConicDataFrame {
         indicators: &[f64],
         replace_value: &f64,
     ) -> Result<Self, CoreError> {
-        let out_data = crate::frame::filter::replace_rows(
+        let out_data = crate::frame::clean::replace_rows(
             self.0,
             indicators,
             replace_value

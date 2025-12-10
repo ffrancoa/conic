@@ -12,5 +12,5 @@ pub use kernel::{CoreError, ConicDataFrame};
 /// ```
 pub mod prelude {
     pub use crate::kernel::{ConicDataFrame, CoreError};
-    pub use crate::frame::files::read_csv;
+    pub use crate::frame::read::read_csv;
 }
