@@ -7,8 +7,8 @@ use crate::kernel::config::{
     A_RATIO, GAMMA_S, P_REF, ROLLING, MAX_ITER, TOLERANCE
 };
 
-const COL_FS_ROL: &str = "fs (rolling)";
-const COL_QT_ROL: &str = "qt (rolling)";
+const COL_FS_ROL: &str = "fs [rolling]";
+const COL_QT_ROL: &str = "qt [rolling]";
 
 /// Computes basic stress-related and normalized CPT parameters.
 ///
@@ -53,7 +53,7 @@ pub(crate) fn add_stress_cols(
     } else {
         let rolling_opts = RollingOptionsFixedWindow {
             window_size: rolling,
-            min_periods: 1,
+            min_periods: rolling,
             center: true,
             ..Default::default()
         };
@@ -61,14 +61,16 @@ pub(crate) fn add_stress_cols(
         out_data
             .lazy()
             .with_column(
-                col(*COL_QT)
+                col(*COL_FS)
                     .rolling_mean(rolling_opts.clone())
-                    .alias(COL_QT_ROL)
+                    .fill_null(lit(f64::NAN))
+                    .alias(COL_FS_ROL)
             )
             .with_column(
-                col(*COL_FS)
+                col(*COL_QT)
                     .rolling_mean(rolling_opts)
-                    .alias(COL_FS_ROL)
+                    .fill_null(lit(f64::NAN))
+                    .alias(COL_QT_ROL)
             )
             .collect()?
     };
