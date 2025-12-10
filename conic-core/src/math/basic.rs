@@ -4,8 +4,11 @@ use crate::kernel::config::{
     COL_DEPTH, COL_QC, COL_FS, COL_U2, COL_U0,
     COL_SIGV_TOT, COL_SIGV_EFF, COL_QT, COL_FR, COL_BQ,
     COL_N, COL_QTN, COL_IC, COL_CONVG, COL_CD, COL_IB,
-    A_RATIO, GAMMA_S, P_REF, MAX_ITER, TOLERANCE
+    A_RATIO, GAMMA_S, P_REF, ROLLING, MAX_ITER, TOLERANCE
 };
+
+const COL_FS_ROL: &str = "fs (rolling)";
+const COL_QT_ROL: &str = "qt (rolling)";
 
 /// Computes basic stress-related and normalized CPT parameters.
 ///
@@ -14,37 +17,77 @@ use crate::kernel::config::{
 pub(crate) fn add_stress_cols(
     data: DataFrame,
     a_ratio: Option<f64>,
-    gamma: Option<f64>
+    gamma: Option<f64>,
+    rolling: Option<usize>
 ) -> Result<DataFrame, CoreError> {
     let a_ratio = a_ratio.unwrap_or(*A_RATIO);
     let gamma = gamma.unwrap_or(*GAMMA_S);
+    let rolling = rolling.unwrap_or(*ROLLING);
 
     let out_data = data
         .lazy()
         // total vertical stress = γ * z
         .with_column((
                 lit(gamma) * col(*COL_DEPTH)
-            ).alias(*COL_SIGV_TOT))
+            ).alias(*COL_SIGV_TOT)
+        )
         // effective vertical stress = σv_tot - u0
         .with_column((
                 col(*COL_SIGV_TOT) - col(*COL_U0)
-            ).alias(*COL_SIGV_EFF))
+            ).alias(*COL_SIGV_EFF)
+        )
         // corrected cone resistance = qc + (1 - a) * u2
         .with_column((
                 col(*COL_QC) + col(*COL_U2) * lit(1.0 - a_ratio)
                 / lit(1000)
-            ).alias(*COL_QT))
-        // normalized friction ratio = fs / (qt - σv_tot) * 100
-        .with_column((
+            ).alias(*COL_QT)
+        )
+        .collect()?;
+
+    let out_data = if rolling == 1 {
+        out_data
+            .lazy()
+            .with_column(col(*COL_QT).alias(COL_QT_ROL))
+            .with_column(col(*COL_FS).alias(COL_FS_ROL))
+            .collect()?
+    } else {
+        let rolling_opts = RollingOptionsFixedWindow {
+            window_size: rolling,
+            min_periods: 1,
+            center: true,
+            ..Default::default()
+        };
+
+        out_data
+            .lazy()
+            .with_column(
+                col(*COL_QT)
+                    .rolling_mean(rolling_opts.clone())
+                    .alias(COL_QT_ROL)
+            )
+            .with_column(
                 col(*COL_FS)
-                / (col(*COL_QT) * lit(1000) - col(*COL_SIGV_TOT))
+                    .rolling_mean(rolling_opts)
+                    .alias(COL_FS_ROL)
+            )
+            .collect()?
+    };
+
+    let out_data = out_data
+        .lazy()
+        // normalized friction ratio = fs_rolling / (qt_rolling - σv_tot) * 100
+        .with_column((
+                col(COL_FS_ROL)
+                / (col(COL_QT_ROL) * lit(1000) - col(*COL_SIGV_TOT))
                 * lit(100.0)
-            ).alias(*COL_FR))
-        // normalized pore pressure ratio = (u2 - u0) / (qt - σv_tot)
+            ).alias(*COL_FR)
+        )
+        // normalized pore pressure ratio = (u2 - u0) / (qt_rolling - σv_tot)
         .with_column((
                 (col(*COL_U2) - col(*COL_U0))
-                / (col(*COL_QT) * lit(1000) - col(*COL_SIGV_TOT))
-            ).alias(*COL_BQ))
+                / (col(COL_QT_ROL) * lit(1000) - col(*COL_SIGV_TOT))
+            ).alias(*COL_BQ)
+        )
         .collect()?;
 
     Ok(out_data)
@@ -63,7 +106,7 @@ pub(crate) fn add_behavior_cols(
 
     let sigv_tot = data.column(*COL_SIGV_TOT)?.f64()?;
     let sigv_eff = data.column(*COL_SIGV_EFF)?.f64()?;
-    let qt = data.column(*COL_QT)?.f64()?;
+    let qt = data.column(COL_QT_ROL)?.f64()?;
     let fr = data.column(*COL_FR)?.f64()?;
 
     let mut n_vec = Vec::with_capacity(data.height());
@@ -123,14 +166,16 @@ pub(crate) fn add_behavior_cols(
         ])
         // contractive-dilative boundary parameter
         .with_column((
-            (col(*COL_QTN) - lit(11))
-            * (lit(1) + lit(0.06) * col(*COL_FR)).pow(lit(17))
-        ).alias(*COL_CD))
+                (col(*COL_QTN) - lit(11))
+                * (lit(1) + lit(0.06) * col(*COL_FR)).pow(lit(17))
+            ).alias(*COL_CD)
+        )
         // modified soil behavior type index
         .with_column((
-            lit(100) * (col(*COL_QTN) + lit(10))
-            / (lit(70) + col(*COL_QTN) * col(*COL_FR))
-        ).alias(*COL_IB))
+                lit(100) * (col(*COL_QTN) + lit(10))
+                / (lit(70) + col(*COL_QTN) * col(*COL_FR))
+            ).alias(*COL_IB)
+        )
         .collect()?;
 
     Ok(out_data)

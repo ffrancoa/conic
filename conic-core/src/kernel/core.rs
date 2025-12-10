@@ -22,11 +22,13 @@ impl ConicDataFrame {
         self,
         a_ratio: Option<f64>,
         gamma: Option<f64>,
+        rolling: Option<usize>
     ) -> Result<Self, CoreError> {
         let out_data = crate::math::basic::add_stress_cols(
             self.0,
             a_ratio,
-            gamma
+            gamma,
+            rolling
         )?;
         Ok(Self(out_data))
     }

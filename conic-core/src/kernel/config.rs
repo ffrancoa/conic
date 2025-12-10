@@ -29,6 +29,7 @@ pub struct InputParameters {
     pub gamma_w: f64,
     pub gamma_s: f64,
     pub p_ref: f64,
+    pub rolling: usize,
 }
 
 /// Output parameters for iterative calculations.
@@ -136,6 +137,7 @@ pub static COL_IB: LazyLock<&str> = LazyLock::new(|| &output_cols().ib);
 pub static A_RATIO: LazyLock<f64> = LazyLock::new(|| input_params().a_ratio);
 pub static GAMMA_S: LazyLock<f64> = LazyLock::new(|| input_params().gamma_s);
 pub static P_REF: LazyLock<f64> = LazyLock::new(|| input_params().p_ref);
+pub static ROLLING: LazyLock<usize> = LazyLock::new(|| input_params().rolling);
 
 // Output parameters
 pub static MAX_ITER: LazyLock<usize> =

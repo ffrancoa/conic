@@ -7,7 +7,7 @@ fn main() -> Result<(), CoreError> {
         .remove_rows(&err_indicators)?;
 
     let out_data = data
-        .add_stress_cols(None, None)?
+        .add_stress_cols(None, None, None)?
         .add_behavior_cols(None, None)?;
 
     println!("{:?}", out_data.head(Some(8)));
