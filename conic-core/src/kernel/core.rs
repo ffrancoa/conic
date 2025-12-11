@@ -79,6 +79,39 @@ impl ConicDataFrame {
         Ok(Self(out_data))
     }
 
+    /// Adjusts depth values to uniform spacing.
+    ///
+    /// Replaces depth values with uniformly spaced values starting from
+    /// the specified or first depth value. If spacing is not provided, it is
+    /// calculated as the mean of differences between consecutive depth values,
+    /// excluding NaN values.
+    ///
+    /// # Arguments
+    ///
+    /// * `start_depth` - Optional starting depth value. If None, uses the
+    ///   first value from the Depth column.
+    /// * `spacing` - Optional spacing value. If None, automatically
+    ///   calculated from mean of depth differences.
+    ///
+    /// # Errors
+    ///
+    /// Returns `CoreError::InvalidData` if:
+    /// - DataFrame is empty
+    /// - DataFrame has only 1 row and spacing is None
+    /// - All diff values are NaN when calculating automatic spacing
+    pub fn adjust_depth(
+        self,
+        start_depth: Option<f64>,
+        spacing: Option<f64>
+    ) -> Result<Self, CoreError> {
+        let out_data = crate::frame::fix::adjust_depth(
+            self.0,
+            start_depth,
+            spacing
+        )?;
+        Ok(Self(out_data))
+    }
+
     /// Consumes the wrapper and returns the inner DataFrame.
     pub fn into_inner(self) -> DataFrame {
         self.0
