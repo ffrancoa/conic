@@ -14,9 +14,12 @@ pub(crate) fn remove_rows(
     let indicators = lit(indicators).implode();
 
     let mask_expr: Vec<Expr> = data
-        .get_column_names_str()
+        .get_column_names()
         .into_iter()
-        .map(|name| col(name).is_in(indicators.clone(), false).not())
+        .map(|name| {
+            let name = name.as_str();
+            col(name).is_in(indicators.clone(), false).not()
+        })
         .collect();
     let mask_expr = all_horizontal(mask_expr)?;
 
@@ -40,16 +43,20 @@ pub(crate) fn replace_rows(
     let indicators = lit(indicators).implode();
 
     let mask_expr: Vec<Expr> = data
-        .get_column_names_str()
+        .get_column_names()
         .into_iter()
-        .map(|name| col(name).is_in(indicators.clone(), false))
+        .map(|name| {
+            let name = name.as_str();
+            col(name).is_in(indicators.clone(), false)
+        })
         .collect();
     let mask_expr = any_horizontal(mask_expr)?;
 
     let transform_expr: Vec<Expr> = data
-        .get_column_names_str()
+        .get_column_names()
         .into_iter()
         .map(|name| {
+            let name = name.as_str();
             if name == *COL_DEPTH {
                 col(name)
             } else {

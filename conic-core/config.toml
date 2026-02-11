@@ -11,6 +11,7 @@ gamma_w     = 9.81
 gamma_s     = 18.7
 p_ref       = 101.33
 rolling     = 1
+water_level = 0.0
 
 [output.columns]
 sigv_tot    = "σv_tot (kPa)"

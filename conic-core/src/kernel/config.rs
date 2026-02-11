@@ -31,6 +31,7 @@ pub struct InputParameters {
     pub gamma_s: f64,
     pub p_ref: f64,
     pub rolling: usize,
+    pub water_level: f64,
 }
 
 /// Output parameters for iterative calculations.
@@ -116,6 +117,16 @@ fn validate_config(cfg: &Config) -> Result<(), CoreError> {
         ));
     }
 
+    // validate water_level parameter
+    if cfg.input.parameters.water_level < 0.0 {
+        return Err(CoreError::InvalidConfig(
+            format!(
+                "Invalid water_level parameter: {}. Must be >= 0",
+                cfg.input.parameters.water_level
+            )
+        ));
+    }
+
     Ok(())
 }
 
@@ -159,9 +170,12 @@ pub static COL_IB: LazyLock<&str> = LazyLock::new(|| &output_cols().ib);
 
 // Input parameters
 pub static A_RATIO: LazyLock<f64> = LazyLock::new(|| input_params().a_ratio);
+pub static GAMMA_W: LazyLock<f64> = LazyLock::new(|| input_params().gamma_w);
 pub static GAMMA_S: LazyLock<f64> = LazyLock::new(|| input_params().gamma_s);
 pub static P_REF: LazyLock<f64> = LazyLock::new(|| input_params().p_ref);
 pub static ROLLING: LazyLock<usize> = LazyLock::new(|| input_params().rolling);
+pub static WATER_LEVEL: LazyLock<f64> =
+    LazyLock::new(|| input_params().water_level);
 
 // Output parameters
 pub static MAX_ITER: LazyLock<usize> =

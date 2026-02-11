@@ -64,9 +64,10 @@ pub(crate) fn adjust_depth(
     let new_depth_series = Series::new((*COL_DEPTH).into(), new_depth_values);
 
     let transform_expr: Vec<Expr> = data
-        .get_column_names_str()
+        .get_column_names()
         .into_iter()
         .map(|name| {
+            let name = name.as_str();
             if name == *COL_DEPTH {
                 lit(new_depth_series.clone()).alias(name)
             } else {

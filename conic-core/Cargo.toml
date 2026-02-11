@@ -6,13 +6,13 @@ license     = "MPL-2.0"
 description = "Command-line interface for `conic`"
 
 [dependencies]
-polars      = { version = "0.52.0", features = ["abs", "diff", "is_in", "lazy", "rolling_window", "timezones"] }
-thiserror   = { version = "2.0.17" }
+polars      = { version = "0.53.0", features = ["abs", "diff", "is_in", "lazy", "rolling_window"] }
+thiserror   = { version = "2.0.18" }
 serde       = { version = "1.0.228", features = ["derive"] }
-toml        = { version = "0.9.10" }
+toml        = { version = "0.9.12" }
 
 [dev-dependencies]
-criterion   = { version = "0.8.1" }
+criterion   = { version = "0.8.2" }
 
 [[bench]]
 name        = "conic_bench"
