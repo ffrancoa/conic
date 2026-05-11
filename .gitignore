@@ -6,8 +6,5 @@ dist/
 wheels/
 *.egg-info
 
-# Claude assistant
-CLAUDE.md
-
 # Virtual environments
 .venv
