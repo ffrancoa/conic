@@ -1,0 +1,36 @@
+from textwrap import dedent
+
+import pytest
+from conic import Processor
+from pydantic import ValidationError
+
+def test_read_from_toml(tmp_path):
+    toml_content = dedent("""
+        [parameters]
+        gamma_water = 9.99
+        water_level = 5.0
+        area_ratio = 0.85
+
+        [cleansing]
+        indicator_action = "remove"
+    """)
+    
+    toml_path = tmp_path / "conic.toml"
+    toml_path.write_text(toml_content)
+    
+    pr = Processor.from_toml(toml_path)
+    
+    assert pr.parameters.gamma_water == 9.99
+    assert pr.cleansing.indicator_action == "remove"
+
+def test_validate_from_toml(tmp_path):
+    toml_content = dedent("""
+        [parameters]
+        area_ratio = 1.05
+    """)
+    
+    toml_path = tmp_path / "conic.toml"
+    toml_path.write_text(toml_content)
+    
+    with pytest.raises(ValidationError):
+        Processor.from_toml(toml_path)
