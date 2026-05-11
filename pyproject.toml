@@ -7,7 +7,7 @@ license = "AGPL-3.0-or-later"
 authors = [
     { name = "Francesco Franco", email = "ffrancoa97@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "polars>=1.40.1",
     "pydantic>=2.13.4",
