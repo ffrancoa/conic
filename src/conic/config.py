@@ -1,19 +1,36 @@
-from ._canonical import (
-        COL_DEPTH, COL_QC, COL_FS, COL_U2,
-        COL_U0, COL_SV_TOT, COL_SV_EFF,
-        COL_QT, COL_FR, COL_BQ,
-        COL_N, COL_QTN, COL_IC, COL_CONVG,
-        COL_CD, COL_IB,
-        AREA_RATIO, GAMMA_WATER,
-        INDICATORS
-    )
-
 import tomllib
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Self
 
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic import PositiveFloat, NonNegativeFloat
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    NonNegativeFloat,
+    PositiveFloat,
+)
+
+from ._canonical import (
+    AREA_RATIO,
+    COL_BQ,
+    COL_CD,
+    COL_CONVG,
+    COL_DEPTH,
+    COL_FR,
+    COL_FS,
+    COL_IB,
+    COL_IC,
+    COL_N,
+    COL_QC,
+    COL_QT,
+    COL_QTN,
+    COL_SV_EFF,
+    COL_SV_TOT,
+    COL_U0,
+    COL_U2,
+    GAMMA_WATER,
+    INDICATORS,
+)
 
 
 type ColumnName = Annotated[str, Field(max_length=50)]
