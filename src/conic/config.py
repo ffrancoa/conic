@@ -1,3 +1,16 @@
+from ._canonical import (
+        COL_DEPTH,
+        COL_QC,
+        COL_FS,
+        COL_U2,
+        COL_U0,
+        COL_SV_TOT,
+        COL_SV_EFF,
+        AREA_RATIO,
+        GAMMA_WATER,
+        INDICATORS
+    )
+
 import tomllib
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Self
@@ -10,21 +23,18 @@ type ColumnName = Annotated[str, Field(max_length=50)]
 type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
 type IndicatorAction = Literal["ignore", "replace", "remove"]
 
-def default_indicators() -> list[float]:
-    return [-9999.0, -8888.0, -7777.0]
-
 
 class InputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    depth: ColumnName = "Depth (m)"
-    qc: ColumnName = "qc (MPa)"
-    fs: ColumnName = "fs (kPa)"
-    u2: ColumnName = "u2 (kPa)"
+    depth: ColumnName = COL_DEPTH
+    qc: ColumnName = COL_QC
+    fs: ColumnName = COL_FS
+    u2: ColumnName = COL_U2
 
-    u0: ColumnName = "u0 (kPa)"
-    sv_tot: ColumnName = "σv tot (kPa)"
-    sv_eff: ColumnName = "σv eff (kPa)"
+    u0: ColumnName = COL_U0
+    sv_tot: ColumnName = COL_SV_TOT
+    sv_eff: ColumnName = COL_SV_EFF
 
 class OutputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -49,8 +59,8 @@ class Columns(BaseModel):
 class Parameters(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    area_ratio: UnitRatio = 0.80
-    gamma_water: PositiveFloat = 9.81
+    area_ratio: UnitRatio = AREA_RATIO
+    gamma_water: PositiveFloat = GAMMA_WATER
     gamma_soil: Optional[PositiveFloat] = None
     water_level: Optional[NonNegativeFloat] = None
 
@@ -60,7 +70,7 @@ class Cleansing(BaseModel):
     start_depth: Optional[NonNegativeFloat] = None
     spacing: Optional[PositiveFloat] = None
     
-    indicators: list[float] = Field(default_factory=default_indicators)
+    indicators: list[float] = Field(default_factory=lambda: INDICATORS)
     indicator_action: IndicatorAction = "ignore"
 
 class Processor(BaseModel):
