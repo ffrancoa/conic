@@ -4,7 +4,7 @@ def test_default_columns():
     pr = Processor()
 
     assert pr.columns.input.depth == "Depth (m)"
-    assert pr.columns.output.conv == "converged (-)"
+    assert pr.columns.output.convg == "convg. (-)"
     
 def test_default_parameters():
     pr = Processor()

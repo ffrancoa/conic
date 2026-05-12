@@ -1,13 +1,10 @@
 from ._canonical import (
-        COL_DEPTH,
-        COL_QC,
-        COL_FS,
-        COL_U2,
-        COL_U0,
-        COL_SV_TOT,
-        COL_SV_EFF,
-        AREA_RATIO,
-        GAMMA_WATER,
+        COL_DEPTH, COL_QC, COL_FS, COL_U2,
+        COL_U0, COL_SV_TOT, COL_SV_EFF,
+        COL_QT, COL_FR, COL_BQ,
+        COL_N, COL_QTN, COL_IC, COL_CONVG,
+        COL_CD, COL_IB,
+        AREA_RATIO, GAMMA_WATER,
         INDICATORS
     )
 
@@ -27,28 +24,29 @@ type IndicatorAction = Literal["ignore", "replace", "remove"]
 class InputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    depth: ColumnName = COL_DEPTH
-    qc: ColumnName = COL_QC
-    fs: ColumnName = COL_FS
-    u2: ColumnName = COL_U2
+    depth: ColumnName  = COL_DEPTH
+    qc: ColumnName     = COL_QC
+    fs: ColumnName     = COL_FS
+    u2: ColumnName     = COL_U2
 
-    u0: ColumnName = COL_U0
+    u0: ColumnName     = COL_U0
     sv_tot: ColumnName = COL_SV_TOT
     sv_eff: ColumnName = COL_SV_EFF
 
 class OutputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     
-    qt: ColumnName = "qt (MPa)"
-    fr: ColumnName = "Fr (%)"
-    bq: ColumnName = "Bq (-)"
+    qt: ColumnName    = COL_QT
+    fr: ColumnName    = COL_FR
+    bq: ColumnName    = COL_BQ
     
-    n: ColumnName = "n (-)"
-    qtn: ColumnName = "Qtn (-)"
-    ic: ColumnName = "Ic (-)"
-    conv: ColumnName = "converged (-)"
-    cd: ColumnName = "CD (-)"
-    ib: ColumnName = "IB (-)"
+    n: ColumnName     = COL_N
+    qtn: ColumnName   = COL_QTN
+    ic: ColumnName    = COL_IC
+    convg: ColumnName = COL_CONVG
+
+    cd: ColumnName    = COL_CD
+    ib: ColumnName    = COL_IB
 
 class Columns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
