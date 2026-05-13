@@ -6,6 +6,7 @@ from pydantic import NonNegativeFloat, PositiveFloat
 from ._canonical import COL_DEPTH, COL_U0, GAMMA_WATER
 from .config import ColumnName
 
+
 def compute_hydrostatic(
         data: pl.DataFrame, *,
         water_level: NonNegativeFloat,
@@ -15,7 +16,17 @@ def compute_hydrostatic(
         override: bool = False
     ) -> pl.DataFrame:
 
-    raise NotImplementedError
+    if col_u0 in data.columns and not override:
+            raise ValueError("")
+
+    data_with_u0 = data.with_columns(
+        pl.when(pl.col(col_depth) >= water_level)
+        .then((pl.col(col_depth) - water_level) * gamma_water)
+        .otherwise(0.0)
+        .alias(col_u0)
+    )
+
+    return data_with_u0
 
 def remove_rows_with_ind(
         data: pl.DataFrame, *,
