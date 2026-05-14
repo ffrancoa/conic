@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, cast
 
 import polars as pl
 from pydantic import NonNegativeFloat, PositiveFloat
@@ -52,8 +52,26 @@ def adjust_depth_spacing(
         override: bool = False
     ) -> pl.DataFrame:
 
-    raise NotImplementedError
+    if not (start_depth or spacing):
+        raise ValueError("") 
 
+    if col_depth not in data.columns:
+        raise ValueError("")
+
+    if (nrows := data.height) < 2:
+        raise ValueError(f"{nrows}")
+
+    if not start_depth:
+        start_depth = data.item(0, col_depth)
+
+    if not spacing:
+        mean_spacing = data.get_column(col_depth).diff().mean()
+        spacing = cast(float, mean_spacing)
+
+    adjusted_depth = start_depth + pl.int_range(nrows, eager=True) * spacing
+
+    return data.with_columns(adjusted_depth.round(round_digits).alias(COL_DEPTH))
+    
 def split_data_by_ind(
         data: pl.DataFrame, *,
         indicators: list[float],
