@@ -1,22 +1,22 @@
 from conic import Processor
 
 def test_default_columns():
-    pr = Processor()
+    p = Processor()
 
-    assert pr.columns.input.depth == "Depth (m)"
-    assert pr.columns.output.convg == "convg. (-)"
+    assert p.columns.input.depth == "Depth (m)"
+    assert p.columns.output.convg == "convg. (-)"
     
 def test_default_parameters():
-    pr = Processor()
+    p = Processor()
     
-    assert pr.parameters.area_ratio == 0.80
-    assert pr.parameters.gamma_soil is None
+    assert p.parameters.area_ratio == 0.80
+    assert p.parameters.gamma_soil is None
 
 def test_default_cleansing():
-    pr = Processor()
+    p = Processor()
 
-    assert pr.cleansing.start_depth is None
-    assert pr.cleansing.spacing is None
+    assert p.cleansing.start_depth is None
+    assert p.cleansing.spacing is None
     
-    assert pr.cleansing.indicators == [-9999, -8888, -7777]
-    assert pr.cleansing.indicator_action == "ignore"
+    assert p.cleansing.indicators == [-9999, -8888, -7777]
+    assert p.cleansing.indicator_action == "ignore"

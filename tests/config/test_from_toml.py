@@ -18,10 +18,10 @@ def test_read_from_toml(tmp_path):
     toml_path = tmp_path / "conic.toml"
     toml_path.write_text(toml_content)
     
-    pr = Processor.from_toml(toml_path)
+    p = Processor.from_toml(toml_path)
     
-    assert pr.parameters.gamma_water == 9.99
-    assert pr.cleansing.indicator_action == "remove"
+    assert p.parameters.gamma_water == 9.99
+    assert p.cleansing.indicator_action == "remove"
 
 def test_validate_from_toml(tmp_path):
     toml_content = dedent("""
@@ -33,4 +33,4 @@ def test_validate_from_toml(tmp_path):
     toml_path.write_text(toml_content)
     
     with pytest.raises(ValidationError):
-        Processor.from_toml(toml_path)
+        _ = Processor.from_toml(toml_path)

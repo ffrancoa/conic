@@ -12,10 +12,10 @@ def test_intermediate_level():
     
     out_data = compute_hydrostatic(inp_data, water_level=1.0, gamma_water=10)
             
-    result = out_data[COL_U0].to_list()
+    returned = out_data[COL_U0].to_list()
     expected = [0.0, 0.0, 0.0, 5.0, 10.0]
 
-    assert result == expected
+    assert returned == expected
 
 def test_surface_level():
     inp_data = pl.DataFrame({
@@ -24,10 +24,10 @@ def test_surface_level():
     
     out_data = compute_hydrostatic(inp_data, water_level=0.0, gamma_water=10)
             
-    result = out_data[COL_U0].to_list()
+    returned = out_data[COL_U0].to_list()
     expected = [0.0, 5.0, 10.0, 15.0, 20.0]
 
-    assert result == expected
+    assert returned == expected
 
 def test_below_level():
     inp_data = pl.DataFrame({
@@ -36,10 +36,10 @@ def test_below_level():
     
     out_data = compute_hydrostatic(inp_data, water_level=5.0, gamma_water=10)
             
-    result = out_data[COL_U0].to_list()
+    returned = out_data[COL_U0].to_list()
     expected = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-    assert result == expected
+    assert returned == expected
 
 def test_missing_depth_col():
     inp_data = pl.DataFrame({
@@ -56,10 +56,10 @@ def test_custom_depth_col():
 
     out_data = compute_hydrostatic(inp_data, water_level=0.0, col_depth="Other...")
 
-    result = out_data[COL_U0].to_list()
+    returned = out_data[COL_U0].to_list()
     expected = [.0, 4.905, 9.810]
 
-    assert result == expected
+    assert returned == expected
 
 def test_override_false():
     inp_data = pl.DataFrame({
@@ -78,8 +78,8 @@ def test_override_true():
 
     out_data = compute_hydrostatic(inp_data, water_level=0.5, override=True)
 
-    result = out_data[COL_U0].to_list()
+    returned = out_data[COL_U0].to_list()
     expected = [.0, .0, 4.905]
 
-    assert result == expected
+    assert returned == expected
 
