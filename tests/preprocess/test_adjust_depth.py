@@ -1,8 +1,18 @@
 import polars as pl
 import pytest
+from polars.exceptions import ColumnNotFoundError
 
 from conic.preprocess import adjust_depth_spacing
 from conic._canonical import COL_DEPTH
+
+
+def test_invalid_depth_col():
+    data = pl.DataFrame({
+            "z (m)": [0.0, 0.5, 1.0]
+        })
+
+    with pytest.raises(ColumnNotFoundError):
+        _ = adjust_depth_spacing(data)
 
 def test_invalid_mutual_arguments():
     data = pl.DataFrame({

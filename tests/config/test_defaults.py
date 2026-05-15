@@ -1,5 +1,6 @@
 from conic import Processor
 
+
 def test_default_columns():
     p = Processor()
 

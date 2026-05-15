@@ -1,6 +1,8 @@
 import pytest
-from conic import Processor
 from pydantic import ValidationError
+
+from conic import Processor
+
 
 def test_copy_with_gamma_soil():
     p1 = Processor()

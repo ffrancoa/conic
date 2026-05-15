@@ -1,8 +1,10 @@
 from textwrap import dedent
 
 import pytest
-from conic import Processor
 from pydantic import ValidationError
+
+from conic import Processor
+
 
 def test_read_from_toml(tmp_path):
     toml_content = dedent("""
