@@ -1,7 +1,7 @@
 from typing import Optional, cast
 
 import polars as pl
-from polars import exceptions as pe
+from polars.exceptions import ColumnNotFoundError
 from pydantic import NonNegativeFloat, PositiveFloat
 
 from ._canonical import COL_DEPTH, COL_U0, GAMMA_WATER
@@ -18,7 +18,7 @@ def compute_hydrostatic(
     ) -> pl.DataFrame:
 
     if col_depth not in data.columns:
-        raise pe.ColumnNotFoundError(
+        raise ColumnNotFoundError(
             f"Depth column is missing in DataFrame: '{col_depth}'."
         )
 
@@ -46,16 +46,16 @@ def adjust_depth_spacing(
         override: bool = False
     ) -> pl.DataFrame:
 
+    if col_depth not in data.columns:
+        raise ColumnNotFoundError(
+            f"Depth column is missing in DataFrame: '{col_depth}'."
+        )
+        
     if not (start_depth or spacing):
         raise ValueError(
             "Both `start_depth` and `spacing` cannot be set to "
             "`None`. Please, set at least one of those parameters."
         ) 
-
-    if col_depth not in data.columns:
-        raise pe.ColumnNotFoundError(
-            f"Depth column is missing in DataFrame: '{col_depth}'."
-        )
 
     if (nrows := data.height) < 2:
         raise ValueError(
