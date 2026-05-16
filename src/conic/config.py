@@ -1,6 +1,6 @@
 import tomllib
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Self
+from typing import Annotated, Literal, Optional, Self, cast
 
 from pydantic import (
     BaseModel,
@@ -29,7 +29,7 @@ from ._canonical import (
     COL_U0,
     COL_U2,
     GAMMA_WATER,
-    INDICATORS,
+    INDICATOR_ACTION
 )
 
 
@@ -41,10 +41,10 @@ type IndicatorAction = Literal["ignore", "replace", "remove"]
 class InputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    depth: ColumnName  = COL_DEPTH
-    qc: ColumnName     = COL_QC
-    fs: ColumnName     = COL_FS
-    u2: ColumnName     = COL_U2
+    depth: ColumnName = COL_DEPTH
+    qc: ColumnName    = COL_QC
+    fs: ColumnName    = COL_FS
+    u2: ColumnName    = COL_U2
 
     u0: ColumnName     = COL_U0
     sv_tot: ColumnName = COL_SV_TOT
@@ -53,17 +53,17 @@ class InputColumns(BaseModel):
 class OutputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     
-    qt: ColumnName    = COL_QT
-    fr: ColumnName    = COL_FR
-    bq: ColumnName    = COL_BQ
+    qt: ColumnName = COL_QT
+    fr: ColumnName = COL_FR
+    bq: ColumnName = COL_BQ
     
     n: ColumnName     = COL_N
     qtn: ColumnName   = COL_QTN
     ic: ColumnName    = COL_IC
     convg: ColumnName = COL_CONVG
 
-    cd: ColumnName    = COL_CD
-    ib: ColumnName    = COL_IB
+    cd: ColumnName = COL_CD
+    ib: ColumnName = COL_IB
 
 class Columns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -85,8 +85,8 @@ class Cleansing(BaseModel):
     start_depth: Optional[NonNegativeFloat] = None
     spacing: Optional[PositiveFloat] = None
     
-    indicators: list[float] = Field(default_factory=lambda: INDICATORS)
-    indicator_action: IndicatorAction = "ignore"
+    indicators: list[float] = Field(default_factory=lambda: list())
+    indicator_action: IndicatorAction = cast(IndicatorAction, INDICATOR_ACTION)
 
 class Processor(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)

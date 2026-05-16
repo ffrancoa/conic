@@ -19,5 +19,5 @@ def test_default_cleansing():
     assert p.cleansing.start_depth is None
     assert p.cleansing.spacing is None
     
-    assert p.cleansing.indicators == [-9999, -8888, -7777]
+    assert p.cleansing.indicators == []
     assert p.cleansing.indicator_action == "ignore"

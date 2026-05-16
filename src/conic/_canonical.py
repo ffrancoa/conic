@@ -1,25 +1,26 @@
-COL_DEPTH   = "Depth (m)"
-COL_QC      = "qc (MPa)"
-COL_FS      = "fs (kPa)"
-COL_U2      = "u2 (kPa)"
+COL_DEPTH: str = "Depth (m)"
+COL_QC: str    = "qc (MPa)"
+COL_FS: str    = "fs (kPa)"
+COL_U2: str    = "u2 (kPa)"
 
-COL_U0      = "u0 (kPa)"
-COL_SV_TOT  = "σv tot (kPa)"
-COL_SV_EFF  = "σv eff (kPa)"
+COL_U0: str     = "u0 (kPa)"
+COL_SV_TOT: str = "σv tot (kPa)"
+COL_SV_EFF: str = "σv eff (kPa)"
 
-COL_QT      = "qt (MPa)"
-COL_FR      = "Fr (%)"
-COL_BQ      = "Bq (-)"
+COL_QT: str = "qt (MPa)"
+COL_FR: str = "Fr (%)"
+COL_BQ: str = "Bq (-)"
 
-COL_N       = "n (-)"
-COL_QTN     = "Qtn (-)"
-COL_IC      = "Ic (-)"
-COL_CONVG   = "convg. (-)"
+COL_N: str     = "n (-)"
+COL_QTN: str   = "Qtn (-)"
+COL_IC: str    = "Ic (-)"
+COL_CONVG: str = "convg. (-)"
 
-COL_CD      = "CD (-)"
-COL_IB      = "IB (-)"
+COL_CD: str = "CD (-)"
+COL_IB: str = "IB (-)"
 
-AREA_RATIO  = 0.80
-GAMMA_WATER = 9.81
+AREA_RATIO: float  = 0.80
+GAMMA_WATER: float = 9.81
 
-INDICATORS  = [-9999, -8888, -7777]
+INDICATOR_ACTION: str = "ignore"
+
