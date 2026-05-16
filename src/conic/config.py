@@ -6,6 +6,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    NegativeFloat,
     NonNegativeFloat,
     PositiveFloat,
 )
@@ -35,6 +36,7 @@ from ._canonical import (
 
 type ColumnName = Annotated[str, Field(max_length=50)]
 type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
+type Indicators = list[NegativeFloat]
 type IndicatorAction = Literal["ignore", "replace", "remove"]
 
 
@@ -85,7 +87,7 @@ class Cleansing(BaseModel):
     start_depth: Optional[NonNegativeFloat] = None
     spacing: Optional[PositiveFloat] = None
     
-    indicators: list[float] = Field(default_factory=lambda: list())
+    indicators: Indicators = Field(default_factory=lambda: list())
     indicator_action: IndicatorAction = cast(IndicatorAction, INDICATOR_ACTION)
 
 class Processor(BaseModel):

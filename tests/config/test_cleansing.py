@@ -21,10 +21,10 @@ def test_copy_with_spacing():
 
 def test_copy_with_indicators():
     p1 = Processor()
-    p2 = p1.with_indicators([999])
+    p2 = p1.with_indicators([-999])
     
     assert p1 is not p2
-    assert p2.cleansing.indicators == [999.0]
+    assert p2.cleansing.indicators == [-999.0]
     
 def test_parse_with_indicators():
     p1 = Processor()
