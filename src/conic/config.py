@@ -97,49 +97,41 @@ class Processor(BaseModel):
     parameters: Parameters = Field(default_factory=Parameters)
     cleansing: Cleansing = Field(default_factory=Cleansing)
 
+    def _with_field(self, submodel_name: str, field_name: str, value: object) -> Self:
+        submodel = getattr(self, submodel_name)
+
+        new_submodel_dict = submodel.model_dump() | {field_name: value}
+        new_submodel = type(submodel)(**new_submodel_dict)
+
+        return self.model_copy(update={submodel_name: new_submodel})
+
     def with_area_ratio(self, value: UnitRatio) -> Self:
-        new_parameters_dict = self.parameters.model_dump() | {"area_ratio": value}
-        new_parameters = Parameters(**new_parameters_dict)
-        return self.model_copy(update={"parameters": new_parameters})
+        return self._with_field("parameters", "area_ratio", value)
 
     def with_gamma_water(self, value: PositiveFloat) -> Self:
-        new_parameters_dict = self.parameters.model_dump() | {"gamma_water": value}
-        new_parameters = Parameters(**new_parameters_dict)
-        return self.model_copy(update={"parameters": new_parameters})
+        return self._with_field("parameters", "gamma_water", value)
 
     def with_gamma_soil(self, value: Optional[PositiveFloat]) -> Self:
-        new_parameters_dict = self.parameters.model_dump() | {"gamma_soil": value}
-        new_parameters = Parameters(**new_parameters_dict)
-        return self.model_copy(update={"parameters": new_parameters})
+        return self._with_field("parameters", "gamma_soil", value)
 
     def with_water_level(self, value: Optional[NonNegativeFloat]) -> Self:
-        new_parameters_dict = self.parameters.model_dump() | {"water_level": value}
-        new_parameters = Parameters(**new_parameters_dict)
-        return self.model_copy(update={"parameters": new_parameters})
+        return self._with_field("parameters", "water_level", value)
 
     def with_start_depth(self, value: Optional[NonNegativeFloat]) -> Self:
-        new_cleansing_dict = self.cleansing.model_dump() | {"start_depth": value}
-        new_cleansing = Cleansing(**new_cleansing_dict)
-        return self.model_copy(update={"cleansing": new_cleansing})
+        return self._with_field("cleansing", "start_depth", value)
 
     def with_spacing(self, value: Optional[PositiveFloat]) -> Self:
-        new_cleansing_dict = self.cleansing.model_dump() | {"spacing": value}
-        new_cleansing = Cleansing(**new_cleansing_dict)
-        return self.model_copy(update={"cleansing": new_cleansing})
+        return self._with_field("cleansing", "spacing", value)
 
     def with_indicators(self, values: list[float]) -> Self:
-        new_cleansing_dict = self.cleansing.model_dump() | {"indicators": list(values)}
-        new_cleansing = Cleansing(**new_cleansing_dict)
-        return self.model_copy(update={"cleansing": new_cleansing})
+        return self._with_field("cleansing", "indicators", values)
 
     def with_indicator_action(self, value: IndicatorAction) -> Self:
-        new_cleansing_dict = self.cleansing.model_dump() | {"indicator_action": value}
-        new_cleansing = Cleansing(**new_cleansing_dict)
-        return self.model_copy(update={"cleansing": new_cleansing})
+        return self._with_field("cleansing", "indicator_action", value)
 
     @classmethod
     def from_toml(cls, file_path: Path | str) -> Self:
-        with open(Path(file_path), "rb") as file:
+        with Path(file_path).open("rb") as file:
             config = tomllib.load(file)
-            return cls.model_validate(config)
+        return cls.model_validate(config)
 
