@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast, Literal, Optional
 
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
@@ -6,6 +6,9 @@ from pydantic import NonNegativeFloat, PositiveFloat
 
 from ._canonical import COL_DEPTH, COL_U0, GAMMA_WATER
 from .config import ColumnName
+
+
+type FilterAction = Literal["remove", "select"]
 
 
 def compute_hydrostatic(
@@ -43,7 +46,6 @@ def adjust_depth_spacing(
         spacing: Optional[PositiveFloat] = None,
         round_digits: int = 3,
         col_depth: ColumnName = COL_DEPTH,
-        override: bool = False
     ) -> pl.DataFrame:
 
     if col_depth not in data.columns:
@@ -51,7 +53,7 @@ def adjust_depth_spacing(
             f"Depth column is missing in DataFrame: '{col_depth}'."
         )
         
-    if not (start_depth or spacing):
+    if start_depth is None and spacing is None:
         raise ValueError(
             "Both `start_depth` and `spacing` cannot be set to "
             "`None`. Please, set at least one of those parameters."
@@ -62,38 +64,59 @@ def adjust_depth_spacing(
             "DataFrame must have at least 2 rows to infer depth spacing. "
         )
 
-    if not start_depth:
+    if start_depth is None:
         start_depth = data.item(0, col_depth)
 
-    if not spacing:
+    if spacing is None:
         mean_spacing = data.get_column(col_depth).diff().mean()
         spacing = cast(float, mean_spacing)
 
     new_depths = start_depth + pl.int_range(nrows, eager=True) * spacing
     new_depths = new_depths.round(round_digits)
 
-    return data.with_columns(new_depths.alias(COL_DEPTH))
+    return data.with_columns(new_depths.alias(col_depth))
 
-def remove_rows_with_ind(
-        data: pl.DataFrame, *,
-        indicators: list[float]
+def filter_by_indicators(
+        data: pl.DataFrame,
+        indicators: list[float], *,
+        action: FilterAction = "remove"
     ) -> pl.DataFrame:
 
-    raise NotImplementedError
+    if action not in ["remove", "select"]:
+        raise ValueError(
+            "Invalid `action` argument. Must be 'remove' or 'select'."
+        )
 
-def replace_rows_with_ind(
-        data: pl.DataFrame, *,
-        indicators: list[float],
-        value: Optional[float] = None
-    ) -> pl.DataFrame:
-
-    raise NotImplementedError
+    expr = pl.selectors.numeric().is_in(indicators)
+    expr = pl.any_horizontal(expr)
     
-def split_data_by_ind(
-        data: pl.DataFrame, *,
-        indicators: list[float],
+    return data.filter(expr.not_() if action == "remove" else expr)
+
+def split_by_indicators(
+        data: pl.DataFrame,
+        indicators: list[float], *,
         index_col: str = "_id_"        
     ) -> tuple[pl.DataFrame, pl.DataFrame]:
 
-    raise NotImplementedError
+    indexed_data = data.with_row_index(index_col)
+
+    rows_with = filter_by_indicators(indexed_data, indicators, action="select")
+    rows_without = filter_by_indicators(indexed_data, indicators)
+    
+    return rows_with, rows_without
+
+def replace_indicators(
+        data: pl.DataFrame,
+        indicators: list[float], *,
+        value: Optional[float] = None
+    ) -> pl.DataFrame:
+
+    nums_expr = pl.selectors.numeric()
+
+    return data.with_columns(
+        pl.when(nums_expr.is_in(indicators))
+        .then(value)
+        .otherwise(nums_expr)
+        .name.keep()
+    )
 
