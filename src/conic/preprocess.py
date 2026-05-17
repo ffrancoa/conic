@@ -5,11 +5,11 @@ from polars.exceptions import ColumnNotFoundError
 from pydantic import NonNegativeFloat, PositiveFloat
 
 from ._canonical import COL_DEPTH, COL_U0, GAMMA_WATER
-from .config import ColumnName
+from .config import ColumnName, CleanMode
 
 
 type FilterAction = Literal["remove", "select"]
-type CleanAction = Literal["remove", "replace"]
+
 
 def compute_hydrostatic(
         data: pl.DataFrame, *,
@@ -108,15 +108,15 @@ def split_by_indicators(
 def clean_by_indicators(
         data: pl.DataFrame,
         indicators: list[float], *,
-        action: CleanAction = "replace"
+        mode: CleanMode = "replace"
     ) -> pl.DataFrame:
 
-    if action not in ["remove", "replace"]:
+    if mode not in ["remove", "replace"]:
         raise ValueError(
             "Invalid `action` argument. Must be 'remove' or 'replace'."
         )
 
-    match action:
+    match mode:
         case "remove":
             return filter_by_indicators(data, indicators, action="remove")
         case "replace":

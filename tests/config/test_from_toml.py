@@ -14,7 +14,7 @@ def test_read_from_toml(tmp_path):
         area_ratio = 0.85
 
         [cleansing]
-        indicator_action = "remove"
+        clean_mode = "remove"
     """)
     
     toml_path = tmp_path / "conic.toml"
@@ -23,7 +23,7 @@ def test_read_from_toml(tmp_path):
     p = Processor.from_toml(toml_path)
     
     assert p.parameters.gamma_water == 9.99
-    assert p.cleansing.indicator_action == "remove"
+    assert p.cleansing.clean_mode == "remove"
 
 def test_validate_from_toml(tmp_path):
     toml_content = dedent("""

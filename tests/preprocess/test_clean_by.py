@@ -23,7 +23,7 @@ def test_remove():
             COL_QC: [-8888.0, 1.1, 1.2, -8888.0, 1.7]
         })
 
-    returned = clean_by_indicators(data, [-8888], action="remove")
+    returned = clean_by_indicators(data, [-8888], mode="remove")
     expected = pl.DataFrame({
             COL_DEPTH: [0.5, 1.5, 2.5],
             COL_QC: [1.1, 1.2, 1.7]

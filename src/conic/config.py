@@ -30,14 +30,14 @@ from ._canonical import (
     COL_U0,
     COL_U2,
     GAMMA_WATER,
-    CLEAN_ACTION
+    CLEAN_MODE
 )
 
 
 type ColumnName = Annotated[str, Field(max_length=50)]
 type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
 type Indicators = list[NegativeFloat]
-type IndicatorAction = Literal["replace", "remove"]
+type CleanMode = Literal["replace", "remove"]
 
 
 class InputColumns(BaseModel):
@@ -88,7 +88,7 @@ class Cleansing(BaseModel):
     spacing: Optional[PositiveFloat] = None
     
     indicators: Indicators = Field(default_factory=lambda: list())
-    indicator_action: IndicatorAction = cast(IndicatorAction, CLEAN_ACTION)
+    clean_mode: CleanMode = cast(CleanMode, CLEAN_MODE)
 
 class Processor(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)

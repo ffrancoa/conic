@@ -22,5 +22,5 @@ COL_IB: str = "IB (-)"
 AREA_RATIO: float  = 0.80
 GAMMA_WATER: float = 9.81
 
-CLEAN_ACTION: str = "replace"
+CLEAN_MODE: str = "replace"
 
