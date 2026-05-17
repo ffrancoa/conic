@@ -1,11 +1,12 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Literal, NamedTuple, Self, overload
 
 import polars as pl
 
 from .config import Processor
-from .validation import validate_columns
+from .validation import get_fingerprint, validate_columns
 from . import preprocess
 
 
@@ -87,31 +88,42 @@ class Pipeliner:
     @overload
     def run(
             self,
-            data: pl.DataFrame, *,
+            inp_data: pl.DataFrame, *,
             metadata: Literal[False] = False,
             validate: bool = True
         ) -> pl.DataFrame: ...
     @overload
     def run(
             self,
-            data: pl.DataFrame, *,
+            inp_data: pl.DataFrame, *,
             metadata: Literal[True],
             validate: bool = True
         ) -> PipelineResult: ...
     def run(
             self,
-            data: pl.DataFrame, *,
+            inp_data: pl.DataFrame, *,
             metadata: bool = False,
             validate: bool = True
         ) -> pl.DataFrame | PipelineResult:
 
         if validate:
-            validate_columns(data, self.processor)
+            validate_columns(inp_data, self.processor)
 
-        result = data
+        out_data = inp_data
 
         for step in self.steps:
-            result = step.apply(result)
+            out_data = step.apply(out_data)
             
-        return result
+        if not metadata:
+            return out_data
+
+        meta = {
+            "data_hash": get_fingerprint(inp_data),
+            "source_path": None,
+            "processor": self.processor.model_dump(),
+            "steps": [step.name for step in self.steps],
+            "timestamp_utc": datetime.now(timezone.utc).isoformat
+        }
+
+        return PipelineResult(data=out_data, metadata=meta)
 
