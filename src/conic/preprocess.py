@@ -12,8 +12,8 @@ type FilterAction = Literal["remove", "select"]
 
 
 def compute_hydrostatic(
-        data: pl.DataFrame, *,
-        water_level: NonNegativeFloat,
+        data: pl.DataFrame,
+        water_level: Optional[NonNegativeFloat] = None, *,
         gamma_water: PositiveFloat = GAMMA_WATER,
         col_depth: ColumnName = COL_DEPTH,
         col_u0: ColumnName = COL_U0,
@@ -31,12 +31,15 @@ def compute_hydrostatic(
             f"this DataFrame. Set `override=True` to override."
         )
 
-    data_with_u0 = data.with_columns(
-        pl.when(pl.col(col_depth) >= water_level)
-        .then((pl.col(col_depth) - water_level) * gamma_water)
-        .otherwise(0.0)
-        .alias(col_u0)
-    )
+    if water_level is None:
+        data_with_u0 = data.with_columns(pl.lit(0.0).alias(col_u0))
+    else:
+        data_with_u0 = data.with_columns(
+            pl.when(pl.col(col_depth) >= water_level)
+            .then((pl.col(col_depth) - water_level) * gamma_water)
+            .otherwise(0.0)
+            .alias(col_u0)
+        )
 
     return data_with_u0
 
@@ -44,7 +47,7 @@ def adjust_depth_spacing(
         data: pl.DataFrame, *,
         start_depth: Optional[NonNegativeFloat] = None,
         spacing: Optional[PositiveFloat] = None,
-        round_digits: int = 3,
+        digits: int = 3,
         col_depth: ColumnName = COL_DEPTH,
     ) -> pl.DataFrame:
 
@@ -53,11 +56,11 @@ def adjust_depth_spacing(
             f"Depth column is missing in DataFrame: '{col_depth}'."
         )
         
-    if start_depth is None and spacing is None:
-        raise ValueError(
-            "Both `start_depth` and `spacing` cannot be set to "
-            "`None`. Please, set at least one of those parameters."
-        ) 
+    # if start_depth is None and spacing is None:
+    #    raise ValueError(
+    #        "Both `start_depth` and `spacing` cannot be set to "
+    #        "`None`. Please, set at least one of those parameters."
+    #    ) 
 
     if (nrows := data.height) < 2:
         raise ValueError(
@@ -72,7 +75,7 @@ def adjust_depth_spacing(
         spacing = cast(float, mean_spacing)
 
     new_depths = start_depth + pl.int_range(nrows, eager=True) * spacing
-    new_depths = new_depths.round(round_digits)
+    new_depths = new_depths.round(digits)
 
     return data.with_columns(new_depths.alias(col_depth))
 

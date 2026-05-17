@@ -6,6 +6,18 @@ from conic.preprocess import compute_hydrostatic
 from conic._canonical import COL_DEPTH, COL_U0
 
 
+def test_default_none():
+    inp_data = pl.DataFrame({
+            COL_DEPTH: [0.0, 0.5, 1.0]
+        })
+    
+    out_data = compute_hydrostatic(inp_data)
+            
+    returned = out_data[COL_U0].to_list()
+    expected = [0.0, 0.0, 0.0]
+
+    assert returned == expected
+
 def test_intermediate_level():
     inp_data = pl.DataFrame({
             COL_DEPTH: [0.0, 0.5, 1.0, 1.5, 2.0]
