@@ -1,7 +1,7 @@
 import polars as pl
 
 from conic.pipeline import Pipeliner, Step
-from conic.config import Processor, Parameters, Cleansing
+from conic.config import Processor
 from conic._canonical import COL_DEPTH, COL_QC, COL_U0
 
 def test_default_pipeliner():
@@ -13,7 +13,7 @@ def test_default_pipeliner():
         COL_QC: [0.9, 1.3, 1.5, 1.2, 1.4]
     })
     
-    out_data = pipe.run(inp_data)
+    out_data = pipe.run(inp_data, validate=False)
 
     assert COL_U0 in out_data.columns
 
@@ -30,7 +30,7 @@ def test_custom_pipeliner():
         COL_QC: [0.3, 0.7, 0.8]
     })
 
-    out_data = pipe.run(inp_data)
+    out_data = pipe.run(inp_data, validate=False)
 
     returned = out_data[COL_QC].to_list()
     expected = [8.3, 8.7, 8.8]

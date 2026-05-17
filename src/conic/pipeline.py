@@ -5,6 +5,7 @@ from typing import Literal, NamedTuple, Self, overload
 import polars as pl
 
 from .config import Processor
+from .validation import validate_columns
 from . import preprocess
 
 
@@ -84,15 +85,28 @@ class Pipeliner:
         return cls(processor=processor, steps=steps)
 
     @overload
-    def run(self, data: pl.DataFrame) -> pl.DataFrame: ...
-    @overload
-    def run(self, data: pl.DataFrame, *, metadata: Literal[True]) -> ProcessingResult:
-        pass
     def run(
             self,
             data: pl.DataFrame, *,
-            metadata: bool = False
+            metadata: Literal[False] = False,
+            validate: bool = True
+        ) -> pl.DataFrame: ...
+    @overload
+    def run(
+            self,
+            data: pl.DataFrame, *,
+            metadata: Literal[True],
+            validate: bool = True
+        ) -> PipelineResult: ...
+    def run(
+            self,
+            data: pl.DataFrame, *,
+            metadata: bool = False,
+            validate: bool = True
         ) -> pl.DataFrame | PipelineResult:
+
+        if validate:
+            validate_columns(data, self.processor)
 
         result = data
 
