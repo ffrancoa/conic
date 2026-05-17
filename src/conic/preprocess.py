@@ -9,7 +9,7 @@ from .config import ColumnName
 
 
 type FilterAction = Literal["remove", "select"]
-
+type CleanAction = Literal["remove", "replace"]
 
 def compute_hydrostatic(
         data: pl.DataFrame, *,
@@ -105,18 +105,25 @@ def split_by_indicators(
     
     return rows_with, rows_without
 
-def replace_indicators(
+def clean_by_indicators(
         data: pl.DataFrame,
         indicators: list[float], *,
-        value: Optional[float] = None
+        action: CleanAction = "replace"
     ) -> pl.DataFrame:
 
-    nums_expr = pl.selectors.numeric()
+    if action not in ["remove", "replace"]:
+        raise ValueError(
+            "Invalid `action` argument. Must be 'remove' or 'replace'."
+        )
 
-    return data.with_columns(
-        pl.when(nums_expr.is_in(indicators))
-        .then(value)
-        .otherwise(nums_expr)
-        .name.keep()
-    )
+    match action:
+        case "remove":
+            return filter_by_indicators(data, indicators, action="remove")
+        case "replace":
+            return data.with_columns(
+                pl.when(pl.selectors.numeric().is_in(indicators))
+                .then(None)
+                .otherwise(pl.selectors.numeric())
+                .name.keep()
+            )
 

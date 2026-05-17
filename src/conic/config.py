@@ -30,7 +30,7 @@ from ._canonical import (
     COL_U0,
     COL_U2,
     GAMMA_WATER,
-    INDICATOR_ACTION
+    CLEAN_ACTION
 )
 
 
@@ -88,7 +88,7 @@ class Cleansing(BaseModel):
     spacing: Optional[PositiveFloat] = None
     
     indicators: Indicators = Field(default_factory=lambda: list())
-    indicator_action: IndicatorAction = cast(IndicatorAction, INDICATOR_ACTION)
+    indicator_action: IndicatorAction = cast(IndicatorAction, CLEAN_ACTION)
 
 class Processor(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
