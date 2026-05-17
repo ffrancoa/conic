@@ -37,7 +37,7 @@ from ._canonical import (
 type ColumnName = Annotated[str, Field(max_length=50)]
 type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
 type Indicators = list[NegativeFloat]
-type IndicatorAction = Literal["ignore", "replace", "remove"]
+type IndicatorAction = Literal["replace", "remove"]
 
 
 class InputColumns(BaseModel):

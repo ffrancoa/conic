@@ -20,4 +20,4 @@ def test_default_cleansing():
     assert p.cleansing.spacing is None
     
     assert p.cleansing.indicators == []
-    assert p.cleansing.indicator_action == "ignore"
+    assert p.cleansing.indicator_action == "replace"
