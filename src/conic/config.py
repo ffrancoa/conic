@@ -11,7 +11,7 @@ from pydantic import (
     PositiveFloat,
 )
 
-from ._canonical import (
+from conic._canonical import (
     AREA_RATIO,
     COL_BQ,
     COL_CD,
@@ -126,8 +126,8 @@ class Processor(BaseModel):
     def with_indicators(self, values: list[float]) -> Self:
         return self._with_field("cleansing", "indicators", values)
 
-    def with_indicator_action(self, value: IndicatorAction) -> Self:
-        return self._with_field("cleansing", "indicator_action", value)
+    def with_clean_mode(self, value: CleanMode) -> Self:
+        return self._with_field("cleansing", "clean_mode", value)
 
     @classmethod
     def from_toml(cls, file_path: Path | str) -> Self:
