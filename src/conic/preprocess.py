@@ -1,22 +1,26 @@
-from typing import cast, Literal, Optional
+from typing import Literal, Optional, cast
 
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
-from pydantic import NonNegativeFloat, PositiveFloat
 
-from ._canonical import COL_DEPTH, COL_U0, GAMMA_WATER
-from .config import ColumnName, CleanMode
-
-
-type FilterAction = Literal["remove", "select"]
-
+from conic._canonical import (
+    COL_DEPTH,
+    COL_FS,
+    COL_QC,
+    COL_SV_EFF,
+    COL_SV_TOT,
+    COL_U0,
+    COL_U2,
+    GAMMA_WATER
+)
+from conic._helpers import get_missing_columns
 
 def compute_hydrostatic(
         data: pl.DataFrame,
-        water_level: Optional[NonNegativeFloat] = None, *,
-        gamma_water: PositiveFloat = GAMMA_WATER,
-        col_depth: ColumnName = COL_DEPTH,
-        col_u0: ColumnName = COL_U0,
+        water_level: Optional[float] = None, *,
+        gamma_water: float = GAMMA_WATER,
+        col_depth: str = COL_DEPTH,
+        col_u0: str = COL_U0,
         override: bool = False
     ) -> pl.DataFrame:
 
@@ -45,22 +49,16 @@ def compute_hydrostatic(
 
 def adjust_depth_spacing(
         data: pl.DataFrame, *,
-        start_depth: Optional[NonNegativeFloat] = None,
-        spacing: Optional[PositiveFloat] = None,
+        start_depth: Optional[float] = None,
+        spacing: Optional[float] = None,
         digits: int = 3,
-        col_depth: ColumnName = COL_DEPTH,
+        col_depth: str = COL_DEPTH,
     ) -> pl.DataFrame:
 
     if col_depth not in data.columns:
         raise ColumnNotFoundError(
             f"Depth column is missing in DataFrame: '{col_depth}'."
         )
-        
-    # if start_depth is None and spacing is None:
-    #    raise ValueError(
-    #        "Both `start_depth` and `spacing` cannot be set to "
-    #        "`None`. Please, set at least one of those parameters."
-    #    ) 
 
     if (nrows := data.height) < 2:
         raise ValueError(
@@ -72,17 +70,45 @@ def adjust_depth_spacing(
 
     if spacing is None:
         mean_spacing = data.get_column(col_depth).diff().mean()
-        spacing = cast(float, mean_spacing)
+        spacing = round(cast(float, mean_spacing), digits)
 
     new_depths = start_depth + pl.int_range(nrows, eager=True) * spacing
     new_depths = new_depths.round(digits)
 
     return data.with_columns(new_depths.alias(col_depth))
 
+def sanitize_dataframe(
+        data: pl.DataFrame, *,
+        col_depth: str = COL_DEPTH,
+        col_qc: str = COL_QC,
+        col_fs: str = COL_FS,
+        col_u2: str = COL_U2,
+        col_u0: str = COL_U0,
+        col_sv_eff: str = COL_SV_EFF,
+        col_sv_tot: str = COL_SV_TOT,
+        include_optional: bool = True
+    ) -> pl.DataFrame:
+
+    required_columns = [col_depth, col_qc, col_fs, col_u2]
+    optional_columns = [col_u0, col_sv_eff, col_sv_tot]
+
+    if missing_columns := get_missing_columns(data, required_columns):
+        raise ColumnNotFoundError(
+            f"Missing required columns: '{missing_columns}'."
+        )
+
+    selected_columns = required_columns
+
+    if include_optional:
+        additional_columns = set(optional_columns).intersection(data.columns)
+        selected_columns += list(additional_columns)
+
+    return data.select(selected_columns)
+
 def filter_by_indicators(
         data: pl.DataFrame,
         indicators: list[float], *,
-        action: FilterAction = "remove"
+        action: Literal["remove", "select"] = "remove"
     ) -> pl.DataFrame:
 
     if action not in ["remove", "select"]:
@@ -111,7 +137,7 @@ def split_by_indicators(
 def clean_by_indicators(
         data: pl.DataFrame,
         indicators: list[float], *,
-        mode: CleanMode = "replace"
+        mode: Literal["remove", "replace"] = "replace"
     ) -> pl.DataFrame:
 
     if mode not in ["remove", "replace"]:

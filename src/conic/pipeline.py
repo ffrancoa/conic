@@ -5,9 +5,9 @@ from typing import Literal, NamedTuple, Self, overload
 
 import polars as pl
 
-from .config import Processor
-from .validation import get_fingerprint, validate_columns
-from . import preprocess
+from conic import preprocess
+from conic.config import Processor
+from conic._helpers import dataframe_fingerprint
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +18,39 @@ class Step:
 @dataclass(frozen=True, slots=True)
 class StepCatalog:
     processor: Processor
+
+    def adjust_depth_spacing(self) -> Step:
+        function = preprocess.adjust_depth_spacing
+        cleansing = self.processor.cleansing
+        columns = self.processor.columns
+
+        def callback(data: pl.DataFrame) -> pl.DataFrame:
+            return function(
+                data,
+                start_depth=cleansing.start_depth,
+                spacing=cleansing.spacing,
+                col_depth=columns.input.depth
+            )
+
+        return Step(name=function.__name__, apply=callback)
+
+    def sanitize_dataframe(self) -> Step:
+        function = preprocess.sanitize_dataframe
+        columns = self.processor.columns
+
+        def callback(data: pl.DataFrame) -> pl.DataFrame:
+            return function(
+                data,
+                col_depth=columns.input.depth,
+                col_qc=columns.input.qc,
+                col_fs=columns.input.fs,
+                col_u2=columns.input.u2,
+                col_u0=columns.input.u0,
+                col_sv_eff=columns.input.sv_eff,
+                col_sv_tot=columns.input.sv_tot
+            )
+
+        return Step(name=function.__name__, apply=callback)
 
     def compute_hydrostatic(self) -> Step:
         function = preprocess.compute_hydrostatic
@@ -32,21 +65,6 @@ class StepCatalog:
                 col_depth=columns.input.depth,
                 col_u0=columns.input.u0,
                 override=True
-            )
-
-        return Step(name=function.__name__, apply=callback)
-
-    def adjust_depth_spacing(self) -> Step:
-        function = preprocess.adjust_depth_spacing
-        cleansing = self.processor.cleansing
-        columns = self.processor.columns
-
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
-            return function(
-                data,
-                start_depth=cleansing.start_depth,
-                spacing=cleansing.spacing,
-                col_depth=columns.input.depth
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -78,6 +96,7 @@ class Pipeliner:
         catalog = StepCatalog(processor)
         
         steps = (
+            catalog.sanitize_dataframe(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
             catalog.compute_hydrostatic()
@@ -90,24 +109,18 @@ class Pipeliner:
             self,
             inp_data: pl.DataFrame, *,
             metadata: Literal[False] = False,
-            validate: bool = True
         ) -> pl.DataFrame: ...
     @overload
     def run(
             self,
             inp_data: pl.DataFrame, *,
             metadata: Literal[True],
-            validate: bool = True
         ) -> PipelineResult: ...
     def run(
             self,
             inp_data: pl.DataFrame, *,
-            metadata: bool = False,
-            validate: bool = True
+            metadata: bool = False
         ) -> pl.DataFrame | PipelineResult:
-
-        if validate:
-            validate_columns(inp_data, self.processor)
 
         out_data = inp_data
 
@@ -118,7 +131,7 @@ class Pipeliner:
             return out_data
 
         meta = {
-            "data_hash": get_fingerprint(inp_data),
+            "data_hash": dataframe_fingerprint(inp_data),
             "source_path": None,
             "processor": self.processor.model_dump(),
             "steps": [step.name for step in self.steps],
