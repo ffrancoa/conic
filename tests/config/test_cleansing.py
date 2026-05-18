@@ -1,39 +1,39 @@
 import pytest
 from pydantic import ValidationError
 
-from conic import Processor
+from conic.config import Configurator
 
 
 def test_copy_with_start_depth():
-    p1 = Processor()
-    p2 = p1.with_start_depth(1)
+    config_a = Configurator()
+    config_b = config_a.with_start_depth(1)
 
-    assert p1 is not p2
-    assert p2.cleansing.start_depth == 1
-    assert p2.cleansing.start_depth == 1.0
+    assert config_a is not config_b
+    assert config_b.cleansing.start_depth == 1
+    assert config_b.cleansing.start_depth == 1.0
 
 def test_copy_with_spacing():
-    p1 = Processor()
-    p2 = p1.with_spacing(0.025)
+    config_a = Configurator()
+    config_b = config_a.with_spacing(0.025)
 
-    assert p1 is not p2
-    assert p2.cleansing.spacing == .025
+    assert config_a is not config_b
+    assert config_b.cleansing.spacing == .025
 
 def test_copy_with_indicators():
-    p1 = Processor()
-    p2 = p1.with_indicators([-999])
+    config_a = Configurator()
+    config_b = config_a.with_indicators([-999])
     
-    assert p1 is not p2
-    assert p2.cleansing.indicators == [-999.0]
+    assert config_a is not config_b
+    assert config_b.cleansing.indicators == [-999.0]
     
 def test_parse_with_indicators():
-    p1 = Processor()
-    p2 = p1.with_indicators(["-999"])
+    config_a = Configurator()
+    config_b = config_a.with_indicators(["-999"])
     
-    assert p2.cleansing.indicators == [-999.0]
+    assert config_b.cleansing.indicators == [-999.0]
 
 def test_validate_with_spacing():
-    p = Processor()
+    p = Configurator()
 
     with pytest.raises(ValidationError):
         p.with_spacing(0.0)

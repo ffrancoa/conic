@@ -1,13 +1,13 @@
 import polars as pl
 
-from conic.config import Parameters, Processor
+from conic.config import Configurator, Parameters
 from conic.pipeline import Pipeliner
 from conic._canonical import COL_DEPTH, COL_QC, COL_FS, COL_U2
 
 
 def test_metadata_unpacking():
-    processor = Processor(parameters=Parameters(water_level=2.0))
-    pipeliner = Pipeliner.default(processor)
+    config = Configurator(parameters=Parameters(water_level=2.0))
+    pipeliner = Pipeliner.default(config)
 
     inp_data = pl.DataFrame({
         COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],
@@ -22,8 +22,8 @@ def test_metadata_unpacking():
     assert isinstance(meta, dict)
 
 def test_metadata_fields():
-    processor = Processor(parameters=Parameters(water_level=2.0))
-    pipeliner = Pipeliner.default(processor)
+    config = Configurator(parameters=Parameters(water_level=2.0))
+    pipeliner = Pipeliner.default(config)
 
     data = pl.DataFrame({
         COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],
@@ -35,13 +35,13 @@ def test_metadata_fields():
     result = pipeliner.run(data, metadata=True)
 
     assert set(result.metadata.keys()) == {
-        "data_hash", "source_path", "processor", "steps", "timestamp_utc"
+        "data_hash", "source_path", "config", "steps", "timestamp_utc"
     }
 
 
 def test_hash_is_deterministic():
-    processor = Processor(parameters=Parameters(water_level=1.0))
-    pipeliner = Pipeliner.default(processor)
+    config = Configurator(parameters=Parameters(water_level=1.0))
+    pipeliner = Pipeliner.default(config)
 
     data = pl.DataFrame({
         COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],

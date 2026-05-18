@@ -1,23 +1,23 @@
-from conic import Processor
+from conic.config import Configurator
 
 
 def test_default_columns():
-    p = Processor()
+    config = Configurator()
 
-    assert p.columns.input.depth == "Depth (m)"
-    assert p.columns.output.convg == "convg. (-)"
+    assert config.columns.input.depth == "Depth (m)"
+    assert config.columns.output.convg == "convg. (-)"
     
 def test_default_parameters():
-    p = Processor()
+    config = Configurator()
     
-    assert p.parameters.area_ratio == 0.80
-    assert p.parameters.gamma_soil is None
+    assert config.parameters.area_ratio == 0.80
+    assert config.parameters.gamma_soil is None
 
 def test_default_cleansing():
-    p = Processor()
+    config = Configurator()
 
-    assert p.cleansing.start_depth is None
-    assert p.cleansing.spacing is None
+    assert config.cleansing.start_depth is None
+    assert config.cleansing.spacing is None
     
-    assert p.cleansing.indicators == []
-    assert p.cleansing.clean_mode == "replace"
+    assert config.cleansing.indicators == []
+    assert config.cleansing.clean_mode == "replace"

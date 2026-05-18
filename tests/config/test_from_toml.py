@@ -3,7 +3,7 @@ from textwrap import dedent
 import pytest
 from pydantic import ValidationError
 
-from conic import Processor
+from conic.config import Configurator
 
 
 def test_read_from_toml(tmp_path):
@@ -20,10 +20,10 @@ def test_read_from_toml(tmp_path):
     toml_path = tmp_path / "conic.toml"
     toml_path.write_text(toml_content)
     
-    p = Processor.from_toml(toml_path)
+    config = Configurator.from_toml(toml_path)
     
-    assert p.parameters.gamma_water == 9.99
-    assert p.cleansing.clean_mode == "remove"
+    assert config.parameters.gamma_water == 9.99
+    assert config.cleansing.clean_mode == "remove"
 
 def test_validate_from_toml(tmp_path):
     toml_content = dedent("""
@@ -35,4 +35,4 @@ def test_validate_from_toml(tmp_path):
     toml_path.write_text(toml_content)
     
     with pytest.raises(ValidationError):
-        _ = Processor.from_toml(toml_path)
+        _ = Configurator.from_toml(toml_path)

@@ -1,12 +1,12 @@
 import polars as pl
 
 from conic.pipeline import Pipeliner, Step
-from conic.config import Processor
+from conic.config import Configurator
 from conic._canonical import COL_DEPTH, COL_QC, COL_FS, COL_U2, COL_U0
 
 def test_default_pipeliner():
-    proc = Processor()
-    pipe = Pipeliner.default(proc)
+    config = Configurator()
+    pipe = Pipeliner.default(config)
 
     inp_data = pl.DataFrame({
         COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],
@@ -20,13 +20,13 @@ def test_default_pipeliner():
     assert COL_U0 in out_data.columns
 
 def test_custom_pipeliner():
-    proc = Processor()
+    config = Configurator()
     
     add_eight = Step(name="add_eight", apply=lambda df: df.with_columns(
         (pl.col(COL_QC) + 8).alias(COL_QC)
     ))
 
-    pipe = Pipeliner(proc, steps=(add_eight,))
+    pipe = Pipeliner(config, steps=(add_eight,))
 
     inp_data = pl.DataFrame({
         COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],

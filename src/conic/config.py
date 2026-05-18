@@ -90,7 +90,7 @@ class Cleansing(BaseModel):
     indicators: Indicators = Field(default_factory=lambda: list())
     clean_mode: CleanMode = cast(CleanMode, CLEAN_MODE)
 
-class Processor(BaseModel):
+class Configurator(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     columns: Columns = Field(default_factory=Columns)

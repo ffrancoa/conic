@@ -6,7 +6,7 @@ from typing import Literal, NamedTuple, Self, overload
 import polars as pl
 
 from conic import preprocess
-from conic.config import Processor
+from conic.config import Configurator
 from conic._helpers import dataframe_fingerprint
 
 
@@ -17,12 +17,12 @@ class Step:
 
 @dataclass(frozen=True, slots=True)
 class StepCatalog:
-    processor: Processor
+    config: Configurator
 
     def adjust_depth_spacing(self) -> Step:
         function = preprocess.adjust_depth_spacing
-        cleansing = self.processor.cleansing
-        columns = self.processor.columns
+        cleansing = self.config.cleansing
+        columns = self.config.columns
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
@@ -36,7 +36,7 @@ class StepCatalog:
 
     def sanitize_dataframe(self) -> Step:
         function = preprocess.sanitize_dataframe
-        columns = self.processor.columns
+        columns = self.config.columns
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
@@ -54,8 +54,8 @@ class StepCatalog:
 
     def compute_hydrostatic(self) -> Step:
         function = preprocess.compute_hydrostatic
-        parameters = self.processor.parameters
-        columns = self.processor.columns
+        parameters = self.config.parameters
+        columns = self.config.columns
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
@@ -71,7 +71,7 @@ class StepCatalog:
 
     def clean_by_indicators(self) -> Step:
         function = preprocess.clean_by_indicators
-        cleansing = self.processor.cleansing
+        cleansing = self.config.cleansing
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
@@ -88,12 +88,12 @@ class PipelineResult(NamedTuple):
 
 @dataclass(frozen=True, slots=True)
 class Pipeliner:
-    processor: Processor
+    config: Configurator
     steps: tuple[Step, ...]
 
     @classmethod
-    def default(cls, processor: Processor) -> Self:
-        catalog = StepCatalog(processor)
+    def default(cls, config: Configurator) -> Self:
+        catalog = StepCatalog(config)
         
         steps = (
             catalog.sanitize_dataframe(),
@@ -102,7 +102,7 @@ class Pipeliner:
             catalog.compute_hydrostatic()
         )
 
-        return cls(processor=processor, steps=steps)
+        return cls(config=config, steps=steps)
 
     @overload
     def run(
@@ -133,7 +133,7 @@ class Pipeliner:
         meta = {
             "data_hash": dataframe_fingerprint(inp_data),
             "source_path": None,
-            "processor": self.processor.model_dump(),
+            "config": self.config.model_dump(),
             "steps": [step.name for step in self.steps],
             "timestamp_utc": datetime.now(timezone.utc).isoformat
         }
