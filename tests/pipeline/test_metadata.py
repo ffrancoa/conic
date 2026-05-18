@@ -2,7 +2,7 @@ import polars as pl
 
 from conic.config import Parameters, Processor
 from conic.pipeline import Pipeliner
-from conic._canonical import COL_DEPTH, COL_QC
+from conic._canonical import COL_DEPTH, COL_QC, COL_FS, COL_U2
 
 
 def test_metadata_unpacking():
@@ -10,11 +10,13 @@ def test_metadata_unpacking():
     pipeliner = Pipeliner.default(processor)
 
     inp_data = pl.DataFrame({
-        COL_DEPTH: [0.0, 1.0, 2.0, 3.0],
-        COL_QC: [1.1, 0.9, 1.5, 1.4]
+        COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],
+        COL_QC: [0.9, 1.3, 1.5, 1.2, 1.4],
+        COL_FS: [35.2, 45.1, 23.4, 53.2, 47.7],
+        COL_U2: [10.5, 20.4, 14.5, 19.5, 30.6]
     })
 
-    out_data, meta = pipeliner.run(inp_data, metadata=True, validate=False)
+    out_data, meta = pipeliner.run(inp_data, metadata=True)
 
     assert isinstance(out_data, pl.DataFrame)
     assert isinstance(meta, dict)
@@ -24,11 +26,13 @@ def test_metadata_fields():
     pipeliner = Pipeliner.default(processor)
 
     data = pl.DataFrame({
-        COL_DEPTH: [0.0, 1.0, 2.0, 3.0],
-        COL_QC: [1.1, 0.9, 1.5, 1.4]
+        COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],
+        COL_QC: [0.9, 1.3, 1.5, 1.2, 1.4],
+        COL_FS: [35.2, 45.1, 23.4, 53.2, 47.7],
+        COL_U2: [10.5, 20.4, 14.5, 19.5, 30.6]
     })
 
-    result = pipeliner.run(data, metadata=True, validate=False)
+    result = pipeliner.run(data, metadata=True)
 
     assert set(result.metadata.keys()) == {
         "data_hash", "source_path", "processor", "steps", "timestamp_utc"
@@ -40,12 +44,14 @@ def test_hash_is_deterministic():
     pipeliner = Pipeliner.default(processor)
 
     data = pl.DataFrame({
-        COL_DEPTH: [0.0, 1.0, 2.0, 3.0],
-        COL_QC: [1.1, 0.9, 1.5, 1.4]
+        COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],
+        COL_QC: [0.9, 1.3, 1.5, 1.2, 1.4],
+        COL_FS: [35.2, 45.1, 23.4, 53.2, 47.7],
+        COL_U2: [10.5, 20.4, 14.5, 19.5, 30.6]
     })
 
-    _, meta1 = pipeliner.run(data, metadata=True, validate=False)
-    _, meta2 = pipeliner.run(data, metadata=True, validate=False)
+    _, meta1 = pipeliner.run(data, metadata=True)
+    _, meta2 = pipeliner.run(data, metadata=True)
     
     assert meta1["data_hash"] == meta2["data_hash"]
 

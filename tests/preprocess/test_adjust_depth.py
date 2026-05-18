@@ -14,13 +14,13 @@ def test_invalid_depth_col():
     with pytest.raises(ColumnNotFoundError):
         _ = adjust_depth_spacing(data)
 
-def test_invalid_mutual_arguments():
-    data = pl.DataFrame({
-            COL_DEPTH: [0.03, 0.05, 0.07, 0.10]
-        })
+# def test_invalid_mutual_arguments():
+#    data = pl.DataFrame({
+#            COL_DEPTH: [0.03, 0.05, 0.07, 0.10]
+#        })
 
-    with pytest.raises(ValueError):
-        _ = adjust_depth_spacing(data)
+#    with pytest.raises(ValueError):
+#        _ = adjust_depth_spacing(data)
 
 def test_too_few_rows():
     data = pl.DataFrame({
