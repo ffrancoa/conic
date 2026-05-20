@@ -1,7 +1,7 @@
 [project]
 name = "conic"
 version = "0.1.0"
-description = "Add your description here"
+description = "CPT/SCPTu Data-Driven Evaluator."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 authors = [
