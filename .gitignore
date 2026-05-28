@@ -21,6 +21,9 @@ src/**/*.pyd
 dist/
 *.egg-info/
 
+# Use-case tests
+trials/
+
 # OS
 .DS_Store
 Thumbs.db
