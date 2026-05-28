@@ -1,19 +1,20 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal, NamedTuple, Self, overload
 
 import polars as pl
 
 from conic import preprocess
-from conic.config import Configurator
 from conic._helpers import dataframe_fingerprint
+from conic.config import Configurator
 
 
 @dataclass(frozen=True, slots=True)
 class Step:
     name: str
     apply: Callable[[pl.DataFrame], pl.DataFrame]
+
 
 @dataclass(frozen=True, slots=True)
 class StepCatalog:
@@ -29,7 +30,7 @@ class StepCatalog:
                 data,
                 start_depth=cleansing.start_depth,
                 spacing=cleansing.spacing,
-                col_depth=columns.input.depth
+                col_depth=columns.input.depth,
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -47,7 +48,7 @@ class StepCatalog:
                 col_u2=columns.input.u2,
                 col_u0=columns.input.u0,
                 col_sv_eff=columns.input.sv_eff,
-                col_sv_tot=columns.input.sv_tot
+                col_sv_tot=columns.input.sv_tot,
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -64,7 +65,7 @@ class StepCatalog:
                 gamma_water=parameters.gamma_water,
                 col_depth=columns.input.depth,
                 col_u0=columns.input.u0,
-                override=True
+                override=True,
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -75,16 +76,16 @@ class StepCatalog:
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
-                data,
-                indicators=cleansing.indicators,
-                mode=cleansing.clean_mode
+                data, indicators=cleansing.indicators, mode=cleansing.clean_mode
             )
 
         return Step(name=function.__name__, apply=callback)
 
+
 class PipelineResult(NamedTuple):
     data: pl.DataFrame
     metadata: dict[str, object]
+
 
 @dataclass(frozen=True, slots=True)
 class Pipeliner:
@@ -94,39 +95,39 @@ class Pipeliner:
     @classmethod
     def default(cls, config: Configurator) -> Self:
         catalog = StepCatalog(config)
-        
+
         steps = (
             catalog.sanitize_dataframe(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
-            catalog.compute_hydrostatic()
+            catalog.compute_hydrostatic(),
         )
 
         return cls(config=config, steps=steps)
 
     @overload
     def run(
-            self,
-            inp_data: pl.DataFrame, *,
-            metadata: Literal[False] = False,
-        ) -> pl.DataFrame: ...
+        self,
+        inp_data: pl.DataFrame,
+        *,
+        metadata: Literal[False] = False,
+    ) -> pl.DataFrame: ...
     @overload
     def run(
-            self,
-            inp_data: pl.DataFrame, *,
-            metadata: Literal[True],
-        ) -> PipelineResult: ...
+        self,
+        inp_data: pl.DataFrame,
+        *,
+        metadata: Literal[True],
+    ) -> PipelineResult: ...
     def run(
-            self,
-            inp_data: pl.DataFrame, *,
-            metadata: bool = False
-        ) -> pl.DataFrame | PipelineResult:
+        self, inp_data: pl.DataFrame, *, metadata: bool = False
+    ) -> pl.DataFrame | PipelineResult:
 
         out_data = inp_data
 
         for step in self.steps:
             out_data = step.apply(out_data)
-            
+
         if not metadata:
             return out_data
 
@@ -135,8 +136,7 @@ class Pipeliner:
             "source_path": None,
             "config": self.config.model_dump(),
             "steps": [step.name for step in self.steps],
-            "timestamp_utc": datetime.now(timezone.utc).isoformat
+            "timestamp_utc": datetime.now(UTC).isoformat,
         }
 
         return PipelineResult(data=out_data, metadata=meta)
-

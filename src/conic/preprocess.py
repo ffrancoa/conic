@@ -11,18 +11,20 @@ from conic._canonical import (
     COL_SV_TOT,
     COL_U0,
     COL_U2,
-    GAMMA_WATER
+    GAMMA_WATER,
 )
 from conic._helpers import get_missing_columns
 
+
 def compute_hydrostatic(
-        data: pl.DataFrame,
-        water_level: Optional[float] = None, *,
-        gamma_water: float = GAMMA_WATER,
-        col_depth: str = COL_DEPTH,
-        col_u0: str = COL_U0,
-        override: bool = False
-    ) -> pl.DataFrame:
+    data: pl.DataFrame,
+    water_level: Optional[float] = None,
+    *,
+    gamma_water: float = GAMMA_WATER,
+    col_depth: str = COL_DEPTH,
+    col_u0: str = COL_U0,
+    override: bool = False,
+) -> pl.DataFrame:
 
     if col_depth not in data.columns:
         raise ColumnNotFoundError(
@@ -47,13 +49,15 @@ def compute_hydrostatic(
 
     return data_with_u0
 
+
 def adjust_depth_spacing(
-        data: pl.DataFrame, *,
-        start_depth: Optional[float] = None,
-        spacing: Optional[float] = None,
-        digits: int = 3,
-        col_depth: str = COL_DEPTH,
-    ) -> pl.DataFrame:
+    data: pl.DataFrame,
+    *,
+    start_depth: Optional[float] = None,
+    spacing: Optional[float] = None,
+    digits: int = 3,
+    col_depth: str = COL_DEPTH,
+) -> pl.DataFrame:
 
     if col_depth not in data.columns:
         raise ColumnNotFoundError(
@@ -61,9 +65,7 @@ def adjust_depth_spacing(
         )
 
     if (nrows := data.height) < 2:
-        raise ValueError(
-            "DataFrame must have at least 2 rows to infer depth spacing. "
-        )
+        raise ValueError("DataFrame must have at least 2 rows to infer depth spacing. ")
 
     if start_depth is None:
         start_depth = data.item(0, col_depth)
@@ -77,25 +79,25 @@ def adjust_depth_spacing(
 
     return data.with_columns(new_depths.alias(col_depth))
 
+
 def sanitize_dataframe(
-        data: pl.DataFrame, *,
-        col_depth: str = COL_DEPTH,
-        col_qc: str = COL_QC,
-        col_fs: str = COL_FS,
-        col_u2: str = COL_U2,
-        col_u0: str = COL_U0,
-        col_sv_eff: str = COL_SV_EFF,
-        col_sv_tot: str = COL_SV_TOT,
-        include_optional: bool = True
-    ) -> pl.DataFrame:
+    data: pl.DataFrame,
+    *,
+    col_depth: str = COL_DEPTH,
+    col_qc: str = COL_QC,
+    col_fs: str = COL_FS,
+    col_u2: str = COL_U2,
+    col_u0: str = COL_U0,
+    col_sv_eff: str = COL_SV_EFF,
+    col_sv_tot: str = COL_SV_TOT,
+    include_optional: bool = True,
+) -> pl.DataFrame:
 
     required_columns = [col_depth, col_qc, col_fs, col_u2]
     optional_columns = [col_u0, col_sv_eff, col_sv_tot]
 
     if missing_columns := get_missing_columns(data, required_columns):
-        raise ColumnNotFoundError(
-            f"Missing required columns: '{missing_columns}'."
-        )
+        raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
 
     selected_columns = required_columns
 
@@ -105,45 +107,44 @@ def sanitize_dataframe(
 
     return data.select(selected_columns)
 
+
 def filter_by_indicators(
-        data: pl.DataFrame,
-        indicators: list[float], *,
-        action: Literal["remove", "select"] = "remove"
-    ) -> pl.DataFrame:
+    data: pl.DataFrame,
+    indicators: list[float],
+    *,
+    action: Literal["remove", "select"] = "remove",
+) -> pl.DataFrame:
 
     if action not in ["remove", "select"]:
-        raise ValueError(
-            "Invalid `action` argument. Must be 'remove' or 'select'."
-        )
+        raise ValueError("Invalid `action` argument. Must be 'remove' or 'select'.")
 
     expr = pl.selectors.numeric().is_in(indicators)
     expr = pl.any_horizontal(expr)
-    
+
     return data.filter(expr.not_() if action == "remove" else expr)
 
+
 def split_by_indicators(
-        data: pl.DataFrame,
-        indicators: list[float], *,
-        index_col: str = "_id_"        
-    ) -> tuple[pl.DataFrame, pl.DataFrame]:
+    data: pl.DataFrame, indicators: list[float], *, index_col: str = "_id_"
+) -> tuple[pl.DataFrame, pl.DataFrame]:
 
     indexed_data = data.with_row_index(index_col)
 
     rows_with = filter_by_indicators(indexed_data, indicators, action="select")
     rows_without = filter_by_indicators(indexed_data, indicators)
-    
+
     return rows_with, rows_without
 
+
 def clean_by_indicators(
-        data: pl.DataFrame,
-        indicators: list[float], *,
-        mode: Literal["remove", "replace"] = "replace"
-    ) -> pl.DataFrame:
+    data: pl.DataFrame,
+    indicators: list[float],
+    *,
+    mode: Literal["remove", "replace"] = "replace",
+) -> pl.DataFrame:
 
     if mode not in ["remove", "replace"]:
-        raise ValueError(
-            "Invalid `action` argument. Must be 'remove' or 'replace'."
-        )
+        raise ValueError("Invalid `action` argument. Must be 'remove' or 'replace'.")
 
     match mode:
         case "remove":
@@ -155,4 +156,3 @@ def clean_by_indicators(
                 .otherwise(pl.selectors.numeric())
                 .name.keep()
             )
-

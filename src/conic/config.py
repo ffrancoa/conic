@@ -13,6 +13,7 @@ from pydantic import (
 
 from conic._canonical import (
     AREA_RATIO,
+    CLEAN_MODE,
     COL_BQ,
     COL_CD,
     COL_CONVG,
@@ -30,9 +31,7 @@ from conic._canonical import (
     COL_U0,
     COL_U2,
     GAMMA_WATER,
-    CLEAN_MODE
 )
-
 
 type ColumnName = Annotated[str, Field(max_length=50)]
 type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
@@ -44,34 +43,37 @@ class InputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     depth: ColumnName = COL_DEPTH
-    qc: ColumnName    = COL_QC
-    fs: ColumnName    = COL_FS
-    u2: ColumnName    = COL_U2
+    qc: ColumnName = COL_QC
+    fs: ColumnName = COL_FS
+    u2: ColumnName = COL_U2
 
-    u0: ColumnName     = COL_U0
+    u0: ColumnName = COL_U0
     sv_tot: ColumnName = COL_SV_TOT
     sv_eff: ColumnName = COL_SV_EFF
 
+
 class OutputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    
+
     qt: ColumnName = COL_QT
     fr: ColumnName = COL_FR
     bq: ColumnName = COL_BQ
-    
-    n: ColumnName     = COL_N
-    qtn: ColumnName   = COL_QTN
-    ic: ColumnName    = COL_IC
+
+    n: ColumnName = COL_N
+    qtn: ColumnName = COL_QTN
+    ic: ColumnName = COL_IC
     convg: ColumnName = COL_CONVG
 
     cd: ColumnName = COL_CD
     ib: ColumnName = COL_IB
+
 
 class Columns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     input: InputColumns = Field(default_factory=InputColumns)
     output: OutputColumns = Field(default_factory=OutputColumns)
+
 
 class Parameters(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -81,14 +83,16 @@ class Parameters(BaseModel):
     gamma_soil: Optional[PositiveFloat] = None
     water_level: Optional[NonNegativeFloat] = None
 
+
 class Cleansing(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     start_depth: Optional[NonNegativeFloat] = None
     spacing: Optional[PositiveFloat] = None
-    
+
     indicators: Indicators = Field(default_factory=lambda: list())
     clean_mode: CleanMode = cast(CleanMode, CLEAN_MODE)
+
 
 class Configurator(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -134,4 +138,3 @@ class Configurator(BaseModel):
         with Path(file_path).open("rb") as file:
             config = tomllib.load(file)
         return cls.model_validate(config)
-
