@@ -7,6 +7,17 @@ from .config import Configurator
 from .pipeline import Pipeliner, PipelineResult
 
 
+def load_csv(path: Path | str, *, delimiter: str = ",") -> pl.DataFrame:
+
+    return pl.read_csv(
+        path,
+        has_header=True,
+        separator=delimiter,
+        schema_overrides=[pl.Float64],
+        raise_if_empty=True,
+    )
+
+
 def process(
     data: pl.DataFrame,
     config: Optional[Configurator, Path, str],
