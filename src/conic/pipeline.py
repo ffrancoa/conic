@@ -1,13 +1,23 @@
+import hashlib
+
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Literal, NamedTuple, Self, overload
+from io import BytesIO
+from typing import Literal, NamedTuple, Self, cast, overload
 
 import polars as pl
 
-from conic import preprocess
-from conic._helpers import dataframe_fingerprint
 from conic.config import Configurator
+from conic.processing import preprocess
+
+
+def _dataframe_fingerprint(data: pl.DataFrame):
+    data_to_bytes = cast(BytesIO, data.write_ipc(file=None)).getvalue()
+
+    hash_text = hashlib.sha256(data_to_bytes).hexdigest()
+
+    return hash_text[:16]
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,7 +144,7 @@ class Pipeliner:
             return out_data
 
         meta = {
-            "data_hash": dataframe_fingerprint(data),
+            "data_hash": _dataframe_fingerprint(data),
             "source_path": None,
             "config": self.config.model_dump(),
             "steps": [step.name for step in self.steps],

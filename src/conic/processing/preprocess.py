@@ -1,6 +1,7 @@
 from typing import Literal, Optional, cast
 
 import polars as pl
+
 from polars.exceptions import ColumnNotFoundError
 
 from conic._canonical import (
@@ -13,7 +14,7 @@ from conic._canonical import (
     COL_U2,
     GAMMA_WATER,
 )
-from conic._helpers import get_missing_columns
+from conic.processing._helpers import get_missing_columns
 
 
 def compute_hydrostatic(

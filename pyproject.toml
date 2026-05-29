@@ -49,6 +49,9 @@ ignore = [
     "UP045",
 ]
 
+[tool.ruff.lint.isort]
+lines-between-types = 1
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
