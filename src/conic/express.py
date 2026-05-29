@@ -76,6 +76,6 @@ def process(
         config_merged = config.model_dump() | config_overrides
         config = Configurator.model_validate(config_merged)
 
-    pipeline = Pipeliner.default(config)
+    pipeline = Pipeliner.standard(config)
 
     return pipeline.run(data, metadata=metadata)
