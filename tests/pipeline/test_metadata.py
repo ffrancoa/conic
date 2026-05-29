@@ -7,7 +7,7 @@ from conic.pipeline import Pipeliner
 
 def test_metadata_unpacking():
     config = Configurator(parameters=Parameters(water_level=2.0))
-    pipeliner = Pipeliner.default(config)
+    pipeliner = Pipeliner.standard(config)
 
     inp_data = pl.DataFrame(
         {
@@ -26,7 +26,7 @@ def test_metadata_unpacking():
 
 def test_metadata_fields():
     config = Configurator(parameters=Parameters(water_level=2.0))
-    pipeliner = Pipeliner.default(config)
+    pipeliner = Pipeliner.standard(config)
 
     data = pl.DataFrame(
         {
@@ -50,7 +50,7 @@ def test_metadata_fields():
 
 def test_hash_is_deterministic():
     config = Configurator(parameters=Parameters(water_level=1.0))
-    pipeliner = Pipeliner.default(config)
+    pipeliner = Pipeliner.standard(config)
 
     data = pl.DataFrame(
         {

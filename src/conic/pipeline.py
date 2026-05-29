@@ -103,7 +103,7 @@ class Pipeliner:
     steps: tuple[Step, ...]
 
     @classmethod
-    def default(cls, config: Configurator) -> Self:
+    def standard(cls, config: Configurator) -> Self:
         catalog = StepCatalog(config)
 
         steps = (

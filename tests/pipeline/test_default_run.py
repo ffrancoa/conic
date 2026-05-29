@@ -7,7 +7,7 @@ from conic.pipeline import Pipeliner, Step
 
 def test_default_pipeliner():
     config = Configurator()
-    pipe = Pipeliner.default(config)
+    pipe = Pipeliner.standard(config)
 
     inp_data = pl.DataFrame(
         {
