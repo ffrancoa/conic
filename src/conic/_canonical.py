@@ -4,8 +4,8 @@ COL_FS: str = "fs (kPa)"
 COL_U2: str = "u2 (kPa)"
 
 COL_U0: str = "u0 (kPa)"
-COL_SV_TOT: str = "σv tot (kPa)"
-COL_SV_EFF: str = "σv eff (kPa)"
+COL_SV_TOT: str = "σv_tot (kPa)"
+COL_SV_EFF: str = "σv_eff (kPa)"
 
 COL_QT: str = "qt (MPa)"
 COL_FR: str = "Fr (%)"
