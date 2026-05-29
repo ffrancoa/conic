@@ -28,9 +28,9 @@ def process(
     data: pl.DataFrame,
     config: Optional[Configurator | Path | str],
     *,
-    parameters: Optional[dict] = None,
-    columns: Optional[dict] = None,
-    cleansing: Optional[dict] = None,
+    parameters: Optional[dict[str, str]] = None,
+    columns: Optional[dict[str, str]] = None,
+    cleansing: Optional[dict[str, str]] = None,
     metadata: bool = False,
 ) -> pl.DataFrame | PipelineResult:
 
