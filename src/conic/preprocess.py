@@ -80,7 +80,7 @@ def adjust_depth_spacing(
     return data.with_columns(new_depths.alias(col_depth))
 
 
-def sanitize_dataframe(
+def sanitize_data(
     data: pl.DataFrame,
     *,
     col_depth: str = COL_DEPTH,

@@ -35,8 +35,8 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def sanitize_dataframe(self) -> Step:
-        function = preprocess.sanitize_dataframe
+    def sanitize_data(self) -> Step:
+        function = preprocess.sanitize_data
         columns = self.config.columns
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
@@ -97,7 +97,7 @@ class Pipeliner:
         catalog = StepCatalog(config)
 
         steps = (
-            catalog.sanitize_dataframe(),
+            catalog.sanitize_data(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
             catalog.compute_hydrostatic(),
