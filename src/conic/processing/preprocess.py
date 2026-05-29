@@ -56,6 +56,42 @@ def compute_hydrostatic(
     return data_with_u0
 
 
+def compute_geostatic(
+    data: pl.DataFrame,
+    gamma_soil: float,
+    *,
+    col_depth: str = COL_DEPTH,
+    col_sv_eff: str = COL_SV_EFF,
+    col_sv_tot: str = COL_SV_TOT,
+    col_u0: str = COL_U0,
+    override: bool = False,
+) -> pl.DataFrame:
+
+    if col_depth not in data.columns:
+        raise ColumnNotFoundError(
+            f"Depth column is missing in DataFrame: '{col_depth}'."
+        )
+
+    if not set(data.columns).isdisjoint({col_sv_eff, col_sv_eff}) and not override:
+        raise ValueError(
+            f"One or more geostatic columns ({col_sv_eff}, {col_sv_tot}) "
+            f"was already included in this DataFrame. Set `override=True` "
+            f"to override."
+        )
+    elif (col_sv_eff not in data.columns) and (col_sv_tot in data.columns):
+        data_with_sv_tot = data.clone()
+    else:
+        data_with_sv_tot = data.with_columns(
+            (pl.col(col_depth) * gamma_soil).alias(col_sv_tot)
+        )
+
+    data_with_sv_eff = data_with_sv_tot.with_columns(
+        (pl.col(col_sv_tot) - pl.col(col_u0)).alias(col_sv_eff)
+    )
+
+    return data_with_sv_eff
+
+
 def adjust_depth_spacing(
     data: pl.DataFrame,
     *,

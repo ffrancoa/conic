@@ -80,6 +80,24 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
+    def compute_geostatic(self) -> Step:
+        function = preprocess.compute_geostatic
+        parameters = self.config.parameters
+        columns = self.config.columns
+
+        def callback(data: pl.DataFrame) -> pl.DataFrame:
+            return function(
+                data,
+                gamma_soil=cast(float, parameters.gamma_soil),
+                col_depth=columns.input.depth,
+                col_sv_eff=columns.input.sv_eff,
+                col_sv_tot=columns.input.sv_tot,
+                col_u0=columns.input.u0,
+                override=True,
+            )
+
+        return Step(name=function.__name__, apply=callback)
+
     def clean_by_indicators(self) -> Step:
         function = preprocess.clean_by_indicators
         cleansing = self.config.cleansing
@@ -111,6 +129,7 @@ class Pipeliner:
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
             catalog.compute_hydrostatic(),
+            catalog.compute_geostatic(),
         )
 
         return cls(config=config, steps=steps)
