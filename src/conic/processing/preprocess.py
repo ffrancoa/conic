@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Literal, Optional, cast
 
 import polars as pl
@@ -14,7 +15,11 @@ from conic._canonical import (
     COL_U2,
     GAMMA_WATER,
 )
-from conic.processing._helpers import get_missing_columns
+
+
+def _get_missing_columns(data: pl.DataFrame, required_columns: Iterable[str]) -> set:
+
+    return set(required_columns).difference(data.columns)
 
 
 def compute_hydrostatic(
@@ -97,7 +102,7 @@ def sanitize_data(
     required_columns = [col_depth, col_qc, col_fs, col_u2]
     optional_columns = [col_u0, col_sv_eff, col_sv_tot]
 
-    if missing_columns := get_missing_columns(data, required_columns):
+    if missing_columns := _get_missing_columns(data, required_columns):
         raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
 
     selected_columns = required_columns
