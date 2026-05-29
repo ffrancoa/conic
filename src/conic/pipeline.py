@@ -108,22 +108,24 @@ class Pipeliner:
     @overload
     def run(
         self,
-        inp_data: pl.DataFrame,
+        data: pl.DataFrame,
         *,
         metadata: Literal[False] = False,
     ) -> pl.DataFrame: ...
+
     @overload
     def run(
         self,
-        inp_data: pl.DataFrame,
+        data: pl.DataFrame,
         *,
         metadata: Literal[True],
     ) -> PipelineResult: ...
+
     def run(
-        self, inp_data: pl.DataFrame, *, metadata: bool = False
+        self, data: pl.DataFrame, *, metadata: bool = False
     ) -> pl.DataFrame | PipelineResult:
 
-        out_data = inp_data
+        out_data = data
 
         for step in self.steps:
             out_data = step.apply(out_data)
@@ -132,7 +134,7 @@ class Pipeliner:
             return out_data
 
         meta = {
-            "data_hash": dataframe_fingerprint(inp_data),
+            "data_hash": dataframe_fingerprint(data),
             "source_path": None,
             "config": self.config.model_dump(),
             "steps": [step.name for step in self.steps],
