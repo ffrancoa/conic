@@ -6,7 +6,7 @@ from conic.pipeline import Pipeliner, Step
 
 
 def test_default_pipeliner():
-    config = Configurator()
+    config = Configurator.model_validate({"parameters": {"gamma_soil": 20.0}})
     pipe = Pipeliner.standard(config)
 
     inp_data = pl.DataFrame(

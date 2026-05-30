@@ -2,7 +2,7 @@ import polars as pl
 import pytest
 
 from conic._canonical import COL_DEPTH, COL_QC
-from conic.processing.preprocess import filter_by_indicators
+from conic.processing.preparation import filter_by_indicators
 
 
 def test_remove_rows():

@@ -4,7 +4,7 @@ import pytest
 from polars.exceptions import ColumnNotFoundError
 
 from conic._canonical import COL_DEPTH, COL_U0
-from conic.processing.preprocess import compute_hydrostatic
+from conic.processing.preparation import compute_hydrostatic
 
 
 def test_default_none():

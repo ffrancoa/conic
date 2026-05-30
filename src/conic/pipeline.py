@@ -9,7 +9,7 @@ from typing import Literal, NamedTuple, Self, cast, overload
 import polars as pl
 
 from conic.config import Configurator
-from conic.processing import preprocess
+from conic.processing import preparation
 
 
 def _dataframe_fingerprint(data: pl.DataFrame):
@@ -31,7 +31,7 @@ class StepCatalog:
     config: Configurator
 
     def adjust_depth_spacing(self) -> Step:
-        function = preprocess.adjust_depth_spacing
+        function = preparation.adjust_depth_spacing
         cleansing = self.config.cleansing
         columns = self.config.columns
 
@@ -46,7 +46,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def sanitize_data(self) -> Step:
-        function = preprocess.sanitize_data
+        function = preparation.sanitize_data
         columns = self.config.columns
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
@@ -64,7 +64,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_hydrostatic(self) -> Step:
-        function = preprocess.compute_hydrostatic
+        function = preparation.compute_hydrostatic
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -81,7 +81,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_geostatic(self) -> Step:
-        function = preprocess.compute_geostatic
+        function = preparation.compute_geostatic
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -99,7 +99,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def clean_by_indicators(self) -> Step:
-        function = preprocess.clean_by_indicators
+        function = preparation.clean_by_indicators
         cleansing = self.config.cleansing
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
