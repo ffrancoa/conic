@@ -11,7 +11,10 @@ def test_replace():
 
     returned = clean_by_indicators(data, [-8888])
     expected = pl.DataFrame(
-        {COL_DEPTH: [0.0, 0.5, 1.5, 2.0, 2.5], COL_QC: [0.3, 1.1, 1.2, None, 1.7]}
+        {
+            COL_DEPTH: [0.0, 0.5, 1.5, 2.0, 2.5],
+            COL_QC: [0.3, 1.1, 1.2, float("nan"), 1.7],
+        }
     )
 
     assert returned.equals(expected)
