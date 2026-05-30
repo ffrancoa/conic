@@ -27,5 +27,6 @@ COL_IB: str = "IB (-)"
 AREA_RATIO: float = 0.80
 GAMMA_WATER: float = 9.81
 ROLLING: Final = 1
+ROLLING_LABEL: str = "*"
 
 CLEAN_MODE: Final = "replace"

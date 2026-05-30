@@ -15,10 +15,10 @@ from conic._canonical import (
     COL_U0,
     COL_U2,
     ROLLING,
+    ROLLING_LABEL,
 )
 from conic.processing._helpers import get_missing_columns
 
-ROLLING_LABEL: str = "*"
 
 def _convert_mpa_to_kpa(column_name: str) -> pl.Expr:
     return pl.col(column_name) * 1000.0

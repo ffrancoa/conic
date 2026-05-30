@@ -50,8 +50,8 @@ class StepCatalog:
 
     def adjust_depth_spacing(self) -> Step:
         function = preparation.adjust_depth_spacing
-        cleansing = self.config.cleansing
         columns = self.config.columns
+        cleansing = self.config.cleansing
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
@@ -138,6 +138,7 @@ class StepCatalog:
                 rolling=parameters.rolling,
                 col_fs=columns.input.fs,
                 col_qt=columns.output.qt,
+                rolling_label=parameters.rolling_label,
             )
 
         return Step(name=function.__name__, apply=callback)

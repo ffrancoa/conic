@@ -35,6 +35,7 @@ from conic._canonical import (
     COL_U2,
     GAMMA_WATER,
     ROLLING,
+    ROLLING_LABEL,
 )
 
 type ColumnName = Annotated[str, Field(max_length=50)]
@@ -42,6 +43,18 @@ type CleanMode = Literal["replace", "remove"]
 type Indicators = list[NegativeFloat]
 type RollingValue = Literal[1, 3, 5]
 type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
+
+
+class Parameters(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    area_ratio: UnitRatio = AREA_RATIO
+    rolling: RollingValue = ROLLING
+    rolling_label: str = ROLLING_LABEL
+
+    gamma_water: PositiveFloat = GAMMA_WATER
+    gamma_soil: Optional[PositiveFloat] = None
+    water_level: Optional[NonNegativeFloat] = None
 
 
 class InputColumns(BaseModel):
@@ -61,9 +74,9 @@ class OutputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     qt: ColumnName = COL_QT
-    qt1: ColumnName = COL_QT1
-
     rf: ColumnName = COL_RF
+
+    qt1: ColumnName = COL_QT1
     fr: ColumnName = COL_FR
     bq: ColumnName = COL_BQ
 
@@ -81,17 +94,6 @@ class Columns(BaseModel):
 
     input: InputColumns = Field(default_factory=InputColumns)
     output: OutputColumns = Field(default_factory=OutputColumns)
-
-
-class Parameters(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    area_ratio: UnitRatio = AREA_RATIO
-    rolling: RollingValue = ROLLING
-
-    gamma_water: PositiveFloat = GAMMA_WATER
-    gamma_soil: Optional[PositiveFloat] = None
-    water_level: Optional[NonNegativeFloat] = None
 
 
 class Cleansing(BaseModel):
