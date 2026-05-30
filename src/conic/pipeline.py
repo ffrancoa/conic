@@ -9,7 +9,7 @@ from typing import Literal, NamedTuple, Self, cast, overload
 import polars as pl
 
 from conic.config import Configurator
-from conic.processing import preparation
+from conic.processing import derivation, preparation
 
 
 def _dataframe_fingerprint(data: pl.DataFrame):
@@ -30,6 +30,24 @@ class Step:
 class StepCatalog:
     config: Configurator
 
+    def sanitize_data(self) -> Step:
+        function = preparation.sanitize_data
+        columns = self.config.columns
+
+        def callback(data: pl.DataFrame) -> pl.DataFrame:
+            return function(
+                data,
+                col_depth=columns.input.depth,
+                col_qc=columns.input.qc,
+                col_fs=columns.input.fs,
+                col_u2=columns.input.u2,
+                col_u0=columns.input.u0,
+                col_sv_eff=columns.input.sv_eff,
+                col_sv_tot=columns.input.sv_tot,
+            )
+
+        return Step(name=function.__name__, apply=callback)
+
     def adjust_depth_spacing(self) -> Step:
         function = preparation.adjust_depth_spacing
         cleansing = self.config.cleansing
@@ -45,20 +63,13 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def sanitize_data(self) -> Step:
-        function = preparation.sanitize_data
-        columns = self.config.columns
+    def clean_by_indicators(self) -> Step:
+        function = preparation.clean_by_indicators
+        cleansing = self.config.cleansing
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
-                data,
-                col_depth=columns.input.depth,
-                col_qc=columns.input.qc,
-                col_fs=columns.input.fs,
-                col_u2=columns.input.u2,
-                col_u0=columns.input.u0,
-                col_sv_eff=columns.input.sv_eff,
-                col_sv_tot=columns.input.sv_tot,
+                data, indicators=cleansing.indicators, mode=cleansing.clean_mode
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -98,13 +109,18 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def clean_by_indicators(self) -> Step:
-        function = preparation.clean_by_indicators
-        cleansing = self.config.cleansing
+    def compute_qt(self) -> Step:
+        function = derivation.compute_qt
+        parameters = self.config.parameters
+        columns = self.config.columns
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
-                data, indicators=cleansing.indicators, mode=cleansing.clean_mode
+                data,
+                area_ratio=parameters.area_ratio,
+                col_qc=columns.input.qc,
+                col_qt=columns.output.qt,
+                col_u2=columns.input.u2,
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -130,6 +146,7 @@ class Pipeliner:
             catalog.clean_by_indicators(),
             catalog.compute_hydrostatic(),
             catalog.compute_geostatic(),
+            catalog.compute_qt(),
         )
 
         return cls(config=config, steps=steps)
