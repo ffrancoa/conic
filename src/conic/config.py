@@ -1,7 +1,7 @@
 import tomllib
 
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Self, cast
+from typing import Annotated, Literal, Optional, Self
 
 from pydantic import (
     BaseModel,
