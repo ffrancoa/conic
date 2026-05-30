@@ -109,8 +109,8 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_qt(self) -> Step:
-        function = derivation.compute_qt
+    def compute_non_normalized(self) -> Step:
+        function = derivation.compute_non_normalized
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -118,8 +118,10 @@ class StepCatalog:
             return function(
                 data,
                 area_ratio=parameters.area_ratio,
+                col_fs=columns.input.fs,
                 col_qc=columns.input.qc,
                 col_qt=columns.output.qt,
+                col_rf=columns.output.rf,
                 col_u2=columns.input.u2,
             )
 
@@ -140,6 +142,25 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
+    def compute_normalized(self) -> Step:
+        function = derivation.compute_normalized
+        columns = self.config.columns
+
+        def callback(data: pl.DataFrame) -> pl.DataFrame:
+            return function(
+                data,
+                col_sv_eff=columns.input.sv_eff,
+                col_sv_tot=columns.input.sv_tot,
+                col_fs=columns.input.fs,
+                col_qt=columns.output.qt,
+                col_u0=columns.input.u0,
+                col_u2=columns.input.u2,
+                col_qt1=columns.output.qt1,
+                col_fr=columns.output.fr,
+                col_bq=columns.output.bq,
+            )
+
+        return Step(name=function.__name__, apply=callback)
 
 class PipelineResult(NamedTuple):
     data: pl.DataFrame
@@ -161,8 +182,9 @@ class Pipeliner:
             catalog.clean_by_indicators(),
             catalog.compute_hydrostatic(),
             catalog.compute_geostatic(),
-            catalog.compute_qt(),
+            catalog.compute_non_normalized(),
             catalog.compute_rolling_columns(),
+            catalog.compute_normalized(),
         )
 
         return cls(config=config, steps=steps)
