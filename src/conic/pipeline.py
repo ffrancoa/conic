@@ -125,6 +125,21 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
+    def compute_rolling_columns(self) -> Step:
+        function = derivation.compute_rolling_columns
+        parameters = self.config.parameters
+        columns = self.config.columns
+
+        def callback(data: pl.DataFrame) -> pl.DataFrame:
+            return function(
+                data,
+                rolling=parameters.rolling,
+                col_fs=columns.input.fs,
+                col_qt=columns.output.qt,
+            )
+
+        return Step(name=function.__name__, apply=callback)
+
 
 class PipelineResult(NamedTuple):
     data: pl.DataFrame
@@ -147,6 +162,7 @@ class Pipeliner:
             catalog.compute_hydrostatic(),
             catalog.compute_geostatic(),
             catalog.compute_qt(),
+            catalog.compute_rolling_columns(),
         )
 
         return cls(config=config, steps=steps)
