@@ -88,7 +88,7 @@ class StepCatalog:
         def callback(data: pl.DataFrame) -> pl.DataFrame:
             return function(
                 data,
-                gamma_soil=cast(float, parameters.gamma_soil),
+                gamma_soil=parameters.gamma_soil,
                 col_depth=columns.input.depth,
                 col_sv_eff=columns.input.sv_eff,
                 col_sv_tot=columns.input.sv_tot,
