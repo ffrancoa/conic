@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import polars as pl
 
@@ -8,6 +8,25 @@ from .pipeline import Pipeliner, PipelineResult
 
 _INPUT_COLS = set(InputColumns.model_fields.keys())
 _OUTPUT_COLS = set(OutputColumns.model_fields.keys())
+
+
+def _classify_columns(columns: dict[str, str]) -> dict[str, dict[str, str]]:
+
+    unknown_columns = set(columns).difference(_INPUT_COLS, _OUTPUT_COLS)
+
+    if unknown_columns:
+        raise ValueError(f"Unknown column keys: {unknown_columns}.")
+
+    input_columns = {}
+    output_columns = {}
+
+    for key, name in columns.items():
+        if key in _INPUT_COLS:
+            input_columns[key] = name
+        else:
+            output_columns[key] = name
+
+    return {"input": input_columns, "output": output_columns}
 
 
 def read_csv(
@@ -24,22 +43,36 @@ def read_csv(
     )
 
 
+def build_configurator(
+    *,
+    columns: Optional[dict[str, str]] = None,
+    parameters: Optional[dict[str, float]] = None,
+    cleansing: Optional[dict[str, Any]] = None,
+) -> Configurator:
+
+    return Configurator.model_validate(
+        {
+            "columns": _classify_columns(columns) if columns else {},
+            "parameters": parameters if parameters else {},
+            "cleansing": cleansing if cleansing else {},
+        }
+    )
+
+
 def process(
     data: pl.DataFrame,
-    config: Optional[Configurator | Path | str],
+    config: Optional[Configurator | Path | str] = None,
     *,
-    parameters: Optional[dict[str, str]] = None,
     columns: Optional[dict[str, str]] = None,
+    parameters: Optional[dict[str, str]] = None,
     cleansing: Optional[dict[str, str]] = None,
     metadata: bool = False,
 ) -> pl.DataFrame | PipelineResult:
 
-    if isinstance(config, Configurator):
-        config = config
-    elif config is not None:
-        config = Configurator.from_toml(config)
-    else:
+    if config is None:
         config = Configurator()
+    elif not isinstance(config, Configurator):
+        config = Configurator.from_toml(config)
 
     config_overrides = {}
 
@@ -47,25 +80,16 @@ def process(
         config_overrides["parameters"] = config.parameters.model_dump() | parameters
 
     if columns is not None:
-        unknown_columns = set(columns).difference(_INPUT_COLS, _OUTPUT_COLS)
-        if unknown_columns:
-            raise ValueError(f"Unknown column keys: {unknown_columns}.")
-
         columns_dump = config.columns.model_dump()
+        columns_overrides = _classify_columns(columns)
 
-        input_cols_overrides = {}
-        output_cols_overrides = {}
+        if columns_overrides["input"]:
+            columns_dump["input"] = columns_dump["input"] | columns_overrides["input"]
 
-        for key, new_name in columns.items():
-            if key in _INPUT_COLS:
-                input_cols_overrides[key] = new_name
-            else:
-                output_cols_overrides[key] = new_name
-
-        if input_cols_overrides:
-            columns_dump["input"] = columns_dump["input"] | input_cols_overrides
-        if output_cols_overrides:
-            columns_dump["output"] = columns_dump["output"] | output_cols_overrides
+        if columns_overrides["output"]:
+            columns_dump["output"] = (
+                columns_dump["output"] | columns_overrides["output"]
+            )
 
         config_overrides["columns"] = columns_dump
 
