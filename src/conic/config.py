@@ -32,12 +32,14 @@ from conic._canonical import (
     COL_U0,
     COL_U2,
     GAMMA_WATER,
+    ROLLING,
 )
 
 type ColumnName = Annotated[str, Field(max_length=50)]
-type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
-type Indicators = list[NegativeFloat]
 type CleanMode = Literal["replace", "remove"]
+type Indicators = list[NegativeFloat]
+type RolllingValue = Literal[1, 3, 5]
+type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
 
 
 class InputColumns(BaseModel):
@@ -80,6 +82,8 @@ class Parameters(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     area_ratio: UnitRatio = AREA_RATIO
+    rolling: RolllingValue = ROLLING
+
     gamma_water: PositiveFloat = GAMMA_WATER
     gamma_soil: Optional[PositiveFloat] = None
     water_level: Optional[NonNegativeFloat] = None
@@ -92,7 +96,7 @@ class Cleansing(BaseModel):
     spacing: Optional[PositiveFloat] = None
 
     indicators: Indicators = Field(default_factory=lambda: list())
-    clean_mode: CleanMode = cast(CleanMode, CLEAN_MODE)
+    clean_mode: CleanMode = CLEAN_MODE
 
 
 class Configurator(BaseModel):
@@ -112,6 +116,9 @@ class Configurator(BaseModel):
 
     def with_area_ratio(self, value: UnitRatio) -> Self:
         return self._with_field("parameters", "area_ratio", value)
+        
+    def with_rolling(self, value: RollingValue) -> Self:
+        return self._with_field("parameters", "rolling", value)
 
     def with_gamma_water(self, value: PositiveFloat) -> Self:
         return self._with_field("parameters", "gamma_water", value)

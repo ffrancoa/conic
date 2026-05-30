@@ -1,3 +1,5 @@
+from typing import Final
+
 COL_DEPTH: str = "Depth (m)"
 COL_QC: str = "qc (MPa)"
 COL_FS: str = "fs (kPa)"
@@ -21,5 +23,6 @@ COL_IB: str = "IB (-)"
 
 AREA_RATIO: float = 0.80
 GAMMA_WATER: float = 9.81
+ROLLING: Final = 1
 
-CLEAN_MODE: str = "replace"
+CLEAN_MODE: Final = "replace"
