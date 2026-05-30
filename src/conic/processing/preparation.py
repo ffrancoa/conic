@@ -196,7 +196,7 @@ def clean_by_indicators(
         case "replace":
             return data.with_columns(
                 pl.when(pl.selectors.numeric().is_in(indicators))
-                .then(None)
+                .then(float("nan"))
                 .otherwise(pl.selectors.numeric())
                 .name.keep()
             )
