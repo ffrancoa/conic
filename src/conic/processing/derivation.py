@@ -89,6 +89,7 @@ def compute_normalized(
     col_qt1: str = COL_QT1,
     col_fr: str = COL_FR,
     col_bq: str = COL_BQ,
+    rolling_label: str = ROLLING_LABEL,
 ) -> pl.DataFrame:
 
     required_columns = {col_sv_eff, col_sv_tot, col_fs, col_qt, col_u0, col_u2}
@@ -96,16 +97,19 @@ def compute_normalized(
     if missing_columns := get_missing_columns(data, required_columns):
         raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
 
-    qt_kpa_expr = _convert_mpa_to_kpa(col_qt)
+    col_fs_rol = col_fs + rolling_label
+    col_qt_rol = col_qt + rolling_label
+
+    qt_rol_kpa_expr = _convert_mpa_to_kpa(col_qt_rol)
 
     return data.with_columns(
         (
-            (qt_kpa_expr - pl.col(col_sv_tot)) / pl.col(col_sv_eff)
+            (qt_rol_kpa_expr - pl.col(col_sv_tot)) / pl.col(col_sv_eff)
         ).alias(col_qt1),
         (
-            pl.col(col_fs) / (qt_kpa_expr - pl.col(col_sv_tot)) * 100.0
+            pl.col(col_fs_rol) / (qt_rol_kpa_expr - pl.col(col_sv_tot)) * 100.0
         ).alias(col_fr),
         (
-            (pl.col(col_u2) - pl.col(col_u0)) / (qt_kpa_expr - pl.col(col_sv_tot))
+            (pl.col(col_u2) - pl.col(col_u0)) / (qt_rol_kpa_expr - pl.col(col_sv_tot))
         ).alias(col_bq),
     )

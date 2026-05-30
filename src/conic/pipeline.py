@@ -145,6 +145,7 @@ class StepCatalog:
 
     def compute_normalized(self) -> Step:
         function = derivation.compute_normalized
+        parameters = self.config.parameters
         columns = self.config.columns
 
         def callback(data: pl.DataFrame) -> pl.DataFrame:
@@ -159,6 +160,7 @@ class StepCatalog:
                 col_qt1=columns.output.qt1,
                 col_fr=columns.output.fr,
                 col_bq=columns.output.bq,
+                rolling_label=parameters.rolling_label,
             )
 
         return Step(name=function.__name__, apply=callback)
