@@ -40,10 +40,10 @@ def compute_non_normalized(
 
     return data.with_columns(
         (
-            qt_expr := pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
+            qt_mpa_expr := pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
         ).alias(col_qt),
         (
-            pl.col(col_fs) / (qt_expr * 1000.0) * 100.0
+            pl.col(col_fs) / (qt_mpa_expr * 1000.0) * 100.0
         ).alias(col_rf),
     )
 
