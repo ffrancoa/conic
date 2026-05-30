@@ -38,7 +38,7 @@ from conic._canonical import (
 type ColumnName = Annotated[str, Field(max_length=50)]
 type CleanMode = Literal["replace", "remove"]
 type Indicators = list[NegativeFloat]
-type RolllingValue = Literal[1, 3, 5]
+type RollingValue = Literal[1, 3, 5]
 type UnitRatio = Annotated[float, Field(gt=0.0, le=1.0)]
 
 
@@ -82,7 +82,7 @@ class Parameters(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     area_ratio: UnitRatio = AREA_RATIO
-    rolling: RolllingValue = ROLLING
+    rolling: RollingValue = ROLLING
 
     gamma_water: PositiveFloat = GAMMA_WATER
     gamma_soil: Optional[PositiveFloat] = None
@@ -116,7 +116,7 @@ class Configurator(BaseModel):
 
     def with_area_ratio(self, value: UnitRatio) -> Self:
         return self._with_field("parameters", "area_ratio", value)
-        
+
     def with_rolling(self, value: RollingValue) -> Self:
         return self._with_field("parameters", "rolling", value)
 
