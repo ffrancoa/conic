@@ -24,8 +24,8 @@ def _convert_mpa_to_kpa(column_name: str) -> pl.Expr:
     return pl.col(column_name) * 1000.0
 
 
-def compute_non_normalized(
-    data: pl.DataFrame,
+def compute_non_normalized[F: (pl.DataFrame, pl.LazyFrame)](
+    data: F,
     area_ratio: float,
     *,
     col_fs: str = COL_FS,
@@ -33,7 +33,7 @@ def compute_non_normalized(
     col_u2: str = COL_U2,
     col_qt: str = COL_QT,
     col_rf: str = COL_RF,
-) -> pl.DataFrame:
+) -> F:
 
     if missing_columns := get_missing_columns(data, {col_fs, col_qc, col_u2}):
         raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
@@ -48,14 +48,14 @@ def compute_non_normalized(
     )
 
 
-def compute_rolling_columns(
-    data: pl.DataFrame,
+def compute_rolling_columns[F: (pl.DataFrame, pl.LazyFrame)](
+    data: F,
     rolling: int = ROLLING,
     *,
     col_fs: str = COL_FS,
     col_qt: str = COL_QT,
     rolling_label: str = ROLLING_LABEL,
-) -> pl.DataFrame:
+) -> F:
 
     col_fs_rol = col_fs + rolling_label
     col_qt_rol = col_qt + rolling_label
@@ -77,8 +77,8 @@ def compute_rolling_columns(
     )
 
 
-def compute_normalized(
-    data: pl.DataFrame,
+def compute_normalized[F: (pl.DataFrame, pl.LazyFrame)](
+    data: F,
     *,
     col_sv_eff: str = COL_SV_EFF,
     col_sv_tot: str = COL_SV_TOT,
@@ -90,7 +90,7 @@ def compute_normalized(
     col_fr: str = COL_FR,
     col_bq: str = COL_BQ,
     rolling_label: str = ROLLING_LABEL,
-) -> pl.DataFrame:
+) -> F:
 
     required_columns = {col_sv_eff, col_sv_tot, col_fs, col_qt, col_u0, col_u2}
 

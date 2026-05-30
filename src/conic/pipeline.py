@@ -23,7 +23,7 @@ def _dataframe_fingerprint(data: pl.DataFrame):
 @dataclass(frozen=True, slots=True)
 class Step:
     name: str
-    apply: Callable[[pl.DataFrame], pl.DataFrame]
+    apply: Callable[[pl.LazyFrame], pl.LazyFrame]
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,7 +34,7 @@ class StepCatalog:
         function = preparation.sanitize_data
         columns = self.config.columns
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data,
                 col_depth=columns.input.depth,
@@ -53,7 +53,7 @@ class StepCatalog:
         columns = self.config.columns
         cleansing = self.config.cleansing
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data,
                 start_depth=cleansing.start_depth,
@@ -67,7 +67,7 @@ class StepCatalog:
         function = preparation.clean_by_indicators
         cleansing = self.config.cleansing
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data, indicators=cleansing.indicators, mode=cleansing.clean_mode
             )
@@ -79,7 +79,7 @@ class StepCatalog:
         parameters = self.config.parameters
         columns = self.config.columns
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data,
                 water_level=parameters.water_level,
@@ -96,7 +96,7 @@ class StepCatalog:
         parameters = self.config.parameters
         columns = self.config.columns
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data,
                 gamma_soil=parameters.gamma_soil,
@@ -114,7 +114,7 @@ class StepCatalog:
         parameters = self.config.parameters
         columns = self.config.columns
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data,
                 area_ratio=parameters.area_ratio,
@@ -132,7 +132,7 @@ class StepCatalog:
         parameters = self.config.parameters
         columns = self.config.columns
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data,
                 rolling=parameters.rolling,
@@ -148,7 +148,7 @@ class StepCatalog:
         parameters = self.config.parameters
         columns = self.config.columns
 
-        def callback(data: pl.DataFrame) -> pl.DataFrame:
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
             return function(
                 data,
                 col_sv_eff=columns.input.sv_eff,
@@ -164,6 +164,7 @@ class StepCatalog:
             )
 
         return Step(name=function.__name__, apply=callback)
+
 
 class PipelineResult(NamedTuple):
     data: pl.DataFrame
@@ -212,10 +213,12 @@ class Pipeliner:
         self, data: pl.DataFrame, *, metadata: bool = False
     ) -> pl.DataFrame | PipelineResult:
 
-        out_data = data
+        lazy_data = data.lazy()
 
         for step in self.steps:
-            out_data = step.apply(out_data)
+            lazy_data = step.apply(lazy_data)
+
+        out_data = lazy_data.collect()
 
         if not metadata:
             return out_data
