@@ -120,7 +120,10 @@ def adjust_depth_spacing(
     spacing_expr = (
         pl.lit(spacing)
         if spacing is not None
-        else pl.col(col_depth).diff().mean().round(digits)
+        else (
+            (pl.col(col_depth).last() - pl.col(col_depth).first())
+            / (pl.len() - 1)
+        ).round(digits)
     )
 
     return data.with_columns(
