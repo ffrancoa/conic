@@ -218,7 +218,7 @@ class Pipeliner:
         for step in self.steps:
             lazy_data = step.apply(lazy_data)
 
-        out_data = lazy_data.collect()
+        out_data = cast(pl.DataFrame, lazy_data.collect())
 
         if not metadata:
             return out_data

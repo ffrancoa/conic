@@ -17,15 +17,15 @@ from conic._canonical import (
 from conic.processing._helpers import get_column_names
 
 
-def compute_hydrostatic[F: (pl.DataFrame, pl.LazyFrame)](
-    data: F,
+def compute_hydrostatic(
+    data: pl.LazyFrame,
     water_level: Optional[float] = None,
     *,
     gamma_water: float = GAMMA_WATER,
     col_depth: str = COL_DEPTH,
     col_u0: str = COL_U0,
     override: bool = False,
-) -> F:
+) -> pl.LazyFrame:
 
     columns = get_column_names(data)
 
@@ -53,8 +53,8 @@ def compute_hydrostatic[F: (pl.DataFrame, pl.LazyFrame)](
     return data_with_u0
 
 
-def compute_geostatic[F: (pl.DataFrame, pl.LazyFrame)](
-    data: F,
+def compute_geostatic(
+    data: pl.LazyFrame,
     gamma_soil: Optional[float] = None,
     *,
     col_depth: str = COL_DEPTH,
@@ -62,7 +62,7 @@ def compute_geostatic[F: (pl.DataFrame, pl.LazyFrame)](
     col_sv_tot: str = COL_SV_TOT,
     col_u0: str = COL_U0,
     override: bool = False,
-) -> F:
+) -> pl.LazyFrame:
 
     columns = get_column_names(data)
 
@@ -98,24 +98,21 @@ def compute_geostatic[F: (pl.DataFrame, pl.LazyFrame)](
         ).with_columns((pl.col(col_sv_tot) - pl.col(col_u0)).alias(col_sv_eff))
 
 
-def adjust_depth_spacing[F: (pl.DataFrame, pl.LazyFrame)](
-    data: F,
+def adjust_depth_spacing(
+    data: pl.LazyFrame,
     *,
     start_depth: Optional[float] = None,
     spacing: Optional[float] = None,
     digits: int = 3,
     col_depth: str = COL_DEPTH,
-) -> F:
+) -> pl.LazyFrame:
 
     if col_depth not in get_column_names(data):
         raise ColumnNotFoundError(
             f"Depth column is missing in DataFrame: '{col_depth}'."
         )
 
-    if isinstance(data, pl.DataFrame) and data.height < 2:
-        raise ValueError("DataFrame must have at least 2 rows to infer depth spacing. ")
-
-    start_expr = (
+    start_depth_expr = (
         pl.lit(start_depth) if start_depth is not None else pl.col(col_depth).first()
     )
 
@@ -126,16 +123,14 @@ def adjust_depth_spacing[F: (pl.DataFrame, pl.LazyFrame)](
     )
 
     new_depths = (
-        (start_expr + pl.int_range(pl.len()) * spacing_expr)
-        .round(digits)
-        .alias(col_depth)
+        (start_depth_expr + pl.int_range(pl.len()) * spacing_expr).round(digits)
     )
 
-    return data.with_columns(new_depths)
+    return data.with_columns(new_depths.alias(col_depth))
 
 
-def sanitize_data[F: (pl.DataFrame, pl.LazyFrame)](
-    data: F,
+def sanitize_data(
+    data: pl.LazyFrame,
     *,
     col_depth: str = COL_DEPTH,
     col_qc: str = COL_QC,
@@ -145,7 +140,7 @@ def sanitize_data[F: (pl.DataFrame, pl.LazyFrame)](
     col_sv_eff: str = COL_SV_EFF,
     col_sv_tot: str = COL_SV_TOT,
     include_optional: bool = True,
-) -> F:
+) -> pl.LazyFrame:
 
     required_columns = [col_depth, col_qc, col_fs, col_u2]
     optional_columns = [col_u0, col_sv_eff, col_sv_tot]
@@ -164,12 +159,12 @@ def sanitize_data[F: (pl.DataFrame, pl.LazyFrame)](
     return data.select(selected_columns)
 
 
-def filter_by_indicators[F: (pl.DataFrame, pl.LazyFrame)](
-    data: F,
+def filter_by_indicators(
+    data: pl.LazyFrame,
     indicators: list[float],
     *,
     action: Literal["remove", "select"] = "remove",
-) -> F:
+) -> pl.LazyFrame:
 
     if action not in ["remove", "select"]:
         raise ValueError("Invalid `action` argument. Must be 'remove' or 'select'.")
@@ -180,9 +175,12 @@ def filter_by_indicators[F: (pl.DataFrame, pl.LazyFrame)](
     return data.filter(expr.not_() if action == "remove" else expr)
 
 
-def split_by_indicators[F: (pl.DataFrame, pl.LazyFrame)](
-    data: F, indicators: list[float], *, index_col: str = "_id_"
-) -> tuple[F, F]:
+def split_by_indicators(
+    data: pl.LazyFrame,
+    indicators: list[float],
+    *,
+    index_col: str = "_id_",
+) -> tuple[pl.LazyFrame, pl.LazyFrame]:
 
     indexed_data = data.with_row_index(index_col)
 
@@ -192,12 +190,12 @@ def split_by_indicators[F: (pl.DataFrame, pl.LazyFrame)](
     return rows_with, rows_without
 
 
-def clean_by_indicators[F: (pl.DataFrame, pl.LazyFrame)](
-    data: F,
+def clean_by_indicators(
+    data: pl.LazyFrame,
     indicators: list[float],
     *,
     mode: Literal["remove", "replace"] = "replace",
-) -> F:
+) -> pl.LazyFrame:
 
     if mode not in ["remove", "replace"]:
         raise ValueError("Invalid `action` argument. Must be 'remove' or 'replace'.")
