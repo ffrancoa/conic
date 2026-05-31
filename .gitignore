@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
-.mypy_cache/
 .ruff_cache/
 .coverage
 .coverage.*
@@ -16,6 +15,11 @@ coverage.xml
 *.pyd
 src/**/*.so
 src/**/*.pyd
+
+# Rust build
+target/
+wheels/
+*.whl
 
 # Distribution
 dist/
