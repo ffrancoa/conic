@@ -94,8 +94,9 @@ def compute_geostatic(
                 "provided to compute geostatic stresses."
             )
         return data.with_columns(
-            (pl.col(col_depth) * gamma_soil).alias(col_sv_tot)
-        ).with_columns((pl.col(col_sv_tot) - pl.col(col_u0)).alias(col_sv_eff))
+            (sv_tot_expr := pl.col(col_depth) * gamma_soil).alias(col_sv_tot),
+            (sv_tot_expr - pl.col(col_u0)).alias(col_sv_eff),
+        )
 
 
 def adjust_depth_spacing(
@@ -122,11 +123,11 @@ def adjust_depth_spacing(
         else pl.col(col_depth).diff().mean().round(digits)
     )
 
-    new_depths = (
-        (start_depth_expr + pl.int_range(pl.len()) * spacing_expr).round(digits)
+    return data.with_columns(
+        (start_depth_expr + pl.int_range(pl.len()) * spacing_expr)
+        .round(digits)
+        .alias(col_depth)
     )
-
-    return data.with_columns(new_depths.alias(col_depth))
 
 
 def sanitize_data(

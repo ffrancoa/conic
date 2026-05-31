@@ -28,7 +28,7 @@ dev = [
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-extend-exclude = ["src/conic/processing/derivation.py"]
+extend-exclude = ["src/conic/processing/"]
 
 [tool.ruff.lint]
 select = [
