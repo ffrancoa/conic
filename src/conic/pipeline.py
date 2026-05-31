@@ -12,12 +12,15 @@ from conic.config import Configurator
 from conic.processing import derivation, preparation
 
 
-def _dataframe_fingerprint(data: pl.DataFrame):
-    data_to_bytes = cast(BytesIO, data.write_ipc(file=None)).getvalue()
+def _dataframe_fingerprint(data: pl.DataFrame) -> str:
+    hasher = hashlib.sha256()
+    hasher.update(str(data.schema).encode())
 
-    hash_text = hashlib.sha256(data_to_bytes).hexdigest()
+    hash_frame = data.hash_rows().to_frame()
+    hash_bytes = cast(BytesIO, hash_frame.write_ipc(file=None)).getvalue()
+    hasher.update(hash_bytes)
 
-    return hash_text[:16]
+    return hasher.hexdigest()[:16]
 
 
 @dataclass(frozen=True, slots=True)
