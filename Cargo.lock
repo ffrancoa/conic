@@ -347,6 +347,7 @@ dependencies = [
 name = "conic"
 version = "0.4.0"
 dependencies = [
+ "num-traits",
  "polars",
  "pyo3",
  "pyo3-polars",
