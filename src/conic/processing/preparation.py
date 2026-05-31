@@ -36,8 +36,8 @@ def compute_hydrostatic(
 
     if col_u0 in columns and not override:
         raise ValueError(
-            f"hydrostatic pressure ({col_u0}) was already included in "
-            f"this DataFrame. Set `override=True` to override."
+            f"hydrostatic pressure ('{col_u0}') was already included in "
+            f"this DataFrame; set `override=True` to override."
         )
 
     if water_level is None:
@@ -74,7 +74,7 @@ def compute_geostatic(
     if {col_sv_eff, col_sv_tot}.issubset(columns) and not override:
         raise ValueError(
             f"geostatic columns ('{col_sv_eff}' and '{col_sv_tot}') were "
-            f"already included in this DataFrame. Set `override=True` to "
+            f"already included in this DataFrame; set `override=True` to "
             f"override."
         )
     elif col_sv_tot in columns and col_sv_eff not in columns and not override:
@@ -171,7 +171,7 @@ def filter_by_indicators(
 ) -> pl.LazyFrame:
 
     if action not in ["remove", "select"]:
-        raise ValueError("invalid `action` argument. Must be 'remove' or 'select'.")
+        raise ValueError("invalid `action` argument; use only 'remove' or 'select'.")
 
     expr = pl.selectors.numeric().is_in(indicators)
     expr = pl.any_horizontal(expr)
@@ -202,7 +202,7 @@ def clean_by_indicators(
 ) -> pl.LazyFrame:
 
     if mode not in ["remove", "replace"]:
-        raise ValueError("invalid `action` argument. Must be 'remove' or 'replace'.")
+        raise ValueError("invalid `action` argument; use only 'remove' or 'replace'.")
 
     match mode:
         case "remove":
