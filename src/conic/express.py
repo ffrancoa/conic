@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import polars as pl
 
@@ -59,9 +59,10 @@ def build_configurator(
     )
 
 
-def process(
+def process_std(
     data: pl.DataFrame,
     config: Optional[Configurator | Path | str] = None,
+    std_pipeliner: Literal["A0", "A1", "B0", "B1"] = "B1",
     *,
     columns: Optional[dict[str, str]] = None,
     parameters: Optional[dict[str, str]] = None,
@@ -100,6 +101,14 @@ def process(
         config_merged = config.model_dump() | config_overrides
         config = Configurator.model_validate(config_merged)
 
-    pipeline = Pipeliner.standard(config)
+    match std_pipeliner:
+        case "A0":
+            pipeline = Pipeliner.standard_a0(config)
+        case "A1":
+            pipeline = Pipeliner.standard_a1(config)
+        case "B0":
+            pipeline = Pipeliner.standard_b0(config)
+        case "B1":
+            pipeline = Pipeliner.standard_b1(config)
 
     return pipeline.run(data, metadata=metadata)

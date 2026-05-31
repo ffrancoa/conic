@@ -33,8 +33,8 @@ class Step:
 class StepCatalog:
     config: Configurator
 
-    def sanitize_data(self) -> Step:
-        function = preparation.sanitize_data
+    def sanitize_columns(self) -> Step:
+        function = preparation.sanitize_columns
         columns = self.config.columns
 
         def callback(data: pl.LazyFrame) -> pl.LazyFrame:
@@ -77,7 +77,7 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_hydrostatic(self) -> Step:
+    def compute_hydrostatic(self, *, override: bool) -> Step:
         function = preparation.compute_hydrostatic
         parameters = self.config.parameters
         columns = self.config.columns
@@ -89,12 +89,12 @@ class StepCatalog:
                 gamma_water=parameters.gamma_water,
                 col_depth=columns.input.depth,
                 col_u0=columns.input.u0,
-                override=True,
+                override=override,
             )
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_geostatic(self) -> Step:
+    def compute_geostatic(self, *, override: bool) -> Step:
         function = preparation.compute_geostatic
         parameters = self.config.parameters
         columns = self.config.columns
@@ -107,7 +107,7 @@ class StepCatalog:
                 col_sv_eff=columns.input.sv_eff,
                 col_sv_tot=columns.input.sv_tot,
                 col_u0=columns.input.u0,
-                override=True,
+                override=override,
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -180,15 +180,62 @@ class Pipeliner:
     steps: tuple[Step, ...]
 
     @classmethod
-    def standard(cls, config: Configurator) -> Self:
+    def standard_a0(cls, config: Configurator) -> Self:
         catalog = StepCatalog(config)
 
         steps = (
-            catalog.sanitize_data(),
+            catalog.sanitize_columns(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
-            catalog.compute_hydrostatic(),
-            catalog.compute_geostatic(),
+            catalog.compute_hydrostatic(override=False),
+            catalog.compute_geostatic(override=False),
+            catalog.compute_non_normalized(),
+        )
+
+        return cls(config=config, steps=steps)
+
+    @classmethod
+    def standard_a1(cls, config: Configurator) -> Self:
+        catalog = StepCatalog(config)
+
+        steps = (
+            catalog.sanitize_columns(),
+            catalog.adjust_depth_spacing(),
+            catalog.clean_by_indicators(),
+            catalog.compute_hydrostatic(override=True),
+            catalog.compute_geostatic(override=True),
+            catalog.compute_non_normalized(),
+        )
+
+        return cls(config=config, steps=steps)
+
+    @classmethod
+    def standard_b0(cls, config: Configurator) -> Self:
+        catalog = StepCatalog(config)
+
+        steps = (
+            catalog.sanitize_columns(),
+            catalog.adjust_depth_spacing(),
+            catalog.clean_by_indicators(),
+            catalog.compute_hydrostatic(override=False),
+            catalog.compute_geostatic(override=False),
+            catalog.compute_non_normalized(),
+            catalog.compute_rolling_columns(),
+            catalog.compute_normalized(),
+        )
+
+        return cls(config=config, steps=steps)
+
+    @classmethod
+    def standard_b1(cls, config: Configurator) -> Self:
+        catalog = StepCatalog(config)
+
+        steps = (
+            catalog.sanitize_columns(),
+            catalog.adjust_depth_spacing(),
+            catalog.clean_by_indicators(),
+            catalog.compute_hydrostatic(override=True),
+            catalog.compute_geostatic(override=True),
             catalog.compute_non_normalized(),
             catalog.compute_rolling_columns(),
             catalog.compute_normalized(),

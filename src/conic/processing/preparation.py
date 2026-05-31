@@ -133,7 +133,7 @@ def adjust_depth_spacing(
     )
 
 
-def sanitize_data(
+def sanitize_columns(
     data: pl.LazyFrame,
     *,
     col_depth: str = COL_DEPTH,
