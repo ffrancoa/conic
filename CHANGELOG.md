@@ -4,6 +4,13 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+### Added
+- Introduced `conic.express.process_std` to replace the old `express.process()` function. This update gives you the flexibility to easily choose between four brand-new standard pipeline configurations.
+- Added four new default pipeline presets via `Pipeliner.standard_*()`. You can now use "A" for a partial CPTu pipeline run or "B" for a full pipeline. Additionally, you can append "0" or "1" modifiers to effortlessly control whether optional columns in your original DataFrame should be overridden.
+
+### Changed
+- Standardized all error messages to consistently start with a lowercase letter.
+
 ## [0.4.0] — 2026-05-30
 
 ### Changed
