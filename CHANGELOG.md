@@ -4,6 +4,13 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-05-30
+
+### Changed
+- Updated `polars` to version [`1.41.2`](https://github.com/pola-rs/polars/releases/tag/py-1.41.2).
+- Migrated all core processing functions from eager `DataFrame` to `LazyFrame` execution. As a breaking change, future execution of processing methods now strictly requires the use of the `Pipeliner` and `StepCatalog` APIs.
+- Slightly optimized the performance across multiple core processing operations.
+
 ## [0.3.0] — 2026-05-30
 
 ### Added
@@ -38,4 +45,4 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 [0.1.0]: https://github.com/ferrosoft/reson/releases/tag/v0.1.0
 [0.2.0]: https://github.com/ferrosoft/reson/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ferrosoft/reson/releases/tag/v0.3.0
-
+[0.4.0]: https://github.com/ferrosoft/reson/releases/tag/v0.4.0
