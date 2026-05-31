@@ -15,7 +15,7 @@ def _classify_columns(columns: dict[str, str]) -> dict[str, dict[str, str]]:
     unknown_columns = set(columns).difference(_INPUT_COLS, _OUTPUT_COLS)
 
     if unknown_columns:
-        raise ValueError(f"Unknown column keys: {unknown_columns}.")
+        raise ValueError(f"unknown column keys: {unknown_columns}.")
 
     input_columns = {}
     output_columns = {}

@@ -31,12 +31,12 @@ def compute_hydrostatic(
 
     if col_depth not in columns:
         raise ColumnNotFoundError(
-            f"Depth column is missing in DataFrame: '{col_depth}'."
+            f"depth column is missing in DataFrame: '{col_depth}'."
         )
 
     if col_u0 in columns and not override:
         raise ValueError(
-            f"Hydrostatic pressure ({col_u0}) was already included in "
+            f"hydrostatic pressure ({col_u0}) was already included in "
             f"this DataFrame. Set `override=True` to override."
         )
 
@@ -68,12 +68,12 @@ def compute_geostatic(
 
     if col_depth not in columns:
         raise ColumnNotFoundError(
-            f"Depth column is missing in DataFrame: '{col_depth}'."
+            f"depth column is missing in DataFrame: '{col_depth}'."
         )
 
     if {col_sv_eff, col_sv_tot}.issubset(columns) and not override:
         raise ValueError(
-            f"Geostatic columns ('{col_sv_eff}' and '{col_sv_tot}') were "
+            f"geostatic columns ('{col_sv_eff}' and '{col_sv_tot}') were "
             f"already included in this DataFrame. Set `override=True` to "
             f"override."
         )
@@ -90,7 +90,7 @@ def compute_geostatic(
     else:
         if gamma_soil is None or gamma_soil <= 0:
             raise ValueError(
-                "A valid soil unit weight value (`gamma_soil`) must be "
+                "a valid soil unit weight value (`gamma_soil`) must be "
                 "provided to compute geostatic stresses."
             )
         return data.with_columns(
@@ -110,7 +110,7 @@ def adjust_depth_spacing(
 
     if col_depth not in get_column_names(data):
         raise ColumnNotFoundError(
-            f"Depth column is missing in DataFrame: '{col_depth}'."
+            f"depth column is missing in DataFrame: '{col_depth}'."
         )
 
     start_depth_expr = (
@@ -152,7 +152,7 @@ def sanitize_columns(
     columns = get_column_names(data)
 
     if missing_columns := set(required_columns).difference(columns):
-        raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     selected_columns = required_columns
 
@@ -171,7 +171,7 @@ def filter_by_indicators(
 ) -> pl.LazyFrame:
 
     if action not in ["remove", "select"]:
-        raise ValueError("Invalid `action` argument. Must be 'remove' or 'select'.")
+        raise ValueError("invalid `action` argument. Must be 'remove' or 'select'.")
 
     expr = pl.selectors.numeric().is_in(indicators)
     expr = pl.any_horizontal(expr)
@@ -202,7 +202,7 @@ def clean_by_indicators(
 ) -> pl.LazyFrame:
 
     if mode not in ["remove", "replace"]:
-        raise ValueError("Invalid `action` argument. Must be 'remove' or 'replace'.")
+        raise ValueError("invalid `action` argument. Must be 'remove' or 'replace'.")
 
     match mode:
         case "remove":

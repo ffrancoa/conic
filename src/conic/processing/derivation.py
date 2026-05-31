@@ -36,7 +36,7 @@ def compute_non_normalized(
 ) -> pl.LazyFrame:
 
     if missing_columns := get_missing_columns(data, {col_fs, col_qc, col_u2}):
-        raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     return data.with_columns(
         (
@@ -61,7 +61,7 @@ def compute_rolling_columns(
     col_qt_rol = col_qt + rolling_label
 
     if missing_columns := get_missing_columns(data, {col_fs, col_qt}):
-        raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     return data.with_columns(
         (
@@ -95,7 +95,7 @@ def compute_normalized(
     required_columns = {col_sv_eff, col_sv_tot, col_fs, col_qt, col_u0, col_u2}
 
     if missing_columns := get_missing_columns(data, required_columns):
-        raise ColumnNotFoundError(f"Missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     col_fs_rol = col_fs + rolling_label
     col_qt_rol = col_qt + rolling_label
