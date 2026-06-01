@@ -168,6 +168,29 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
+    def compute_behavior(self) -> Step:
+        function = derivation.compute_behavior
+        parameters = self.config.parameters
+        columns = self.config.columns
+
+        def callback(data: pl.LazyFrame) -> pl.LazyFrame:
+            return function(
+                data,
+                col_sv_eff=columns.input.sv_eff,
+                col_sv_tot=columns.input.sv_tot,
+                col_qt=columns.output.qt,
+                col_fr=columns.output.fr,
+                col_n=columns.output.n,
+                col_qtn=columns.output.qtn,
+                col_ic=columns.output.ic,
+                col_convg=columns.output.convg,
+                col_cd=columns.output.cd,
+                col_ib=columns.output.ib,
+                rolling_label=parameters.rolling_label,
+            )
+
+        return Step(name=function.__name__, apply=callback)
+
 
 class PipelineResult(NamedTuple):
     data: pl.DataFrame
@@ -222,6 +245,7 @@ class Pipeliner:
             catalog.compute_non_normalized(),
             catalog.compute_rolling_columns(),
             catalog.compute_normalized(),
+            catalog.compute_behavior(),
         )
 
         return cls(config=config, steps=steps)
@@ -239,6 +263,7 @@ class Pipeliner:
             catalog.compute_non_normalized(),
             catalog.compute_rolling_columns(),
             catalog.compute_normalized(),
+            catalog.compute_behavior(),
         )
 
         return cls(config=config, steps=steps)

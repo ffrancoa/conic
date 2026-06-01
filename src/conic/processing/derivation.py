@@ -4,20 +4,30 @@ from polars.exceptions import ColumnNotFoundError
 
 from conic._canonical import (
     COL_BQ,
+    COL_CD,
+    COL_CONVG,
     COL_FR,
     COL_FS,
+    COL_IB,
+    COL_IC,
+    COL_N,
     COL_QC,
     COL_QT,
     COL_QT1,
+    COL_QTN,
     COL_RF,
     COL_SV_EFF,
     COL_SV_TOT,
     COL_U0,
     COL_U2,
+    MAX_ITER,
+    P_REF,
     ROLLING,
     ROLLING_LABEL,
+    TOLERANCE,
 )
 from conic.processing._helpers import get_missing_columns
+from conic.processing._plugins import compute_behavior_plugin
 
 
 def _convert_mpa_to_kpa(column_name: str) -> pl.Expr:
@@ -112,4 +122,56 @@ def compute_normalized(
         (
             (pl.col(col_u2) - pl.col(col_u0)) / (qt_rol_kpa_expr - pl.col(col_sv_tot))
         ).alias(col_bq),
+    )
+
+def compute_behavior(
+    data: pl.LazyFrame,
+    *,
+    col_sv_eff: str = COL_SV_EFF,
+    col_sv_tot: str = COL_SV_TOT,
+    col_qt: str = COL_QT,
+    col_fr: str = COL_FR,
+    col_n: str = COL_N,
+    col_qtn: str = COL_QTN,
+    col_ic: str = COL_IC,
+    col_convg: str = COL_CONVG,
+    col_cd: str = COL_CD,
+    col_ib: str = COL_IB,
+    p_ref: float = P_REF,
+    max_iter: int = MAX_ITER,
+    tolerance: float = TOLERANCE,
+    rolling_label: str = ROLLING_LABEL,
+) -> pl.LazyFrame:
+
+    required_columns = {col_sv_eff, col_sv_tot, col_qt, col_fr}
+
+    if missing_columns := get_missing_columns(data, required_columns):
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
+    
+    col_qt_rol = col_qt + rolling_label
+
+    temp_data = data.with_columns(
+        compute_behavior_plugin(
+            sv_eff=col_sv_eff,
+            sv_tot=col_sv_tot,
+            qt=col_qt_rol,
+            fr=col_fr,
+            p_ref=p_ref,
+            max_iter=max_iter,
+            tolerance=tolerance,
+        ).alias("_temp")
+    ).with_columns(
+        pl.col("_temp").struct.field("n").alias(col_n),
+        pl.col("_temp").struct.field("qtn").alias(col_qtn),
+        pl.col("_temp").struct.field("ic").alias(col_ic),
+        pl.col("_temp").struct.field("convg").alias(col_convg),
+    ).drop("_temp")
+
+    return temp_data.with_columns(
+        (
+            (pl.col(col_qtn) - 11) * (1 + 0.06 * pl.col(col_fr)).pow(17)
+        ).alias(col_cd),
+        (
+            100 * (pl.col(col_qtn) + 10) / (70 + pl.col(col_qtn) * pl.col(col_fr))
+        ).alias(col_ib),
     )

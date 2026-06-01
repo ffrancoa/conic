@@ -29,4 +29,8 @@ GAMMA_WATER: float = 9.81
 ROLLING: Final = 1
 ROLLING_LABEL: str = "*"
 
+P_REF: float = 101.3
+MAX_ITER: int = 999
+TOLERANCE: float = 1e-4
+
 CLEAN_MODE: Final = "replace"
