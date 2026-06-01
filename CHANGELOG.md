@@ -4,12 +4,16 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-06-01
+
 ### Added
 - Introduced `conic.express.process_std` to replace the old `express.process()` function. This update gives you the flexibility to easily choose between four brand-new standard pipeline configurations.
 - Added four new default pipeline presets via `Pipeliner.standard_*()`. You can now use "A" for a partial CPTu pipeline run or "B" for a full pipeline. Additionally, you can append "0" or "1" modifiers to effortlessly control whether optional columns in your original DataFrame should be overridden.
+- Finally, the Rust plugin to compute derivated CPTu behaviour-based parameters was implemented via `processing.compute_behavior()`.
 
 ### Changed
 - Standardized all error messages to consistently start with a lowercase letter.
+
 
 ## [0.4.0] — 2026-05-30
 
@@ -53,3 +57,4 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 [0.2.0]: https://github.com/ferrosoft/reson/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ferrosoft/reson/releases/tag/v0.3.0
 [0.4.0]: https://github.com/ferrosoft/reson/releases/tag/v0.4.0
+[0.5.0]: https://github.com/ferrosoft/reson/releases/tag/v0.5.0
