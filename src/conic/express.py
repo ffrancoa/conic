@@ -60,8 +60,8 @@ def build_configurator(
     return _Configurator.model_validate(
         {
             "columns": _classify_columns(columns) if columns else {},
-            "parameters": parameters if parameters else {},
-            "cleansing": cleansing if cleansing else {},
+            "parameters": parameters or {},
+            "cleansing": cleansing or {},
         }
     )
 
