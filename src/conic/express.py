@@ -30,17 +30,17 @@ def _classify_columns(columns: dict[str, str]) -> dict[str, dict[str, str]]:
 
 
 def read_csv(
-    path: Path | str, *, delimiter: str = ",", skip_rows: int = 0
+    path: Path | str, *, delimiter: str = ",", skip_records: int = 0
 ) -> pl.DataFrame:
 
     return pl.read_csv(
         path,
         has_header=True,
-        separator=delimiter,
-        schema_overrides=[pl.Float64],
-        skip_rows_after_header=skip_rows,
+        infer_schema_length=False,
         raise_if_empty=True,
-    )
+        separator=delimiter,
+        skip_rows_after_header=skip_records,
+    ).select(pl.all().cast(pl.Float64, strict=False))
 
 
 def build_configurator(
@@ -64,9 +64,9 @@ def process_std(
     config: Optional[Configurator | Path | str] = None,
     std_pipeliner: Literal["A0", "A1", "B0", "B1"] = "B1",
     *,
+    parameters: Optional[dict[str, float]] = None,
     columns: Optional[dict[str, str]] = None,
-    parameters: Optional[dict[str, str]] = None,
-    cleansing: Optional[dict[str, str]] = None,
+    cleansing: Optional[dict[str, Any]] = None,
     metadata: bool = False,
 ) -> pl.DataFrame | PipelineResult:
 
