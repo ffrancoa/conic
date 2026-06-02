@@ -18,6 +18,8 @@ fn compute_behavior_output(_input_fields: &[Field]) -> PolarsResult<Field> {
         Field::new("qtn".into(), DataType::Float64),
         Field::new("ic".into(), DataType::Float64),
         Field::new("convg".into(), DataType::Boolean),
+        Field::new("cd".into(), DataType::Float64),
+        Field::new("ib".into(), DataType::Float64),
     ];
 
     Ok(Field::new("series_output".into(), DataType::Struct(fields)))
@@ -51,11 +53,21 @@ fn compute_behavior(inputs: &[Series], kwargs: BehaviorKwargs) -> PolarsResult<S
     let qtn_series = Series::new("qtn".into(), behaviour_vecs.qtn_vec);
     let ic_series = Series::new("ic".into(), behaviour_vecs.ic_vec);
     let convg_series = Series::new("convg".into(), behaviour_vecs.convg_vec);
+    let cd_series = Series::new("cd".into(), behaviour_vecs.cd_vec);
+    let ib_series = Series::new("ib".into(), behaviour_vecs.ib_vec);
 
     let struct_chunked = StructChunked::from_series(
         "series_output".into(),
         behaviour_vecs.vec_size,
-        [&n_series, &qtn_series, &ic_series, &convg_series].into_iter(),
+        [
+            &n_series,
+            &qtn_series,
+            &ic_series,
+            &convg_series,
+            &cd_series,
+            &ib_series,
+        ]
+        .into_iter(),
     )?;
 
     Ok(struct_chunked.into_series())

@@ -148,13 +148,11 @@ def compute_behavior(
     if missing_columns := get_missing_columns(data, required_columns):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
     
-    col_qt_rol = col_qt + rolling_label
-
-    temp_data = data.with_columns(
+    return data.with_columns(
         compute_behavior_plugin(
             sv_eff=col_sv_eff,
             sv_tot=col_sv_tot,
-            qt=col_qt_rol,
+            qt=(col_qt + rolling_label),
             fr=col_fr,
             p_ref=p_ref,
             max_iter=max_iter,
@@ -165,13 +163,6 @@ def compute_behavior(
         pl.col("_temp").struct.field("qtn").alias(col_qtn),
         pl.col("_temp").struct.field("ic").alias(col_ic),
         pl.col("_temp").struct.field("convg").alias(col_convg),
+        pl.col("_temp").struct.field("cd").alias(col_cd),
+        pl.col("_temp").struct.field("ib").alias(col_ib),
     ).drop("_temp")
-
-    return temp_data.with_columns(
-        (
-            (pl.col(col_qtn) - 11) * (1 + 0.06 * pl.col(col_fr)).pow(17)
-        ).alias(col_cd),
-        (
-            100 * (pl.col(col_qtn) + 10) / (70 + pl.col(col_qtn) * pl.col(col_fr))
-        ).alias(col_ib),
-    )

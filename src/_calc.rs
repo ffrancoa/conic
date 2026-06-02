@@ -4,20 +4,22 @@ pub(crate) struct BehaviorVecs {
     pub qtn_vec: Vec<f64>,
     pub ic_vec: Vec<f64>,
     pub convg_vec: Vec<Option<bool>>,
+    pub cd_vec: Vec<f64>,
+    pub ib_vec: Vec<f64>,
 }
 
 pub(crate) fn calc_n(sv_eff: f64, ic: f64, p_ref: f64) -> f64 {
     let sv_eff_term = 0.05 * (sv_eff / p_ref);
     let ic_term = 0.381 * ic;
 
-    (ic_term + sv_eff_term - 0.15).min(1.0)
+    (ic_term + sv_eff_term - 0.15).clamp(0.0, 1.0)
 }
 
 pub(crate) fn calc_qtn(sv_eff: f64, sv_tot: f64, qt: f64, n: f64, p_ref: f64) -> f64 {
     let qt_term = (qt - sv_tot) / p_ref;
     let c_n = (p_ref / sv_eff).powf(n);
 
-    qt_term * c_n
+    (qt_term * c_n).max(0.0001)
 }
 
 pub(crate) fn calc_ic(fr: f64, qtn: f64) -> f64 {
@@ -25,6 +27,20 @@ pub(crate) fn calc_ic(fr: f64, qtn: f64) -> f64 {
     let qtn_term = 3.47 - qtn.log10();
 
     (fr_term.powi(2) + qtn_term.powi(2)).sqrt()
+}
+
+pub(crate) fn calc_cd(fr: f64, qtn: f64) -> f64 {
+    let fr_term = (1.0 + 0.06 * fr).powi(17);
+    let qtn_term = qtn - 11.0;
+
+    qtn_term * fr_term
+}
+
+pub(crate) fn calc_ib(fr: f64, qtn: f64) -> f64 {
+    let num = qtn + 10.0;
+    let den = 70.0 + qtn * fr;
+
+    100.0 * (num / den)
 }
 
 pub(crate) fn compute_behavior(
@@ -43,6 +59,9 @@ pub(crate) fn compute_behavior(
     let mut n_vec = Vec::with_capacity(vec_size);
     let mut convg_vec = Vec::with_capacity(vec_size);
 
+    let mut cd_vec = Vec::with_capacity(vec_size);
+    let mut ib_vec = Vec::with_capacity(vec_size);
+
     for i in 0..vec_size {
         let sv_eff_i = sv_eff[i];
         let sv_tot_i = sv_tot[i];
@@ -53,6 +72,8 @@ pub(crate) fn compute_behavior(
             n_vec.push(f64::NAN);
             qtn_vec.push(f64::NAN);
             ic_vec.push(f64::NAN);
+            cd_vec.push(f64::NAN);
+            ib_vec.push(f64::NAN);
 
             convg_vec.push(None);
 
@@ -86,6 +107,9 @@ pub(crate) fn compute_behavior(
         n_vec.push(n_i);
         qtn_vec.push(qtn_i);
         ic_vec.push(ic_i);
+
+        cd_vec.push(calc_cd(fr_i, qtn_i));
+        ib_vec.push(calc_ib(fr_i, qtn_i));
     }
 
     BehaviorVecs {
@@ -94,6 +118,8 @@ pub(crate) fn compute_behavior(
         qtn_vec,
         ic_vec,
         convg_vec,
+        cd_vec,
+        ib_vec,
     }
 }
 
