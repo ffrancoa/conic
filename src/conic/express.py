@@ -3,11 +3,18 @@ from typing import Any, Literal, Optional
 
 import polars as pl
 
-from .config import Configurator, InputColumns, OutputColumns
-from .pipeline import Pipeliner, PipelineResult
+from .config import (
+    Configurator as _Configurator,
+    InputColumns as _InputColumns,
+    OutputColumns as _OutputColumns,
+)
+from .pipeline import (
+    Pipeliner as _Pipeliner,
+    PipelineResult as _PipelineResult,
+)
 
-_INPUT_COLS = set(InputColumns.model_fields.keys())
-_OUTPUT_COLS = set(OutputColumns.model_fields.keys())
+_INPUT_COLS = set(_InputColumns.model_fields.keys())
+_OUTPUT_COLS = set(_OutputColumns.model_fields.keys())
 
 
 def _classify_columns(columns: dict[str, str]) -> dict[str, dict[str, str]]:
@@ -48,9 +55,9 @@ def build_configurator(
     columns: Optional[dict[str, str]] = None,
     parameters: Optional[dict[str, float]] = None,
     cleansing: Optional[dict[str, Any]] = None,
-) -> Configurator:
+) -> _Configurator:
 
-    return Configurator.model_validate(
+    return _Configurator.model_validate(
         {
             "columns": _classify_columns(columns) if columns else {},
             "parameters": parameters if parameters else {},
@@ -61,19 +68,19 @@ def build_configurator(
 
 def process_std(
     data: pl.DataFrame,
-    config: Optional[Configurator | Path | str] = None,
+    config: Optional[_Configurator | Path | str] = None,
     std_pipeliner: Literal["A0", "A1", "B0", "B1"] = "B1",
     *,
     parameters: Optional[dict[str, float]] = None,
     columns: Optional[dict[str, str]] = None,
     cleansing: Optional[dict[str, Any]] = None,
     metadata: bool = False,
-) -> pl.DataFrame | PipelineResult:
+) -> pl.DataFrame | _PipelineResult:
 
     if config is None:
-        config = Configurator()
-    elif not isinstance(config, Configurator):
-        config = Configurator.from_toml(config)
+        config = _Configurator()
+    elif not isinstance(config, _Configurator):
+        config = _Configurator.from_toml(config)
 
     config_overrides = {}
 
@@ -99,16 +106,16 @@ def process_std(
 
     if config_overrides:
         config_merged = config.model_dump() | config_overrides
-        config = Configurator.model_validate(config_merged)
+        config = _Configurator.model_validate(config_merged)
 
     match std_pipeliner:
         case "A0":
-            pipeline = Pipeliner.standard_a0(config)
+            pipeline = _Pipeliner.standard_a0(config)
         case "A1":
-            pipeline = Pipeliner.standard_a1(config)
+            pipeline = _Pipeliner.standard_a1(config)
         case "B0":
-            pipeline = Pipeliner.standard_b0(config)
+            pipeline = _Pipeliner.standard_b0(config)
         case "B1":
-            pipeline = Pipeliner.standard_b1(config)
+            pipeline = _Pipeliner.standard_b1(config)
 
     return pipeline.run(data, metadata=metadata)
