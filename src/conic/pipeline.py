@@ -120,11 +120,13 @@ class StepCatalog:
             return function(
                 data,
                 area_ratio=parameters.area_ratio,
+                col_sv_tot=columns.input.sv_tot,
+                col_u2=columns.input.u2,
                 col_fs=columns.input.fs,
                 col_qc=columns.input.qc,
                 col_qt=columns.output.qt,
+                col_qn=columns.output.qn,
                 col_rf=columns.output.rf,
-                col_u2=columns.input.u2,
             )
 
         return Step(name=function.__name__, apply=callback)
@@ -140,6 +142,7 @@ class StepCatalog:
                 rolling=parameters.rolling,
                 col_fs=columns.input.fs,
                 col_qt=columns.output.qt,
+                col_qn=columns.output.qn,
                 rolling_label=parameters.rolling_label,
             )
 
@@ -154,11 +157,10 @@ class StepCatalog:
             return function(
                 data,
                 col_sv_eff=columns.input.sv_eff,
-                col_sv_tot=columns.input.sv_tot,
-                col_fs=columns.input.fs,
-                col_qt=columns.output.qt,
                 col_u0=columns.input.u0,
                 col_u2=columns.input.u2,
+                col_fs=columns.input.fs,
+                col_qn=columns.output.qn,
                 col_qt1=columns.output.qt1,
                 col_fr=columns.output.fr,
                 col_bq=columns.output.bq,

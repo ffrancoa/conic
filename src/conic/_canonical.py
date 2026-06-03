@@ -10,6 +10,7 @@ COL_SV_TOT: str = "σv_tot (kPa)"
 COL_SV_EFF: str = "σv_eff (kPa)"
 
 COL_QT: str = "qt (MPa)"
+COL_QN: str = "qn (MPa)"
 
 COL_QT1: str = "Qt1 (-)"
 COL_RF: str = "Rf (%)"

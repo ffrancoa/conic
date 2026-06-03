@@ -24,6 +24,7 @@ from conic._canonical import (
     COL_IC,
     COL_N,
     COL_QC,
+    COL_QN,
     COL_QT,
     COL_QT1,
     COL_QTN,
@@ -73,9 +74,10 @@ class OutputColumns(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     qt: ColumnName = COL_QT
-    rf: ColumnName = COL_RF
+    qn: ColumnName = COL_QN
 
     qt1: ColumnName = COL_QT1
+    rf: ColumnName = COL_RF
     fr: ColumnName = COL_FR
     bq: ColumnName = COL_BQ
 
