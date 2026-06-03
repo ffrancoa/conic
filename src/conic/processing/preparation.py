@@ -16,7 +16,7 @@ from conic._canonical import (
 from conic.processing._helpers import get_column_names
 
 
-def compute_hydrostatic(
+def compute_hydrostatic_column(
     data: pl.LazyFrame,
     water_level: float | None = None,
     *,
@@ -52,7 +52,7 @@ def compute_hydrostatic(
     return data_with_u0
 
 
-def compute_geostatic(
+def compute_geostatic_columns(
     data: pl.LazyFrame,
     gamma_soil: float | None = None,
     *,

@@ -26,15 +26,11 @@ from conic._canonical import (
     ROLLING_LABEL,
     TOLERANCE,
 )
-from conic.processing._helpers import get_missing_columns
+from conic.processing._helpers import get_missing_columns, scale_column
 from conic.processing._plugins import compute_behavior_plugin
 
 
-def _convert_mpa_to_kpa(column_name: str) -> pl.Expr:
-    return pl.col(column_name) * 1000.0
-
-
-def compute_non_normalized(
+def compute_non_normalized_columns(
     data: pl.LazyFrame,
     area_ratio: float,
     *,
@@ -50,12 +46,12 @@ def compute_non_normalized(
     if missing_columns := get_missing_columns(data, {col_fs, col_qc, col_u2}):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
-    col_qt_mpa_expr = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
+    col_qt_mpa = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
 
     return data.with_columns(
-        col_qt_mpa_expr.alias(col_qt),
-        (col_qt_mpa_expr - pl.col(col_sv_tot) / 1000.0).alias(col_qn),
-        (pl.col(col_fs) / (col_qt_mpa_expr * 1000.0) * 100.0).alias(col_rf),
+        col_qt_mpa.alias(col_qt),
+        (col_qt_mpa - pl.col(col_sv_tot) / 1000.0).alias(col_qn),
+        (pl.col(col_fs) / (col_qt_mpa * 1000.0) * 100.0).alias(col_rf),
     )
 
 
@@ -73,7 +69,7 @@ def compute_rolling_columns(
     col_qt_rol = col_qt + rolling_label
     col_qn_rol = col_qn + rolling_label
 
-    if missing_columns := get_missing_columns(data, {col_fs, col_qt}):
+    if missing_columns := get_missing_columns(data, {col_fs, col_qt, col_qn}):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     return data.with_columns(
@@ -95,7 +91,7 @@ def compute_rolling_columns(
     )
 
 
-def compute_normalized(
+def compute_normalized_columns(
     data: pl.LazyFrame,
     *,
     col_sv_eff: str = COL_SV_EFF,
@@ -117,16 +113,16 @@ def compute_normalized(
     col_fs_rol = col_fs + rolling_label
     col_qn_rol = col_qn + rolling_label
 
-    col_qn_rol_kpa_expr = _convert_mpa_to_kpa(col_qn_rol)
+    col_qn_rol_kpa = scale_column(col_qn_rol, 1000.0)
 
     return data.with_columns(
-        (col_qn_rol_kpa_expr / pl.col(col_sv_eff)).alias(col_qt1),
-        (100.0 * pl.col(col_fs_rol) / col_qn_rol_kpa_expr).alias(col_fr),
-        ((pl.col(col_u2) - pl.col(col_u0)) / col_qn_rol_kpa_expr).alias(col_bq),
+        (col_qn_rol_kpa / pl.col(col_sv_eff)).alias(col_qt1),
+        (100.0 * pl.col(col_fs_rol) / col_qn_rol_kpa).alias(col_fr),
+        ((pl.col(col_u2) - pl.col(col_u0)) / col_qn_rol_kpa).alias(col_bq),
     )
 
 
-def compute_behavior(
+def compute_behavior_columns(
     data: pl.LazyFrame,
     *,
     col_sv_eff: str = COL_SV_EFF,

@@ -76,8 +76,8 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_hydrostatic(self, *, override: bool) -> Step:
-        function = preparation.compute_hydrostatic
+    def compute_hydrostatic_column(self, *, override: bool) -> Step:
+        function = preparation.compute_hydrostatic_column
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -93,8 +93,8 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_geostatic(self, *, override: bool) -> Step:
-        function = preparation.compute_geostatic
+    def compute_geostatic_columns(self, *, override: bool) -> Step:
+        function = preparation.compute_geostatic_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -111,8 +111,8 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_non_normalized(self) -> Step:
-        function = derivation.compute_non_normalized
+    def compute_non_normalized_columns(self) -> Step:
+        function = derivation.compute_non_normalized_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -148,8 +148,8 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_normalized(self) -> Step:
-        function = derivation.compute_normalized
+    def compute_normalized_columns(self) -> Step:
+        function = derivation.compute_normalized_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -169,8 +169,8 @@ class StepCatalog:
 
         return Step(name=function.__name__, apply=callback)
 
-    def compute_behavior(self) -> Step:
-        function = derivation.compute_behavior
+    def compute_behavior_columns(self) -> Step:
+        function = derivation.compute_behavior_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -211,9 +211,9 @@ class Pipeliner:
             catalog.sanitize_columns(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
-            catalog.compute_hydrostatic(override=False),
-            catalog.compute_geostatic(override=False),
-            catalog.compute_non_normalized(),
+            catalog.compute_hydrostatic_column(override=False),
+            catalog.compute_geostatic_columns(override=False),
+            catalog.compute_non_normalized_columns(),
         )
 
         return cls(config=config, steps=steps)
@@ -226,9 +226,9 @@ class Pipeliner:
             catalog.sanitize_columns(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
-            catalog.compute_hydrostatic(override=True),
-            catalog.compute_geostatic(override=True),
-            catalog.compute_non_normalized(),
+            catalog.compute_hydrostatic_column(override=True),
+            catalog.compute_geostatic_columns(override=True),
+            catalog.compute_non_normalized_columns(),
         )
 
         return cls(config=config, steps=steps)
@@ -241,12 +241,12 @@ class Pipeliner:
             catalog.sanitize_columns(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
-            catalog.compute_hydrostatic(override=False),
-            catalog.compute_geostatic(override=False),
-            catalog.compute_non_normalized(),
+            catalog.compute_hydrostatic_column(override=False),
+            catalog.compute_geostatic_columns(override=False),
+            catalog.compute_non_normalized_columns(),
             catalog.compute_rolling_columns(),
-            catalog.compute_normalized(),
-            catalog.compute_behavior(),
+            catalog.compute_normalized_columns(),
+            catalog.compute_behavior_columns(),
         )
 
         return cls(config=config, steps=steps)
@@ -259,12 +259,12 @@ class Pipeliner:
             catalog.sanitize_columns(),
             catalog.adjust_depth_spacing(),
             catalog.clean_by_indicators(),
-            catalog.compute_hydrostatic(override=True),
-            catalog.compute_geostatic(override=True),
-            catalog.compute_non_normalized(),
+            catalog.compute_hydrostatic_column(override=True),
+            catalog.compute_geostatic_columns(override=True),
+            catalog.compute_non_normalized_columns(),
             catalog.compute_rolling_columns(),
-            catalog.compute_normalized(),
-            catalog.compute_behavior(),
+            catalog.compute_normalized_columns(),
+            catalog.compute_behavior_columns(),
         )
 
         return cls(config=config, steps=steps)
