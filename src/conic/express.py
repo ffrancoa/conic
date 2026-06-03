@@ -1,15 +1,21 @@
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import polars as pl
 
 from .config import (
     Configurator as _Configurator,
+)
+from .config import (
     InputColumns as _InputColumns,
+)
+from .config import (
     OutputColumns as _OutputColumns,
 )
 from .pipeline import (
     Pipeliner as _Pipeliner,
+)
+from .pipeline import (
     PipelineResult as _PipelineResult,
 )
 
@@ -43,18 +49,18 @@ def read_csv(
     return pl.read_csv(
         path,
         has_header=True,
-        infer_schema_length=False,
+        infer_schema=False,
         raise_if_empty=True,
         separator=delimiter,
         skip_rows_after_header=skip_records,
-    ).select(pl.all().cast(pl.Float64, strict=False))
+    ).cast({pl.String: pl.Float64})
 
 
 def build_configurator(
     *,
-    columns: Optional[dict[str, str]] = None,
-    parameters: Optional[dict[str, float]] = None,
-    cleansing: Optional[dict[str, Any]] = None,
+    columns: dict[str, str] | None = None,
+    parameters: dict[str, float] | None = None,
+    cleansing: dict[str, Any] | None = None,
 ) -> _Configurator:
 
     return _Configurator.model_validate(
@@ -68,12 +74,12 @@ def build_configurator(
 
 def process_std(
     data: pl.DataFrame,
-    config: Optional[_Configurator | Path | str] = None,
+    config: _Configurator | Path | str | None = None,
     std_pipeliner: Literal["A0", "A1", "B0", "B1"] = "B1",
     *,
-    parameters: Optional[dict[str, float]] = None,
-    columns: Optional[dict[str, str]] = None,
-    cleansing: Optional[dict[str, Any]] = None,
+    parameters: dict[str, float] | None = None,
+    columns: dict[str, str] | None = None,
+    cleansing: dict[str, Any] | None = None,
     metadata: bool = False,
 ) -> pl.DataFrame | _PipelineResult:
 

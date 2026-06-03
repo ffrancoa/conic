@@ -1,7 +1,6 @@
 import tomllib
-
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import (
     BaseModel,
@@ -53,8 +52,8 @@ class Parameters(BaseModel):
     rolling_label: str = ROLLING_LABEL
 
     gamma_water: PositiveFloat = GAMMA_WATER
-    gamma_soil: Optional[PositiveFloat] = None
-    water_level: Optional[NonNegativeFloat] = None
+    gamma_soil: PositiveFloat | None = None
+    water_level: NonNegativeFloat | None = None
 
 
 class InputColumns(BaseModel):
@@ -99,8 +98,8 @@ class Columns(BaseModel):
 class Cleansing(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    start_depth: Optional[NonNegativeFloat] = None
-    spacing: Optional[PositiveFloat] = None
+    start_depth: NonNegativeFloat | None = None
+    spacing: PositiveFloat | None = None
 
     indicators: Indicators = Field(default_factory=lambda: list())
     clean_mode: CleanMode = CLEAN_MODE
@@ -130,16 +129,16 @@ class Configurator(BaseModel):
     def with_gamma_water(self, value: PositiveFloat) -> Self:
         return self._with_field("parameters", "gamma_water", value)
 
-    def with_gamma_soil(self, value: Optional[PositiveFloat]) -> Self:
+    def with_gamma_soil(self, value: PositiveFloat | None) -> Self:
         return self._with_field("parameters", "gamma_soil", value)
 
-    def with_water_level(self, value: Optional[NonNegativeFloat]) -> Self:
+    def with_water_level(self, value: NonNegativeFloat | None) -> Self:
         return self._with_field("parameters", "water_level", value)
 
-    def with_start_depth(self, value: Optional[NonNegativeFloat]) -> Self:
+    def with_start_depth(self, value: NonNegativeFloat | None) -> Self:
         return self._with_field("cleansing", "start_depth", value)
 
-    def with_spacing(self, value: Optional[PositiveFloat]) -> Self:
+    def with_spacing(self, value: PositiveFloat | None) -> Self:
         return self._with_field("cleansing", "spacing", value)
 
     def with_indicators(self, values: list[float]) -> Self:

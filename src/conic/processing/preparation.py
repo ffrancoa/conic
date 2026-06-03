@@ -1,7 +1,6 @@
-from typing import Literal, Optional
+from typing import Literal
 
 import polars as pl
-
 from polars.exceptions import ColumnNotFoundError
 
 from conic._canonical import (
@@ -19,7 +18,7 @@ from conic.processing._helpers import get_column_names
 
 def compute_hydrostatic(
     data: pl.LazyFrame,
-    water_level: Optional[float] = None,
+    water_level: float | None = None,
     *,
     gamma_water: float = GAMMA_WATER,
     col_depth: str = COL_DEPTH,
@@ -55,7 +54,7 @@ def compute_hydrostatic(
 
 def compute_geostatic(
     data: pl.LazyFrame,
-    gamma_soil: Optional[float] = None,
+    gamma_soil: float | None = None,
     *,
     col_depth: str = COL_DEPTH,
     col_sv_eff: str = COL_SV_EFF,
@@ -102,8 +101,8 @@ def compute_geostatic(
 def adjust_depth_spacing(
     data: pl.LazyFrame,
     *,
-    start_depth: Optional[float] = None,
-    spacing: Optional[float] = None,
+    start_depth: float | None = None,
+    spacing: float | None = None,
     digits: int = 3,
     col_depth: str = COL_DEPTH,
 ) -> pl.LazyFrame:
@@ -121,8 +120,7 @@ def adjust_depth_spacing(
         pl.lit(spacing)
         if spacing is not None
         else (
-            (pl.col(col_depth).last() - pl.col(col_depth).first())
-            / (pl.len() - 1)
+            (pl.col(col_depth).last() - pl.col(col_depth).first()) / (pl.len() - 1)
         ).round(digits)
     )
 

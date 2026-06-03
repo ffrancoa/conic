@@ -1,7 +1,6 @@
 from textwrap import dedent
 
 import pytest
-
 from pydantic import ValidationError
 
 from conic.config import Configurator

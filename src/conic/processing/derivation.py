@@ -1,5 +1,4 @@
 import polars as pl
-
 from polars.exceptions import ColumnNotFoundError
 
 from conic._canonical import (
@@ -52,9 +51,7 @@ def compute_non_normalized(
         (
             qt_mpa_expr := pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
         ).alias(col_qt),
-        (
-            pl.col(col_fs) / (qt_mpa_expr * 1000.0) * 100.0
-        ).alias(col_rf),
+        (pl.col(col_fs) / (qt_mpa_expr * 1000.0) * 100.0).alias(col_rf),
     )
 
 
@@ -113,16 +110,15 @@ def compute_normalized(
     qt_rol_kpa_expr = _convert_mpa_to_kpa(col_qt_rol)
 
     return data.with_columns(
-        (
-            (qt_rol_kpa_expr - pl.col(col_sv_tot)) / pl.col(col_sv_eff)
-        ).alias(col_qt1),
-        (
-            pl.col(col_fs_rol) / (qt_rol_kpa_expr - pl.col(col_sv_tot)) * 100.0
-        ).alias(col_fr),
+        ((qt_rol_kpa_expr - pl.col(col_sv_tot)) / pl.col(col_sv_eff)).alias(col_qt1),
+        (pl.col(col_fs_rol) / (qt_rol_kpa_expr - pl.col(col_sv_tot)) * 100.0).alias(
+            col_fr
+        ),
         (
             (pl.col(col_u2) - pl.col(col_u0)) / (qt_rol_kpa_expr - pl.col(col_sv_tot))
         ).alias(col_bq),
     )
+
 
 def compute_behavior(
     data: pl.LazyFrame,
@@ -147,22 +143,26 @@ def compute_behavior(
 
     if missing_columns := get_missing_columns(data, required_columns):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
-    
-    return data.with_columns(
-        compute_behavior_plugin(
-            sv_eff=col_sv_eff,
-            sv_tot=col_sv_tot,
-            qt=(col_qt + rolling_label),
-            fr=col_fr,
-            p_ref=p_ref,
-            max_iter=max_iter,
-            tolerance=tolerance,
-        ).alias("_temp")
-    ).with_columns(
-        pl.col("_temp").struct.field("n").alias(col_n),
-        pl.col("_temp").struct.field("qtn").alias(col_qtn),
-        pl.col("_temp").struct.field("ic").alias(col_ic),
-        pl.col("_temp").struct.field("convg").alias(col_convg),
-        pl.col("_temp").struct.field("cd").alias(col_cd),
-        pl.col("_temp").struct.field("ib").alias(col_ib),
-    ).drop("_temp")
+
+    return (
+        data.with_columns(
+            compute_behavior_plugin(
+                sv_eff=col_sv_eff,
+                sv_tot=col_sv_tot,
+                qt=(col_qt + rolling_label),
+                fr=col_fr,
+                p_ref=p_ref,
+                max_iter=max_iter,
+                tolerance=tolerance,
+            ).alias("_temp")
+        )
+        .with_columns(
+            pl.col("_temp").struct.field("n").alias(col_n),
+            pl.col("_temp").struct.field("qtn").alias(col_qtn),
+            pl.col("_temp").struct.field("ic").alias(col_ic),
+            pl.col("_temp").struct.field("convg").alias(col_convg),
+            pl.col("_temp").struct.field("cd").alias(col_cd),
+            pl.col("_temp").struct.field("ib").alias(col_ib),
+        )
+        .drop("_temp")
+    )

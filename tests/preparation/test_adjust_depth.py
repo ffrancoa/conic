@@ -1,6 +1,5 @@
 import polars as pl
 import pytest
-
 from polars.exceptions import ColumnNotFoundError
 
 from conic._canonical import COL_DEPTH

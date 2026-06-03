@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import polars as pl
-
 from polars.plugins import register_plugin_function
 
 LIB_PATH = Path(__file__).parent.parent

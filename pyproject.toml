@@ -51,7 +51,6 @@ cache-keys = [
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-extend-exclude = ["src/conic/processing/"]
 
 [tool.ruff.lint]
 select = [
@@ -68,13 +67,8 @@ select = [
 
 ignore = [
     "C408",
-    "E501",
     "RUF001",
-    "UP045",
 ]
-
-[tool.ruff.lint.isort]
-lines-between-types = 1
 
 [tool.ruff.format]
 quote-style = "double"
