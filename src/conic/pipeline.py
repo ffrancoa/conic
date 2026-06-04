@@ -164,6 +164,7 @@ class StepCatalog:
                 col_qt1=columns.output.qt1,
                 col_fr=columns.output.fr,
                 col_bq=columns.output.bq,
+                col_u=columns.output.u,
                 rolling_label=parameters.rolling_label,
             )
 

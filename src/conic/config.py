@@ -31,6 +31,7 @@ from conic._canonical import (
     COL_RF,
     COL_SV_EFF,
     COL_SV_TOT,
+    COL_U,
     COL_U0,
     COL_U2,
     GAMMA_WATER,
@@ -80,6 +81,7 @@ class OutputColumns(BaseModel):
     rf: ColumnName = COL_RF
     fr: ColumnName = COL_FR
     bq: ColumnName = COL_BQ
+    u: ColumnName = COL_U
 
     n: ColumnName = COL_N
     qtn: ColumnName = COL_QTN

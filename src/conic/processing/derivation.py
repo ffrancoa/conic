@@ -18,6 +18,7 @@ from conic._canonical import (
     COL_RF,
     COL_SV_EFF,
     COL_SV_TOT,
+    COL_U,
     COL_U0,
     COL_U2,
     MAX_ITER,
@@ -102,6 +103,7 @@ def compute_normalized_columns(
     col_qt1: str = COL_QT1,
     col_fr: str = COL_FR,
     col_bq: str = COL_BQ,
+    col_u: str = COL_U,
     rolling_label: str = ROLLING_LABEL,
 ) -> pl.LazyFrame:
 
@@ -119,7 +121,7 @@ def compute_normalized_columns(
         (col_qn_rol_kpa / pl.col(col_sv_eff)).alias(col_qt1),
         (100.0 * pl.col(col_fs_rol) / col_qn_rol_kpa).alias(col_fr),
         ((pl.col(col_u2) - pl.col(col_u0)) / col_qn_rol_kpa).alias(col_bq),
-    )
+    ).with_columns((pl.col(col_bq) * pl.col(col_u2)).alias(col_u))
 
 
 def compute_behavior_columns(
