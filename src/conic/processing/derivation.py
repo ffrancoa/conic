@@ -121,7 +121,7 @@ def compute_normalized_columns(
         (col_qn_rol_kpa / pl.col(col_sv_eff)).alias(col_qt1),
         (100.0 * pl.col(col_fs_rol) / col_qn_rol_kpa).alias(col_fr),
         ((pl.col(col_u2) - pl.col(col_u0)) / col_qn_rol_kpa).alias(col_bq),
-    ).with_columns((pl.col(col_bq) * pl.col(col_u2)).alias(col_u))
+    ).with_columns((pl.col(col_qt1) * pl.col(col_bq)).alias(col_u))
 
 
 def compute_behavior_columns(
