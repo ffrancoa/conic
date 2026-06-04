@@ -1,4 +1,4 @@
-from conic.config import Configurator
+from conic.prelude.config import Configurator
 
 
 def test_default_columns():

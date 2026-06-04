@@ -7,8 +7,8 @@ from typing import Literal, NamedTuple, Self, cast, overload
 
 import polars as pl
 
-from conic.config import Configurator
-from conic.processing import derivation, preparation
+from conic.calculate import derive, prepare
+from conic.prelude.config import Configurator
 
 
 def _dataframe_fingerprint(data: pl.DataFrame) -> str:
@@ -33,7 +33,7 @@ class StepCatalog:
     config: Configurator
 
     def sanitize_columns(self) -> Step:
-        function = preparation.sanitize_columns
+        function = prepare.sanitize_columns
         columns = self.config.columns
 
         def callback(data: pl.LazyFrame) -> pl.LazyFrame:
@@ -51,7 +51,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def adjust_depth_spacing(self) -> Step:
-        function = preparation.adjust_depth_spacing
+        function = prepare.adjust_depth_spacing
         columns = self.config.columns
         cleansing = self.config.cleansing
 
@@ -66,7 +66,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def clean_by_indicators(self) -> Step:
-        function = preparation.clean_by_indicators
+        function = prepare.clean_by_indicators
         cleansing = self.config.cleansing
 
         def callback(data: pl.LazyFrame) -> pl.LazyFrame:
@@ -77,7 +77,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_hydrostatic_column(self, *, override: bool) -> Step:
-        function = preparation.compute_hydrostatic_column
+        function = prepare.compute_hydrostatic_column
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -94,7 +94,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_geostatic_columns(self, *, override: bool) -> Step:
-        function = preparation.compute_geostatic_columns
+        function = prepare.compute_geostatic_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -112,7 +112,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_non_normalized_columns(self) -> Step:
-        function = derivation.compute_non_normalized_columns
+        function = derive.compute_non_normalized_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -132,7 +132,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_rolling_columns(self) -> Step:
-        function = derivation.compute_rolling_columns
+        function = derive.compute_rolling_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -149,7 +149,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_normalized_columns(self) -> Step:
-        function = derivation.compute_normalized_columns
+        function = derive.compute_normalized_columns
         parameters = self.config.parameters
         columns = self.config.columns
 
@@ -171,7 +171,7 @@ class StepCatalog:
         return Step(name=function.__name__, apply=callback)
 
     def compute_behavior_columns(self) -> Step:
-        function = derivation.compute_behavior_columns
+        function = derive.compute_behavior_columns
         parameters = self.config.parameters
         columns = self.config.columns
 

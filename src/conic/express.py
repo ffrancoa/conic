@@ -3,11 +3,11 @@ from typing import Any, Literal
 
 import polars as pl
 
-from .config import Configurator as _Configurator
-from .config import InputColumns as _InputColumns
-from .config import OutputColumns as _OutputColumns
-from .pipeline import Pipeliner as _Pipeliner
-from .pipeline import PipelineResult as _PipelineResult
+from conic.prelude.config import Configurator as _Configurator
+from conic.prelude.config import InputColumns as _InputColumns
+from conic.prelude.config import OutputColumns as _OutputColumns
+from conic.prelude.pipeline import Pipeliner as _Pipeliner
+from conic.prelude.pipeline import PipelineResult as _PipelineResult
 
 _INPUT_COLS = set(_InputColumns.model_fields.keys())
 _OUTPUT_COLS = set(_OutputColumns.model_fields.keys())

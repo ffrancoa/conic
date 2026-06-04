@@ -1,8 +1,8 @@
 import polars as pl
 
-from conic._canonical import COL_DEPTH, COL_FS, COL_QC, COL_U2
-from conic.config import Configurator, Parameters
-from conic.pipeline import Pipeliner
+from conic.prelude._canonical import COL_DEPTH, COL_FS, COL_QC, COL_U2
+from conic.prelude.config import Configurator, Parameters
+from conic.prelude.pipeline import Pipeliner
 
 
 def test_metadata_unpacking():

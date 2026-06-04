@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from conic.config import Configurator
+from conic.prelude.config import Configurator
 
 
 def test_copy_with_start_depth():

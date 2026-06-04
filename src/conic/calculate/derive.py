@@ -1,7 +1,9 @@
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
-from conic._canonical import (
+from conic.calculate._plugins import compute_behavior_plugin
+from conic.calculate._utils import get_missing_columns
+from conic.prelude._canonical import (
     COL_BQ,
     COL_CD,
     COL_CONVG,
@@ -27,8 +29,6 @@ from conic._canonical import (
     ROLLING_LABEL,
     TOLERANCE,
 )
-from conic.processing._helpers import get_missing_columns, scale_column
-from conic.processing._plugins import compute_behavior_plugin
 
 
 def compute_non_normalized_columns(
@@ -115,7 +115,7 @@ def compute_normalized_columns(
     col_fs_rol = col_fs + rolling_label
     col_qn_rol = col_qn + rolling_label
 
-    col_qn_rol_kpa = scale_column(col_qn_rol, 1000.0)
+    col_qn_rol_kpa = pl.col(col_qn_rol) * 1000.0
 
     return data.with_columns(
         (col_qn_rol_kpa / pl.col(col_sv_eff)).alias(col_qt1),

@@ -1,6 +1,6 @@
 import tomllib
 from pathlib import Path
-from typing import Annotated, Literal, Self
+from typing import Annotated, Literal, Self, cast
 
 from pydantic import (
     BaseModel,
@@ -11,7 +11,7 @@ from pydantic import (
     PositiveFloat,
 )
 
-from conic._canonical import (
+from conic.prelude._canonical import (
     AREA_RATIO,
     CLEAN_MODE,
     COL_BQ,
@@ -50,12 +50,22 @@ class Parameters(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     area_ratio: UnitRatio = AREA_RATIO
-    rolling: RollingValue = ROLLING
+    rolling: RollingValue = cast(RollingValue, ROLLING)
     rolling_label: str = ROLLING_LABEL
 
     gamma_water: PositiveFloat = GAMMA_WATER
     gamma_soil: PositiveFloat | None = None
     water_level: NonNegativeFloat | None = None
+
+
+class Cleansing(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    start_depth: NonNegativeFloat | None = None
+    spacing: PositiveFloat | None = None
+
+    indicators: Indicators = Field(default_factory=lambda: list())
+    clean_mode: CleanMode = cast(CleanMode, CLEAN_MODE)
 
 
 class InputColumns(BaseModel):
@@ -97,16 +107,6 @@ class Columns(BaseModel):
 
     input: InputColumns = Field(default_factory=InputColumns)
     output: OutputColumns = Field(default_factory=OutputColumns)
-
-
-class Cleansing(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    start_depth: NonNegativeFloat | None = None
-    spacing: PositiveFloat | None = None
-
-    indicators: Indicators = Field(default_factory=lambda: list())
-    clean_mode: CleanMode = CLEAN_MODE
 
 
 class Configurator(BaseModel):

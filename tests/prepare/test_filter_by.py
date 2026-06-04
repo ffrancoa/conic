@@ -1,8 +1,8 @@
 import polars as pl
 import pytest
 
-from conic._canonical import COL_DEPTH, COL_QC
-from conic.processing.preparation import filter_by_indicators
+from conic.calculate.prepare import filter_by_indicators
+from conic.prelude._canonical import COL_DEPTH, COL_QC
 
 
 def test_remove_rows():

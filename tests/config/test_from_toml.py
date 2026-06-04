@@ -3,7 +3,7 @@ from textwrap import dedent
 import pytest
 from pydantic import ValidationError
 
-from conic.config import Configurator
+from conic.prelude.config import Configurator
 
 
 def test_read_from_toml(tmp_path):

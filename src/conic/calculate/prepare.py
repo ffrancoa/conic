@@ -3,7 +3,8 @@ from typing import Literal
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
-from conic._canonical import (
+from conic.calculate._utils import get_column_names
+from conic.prelude._canonical import (
     COL_DEPTH,
     COL_FS,
     COL_QC,
@@ -13,7 +14,6 @@ from conic._canonical import (
     COL_U2,
     GAMMA_WATER,
 )
-from conic.processing._helpers import get_column_names
 
 
 def compute_hydrostatic_column(
