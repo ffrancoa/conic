@@ -9,6 +9,7 @@ from pydantic import (
     NegativeFloat,
     NonNegativeFloat,
     PositiveFloat,
+    PositiveInt,
 )
 
 from conic.prelude._canonical import (
@@ -35,8 +36,11 @@ from conic.prelude._canonical import (
     COL_U0,
     COL_U2,
     GAMMA_WATER,
+    MAX_ITER,
+    P_REF,
     ROLLING,
     ROLLING_LABEL,
+    TOLERANCE,
 )
 
 type ColumnName = Annotated[str, Field(max_length=50)]
@@ -66,6 +70,14 @@ class Cleansing(BaseModel):
 
     indicators: Indicators = Field(default_factory=lambda: list())
     clean_mode: CleanMode = cast(CleanMode, CLEAN_MODE)
+
+
+class Settings(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    p_ref: PositiveFloat = P_REF
+    max_iter: PositiveInt = MAX_ITER
+    tolerance: UnitRatio = TOLERANCE
 
 
 class InputColumns(BaseModel):
@@ -112,9 +124,10 @@ class Columns(BaseModel):
 class Configurator(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    columns: Columns = Field(default_factory=Columns)
     parameters: Parameters = Field(default_factory=Parameters)
     cleansing: Cleansing = Field(default_factory=Cleansing)
+    settings: Settings = Field(default_factory=Settings)
+    columns: Columns = Field(default_factory=Columns)
 
     def _with_field(self, submodel_name: str, field_name: str, value: object) -> Self:
         submodel = getattr(self, submodel_name)

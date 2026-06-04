@@ -9,7 +9,7 @@ ROLLING_LABEL: str = "*"
 CLEAN_MODE: str = "replace"
 
 # settings
-P_REF: float = 101.3
+P_REF: float = 101.33
 MAX_ITER: int = 999
 TOLERANCE: float = 1e-4
 

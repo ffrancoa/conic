@@ -173,6 +173,7 @@ class StepCatalog:
     def compute_behavior_columns(self) -> Step:
         function = derive.compute_behavior_columns
         parameters = self.config.parameters
+        settings = self.config.settings
         columns = self.config.columns
 
         def callback(data: pl.LazyFrame) -> pl.LazyFrame:
@@ -188,6 +189,9 @@ class StepCatalog:
                 col_convg=columns.output.convg,
                 col_cd=columns.output.cd,
                 col_ib=columns.output.ib,
+                p_ref=settings.p_ref,
+                max_iter=settings.max_iter,
+                tolerance=settings.tolerance,
                 rolling_label=parameters.rolling_label,
             )
 

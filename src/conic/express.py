@@ -48,16 +48,18 @@ def read_csv(
 
 def build_configurator(
     *,
-    columns: dict[str, str] | None = None,
     parameters: dict[str, float] | None = None,
     cleansing: dict[str, Any] | None = None,
+    settings: dict[str, int | float] | None = None,
+    columns: dict[str, str] | None = None,
 ) -> _Configurator:
 
     return _Configurator.model_validate(
         {
-            "columns": _classify_columns(columns) if columns else {},
             "parameters": parameters or {},
             "cleansing": cleansing or {},
+            "settings": settings or {},
+            "columns": _classify_columns(columns) if columns else {},
         }
     )
 
@@ -68,8 +70,9 @@ def process_std(
     std_pipeliner: Literal["A0", "A1", "B0", "B1"] = "B1",
     *,
     parameters: dict[str, float] | None = None,
-    columns: dict[str, str] | None = None,
     cleansing: dict[str, Any] | None = None,
+    settings: dict[str, int | float] | None = None,
+    columns: dict[str, str] | None = None,
     metadata: bool = False,
 ) -> pl.DataFrame | _PipelineResult:
 
@@ -82,6 +85,12 @@ def process_std(
 
     if parameters is not None:
         config_overrides["parameters"] = config.parameters.model_dump() | parameters
+
+    if cleansing is not None:
+        config_overrides["cleansing"] = config.cleansing.model_dump() | cleansing
+
+    if settings is not None:
+        config_overrides["settings"] = config.settings.model_dump() | settings
 
     if columns is not None:
         columns_dump = config.columns.model_dump()
@@ -96,9 +105,6 @@ def process_std(
             )
 
         config_overrides["columns"] = columns_dump
-
-    if cleansing is not None:
-        config_overrides["cleansing"] = config.cleansing.model_dump() | cleansing
 
     if config_overrides:
         config_merged = config.model_dump() | config_overrides
