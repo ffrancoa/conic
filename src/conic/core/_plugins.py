@@ -3,7 +3,7 @@ from pathlib import Path
 import polars as pl
 from polars.plugins import register_plugin_function
 
-LIB_PATH = Path(__file__).parent.parent.parent
+LIB_PATH = Path(__file__).parent.parent
 
 type IntoExprColumn = pl.Expr | str | pl.Series
 
@@ -18,6 +18,7 @@ def compute_behavior_plugin(
     max_iter: int,
     tolerance: float,
 ) -> pl.Expr:
+
     return register_plugin_function(
         function_name="compute_behavior",
         plugin_path=LIB_PATH,

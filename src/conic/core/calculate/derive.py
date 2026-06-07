@@ -1,8 +1,8 @@
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
-from conic.core.calculate._plugins import compute_behavior_plugin
-from conic.core.calculate._utils import get_missing_columns
+from conic.core._plugins import compute_behavior_plugin
+from conic.core._utils import get_missing_columns
 from conic.engine._canonical import (
     COL_BQ,
     COL_CD,
@@ -32,7 +32,7 @@ from conic.engine._canonical import (
 
 
 def compute_non_normalized_columns(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     area_ratio: float,
     *,
     col_sv_tot: str = COL_SV_TOT,
@@ -44,12 +44,12 @@ def compute_non_normalized_columns(
     col_rf: str = COL_RF,
 ) -> pl.LazyFrame:
 
-    if missing_columns := get_missing_columns(data, {col_fs, col_qc, col_u2}):
+    if missing_columns := get_missing_columns(lazy, {col_fs, col_qc, col_u2}):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     col_qt_mpa = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
 
-    return data.with_columns(
+    return lazy.with_columns(
         col_qt_mpa.alias(col_qt),
         (col_qt_mpa - pl.col(col_sv_tot) / 1000.0).alias(col_qn),
         (pl.col(col_fs) / (col_qt_mpa * 1000.0) * 100.0).alias(col_rf),
@@ -57,7 +57,7 @@ def compute_non_normalized_columns(
 
 
 def compute_rolling_columns(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     rolling: int = ROLLING,
     *,
     col_fs: str = COL_FS,
@@ -70,10 +70,10 @@ def compute_rolling_columns(
     col_qt_rol = col_qt + rolling_label
     col_qn_rol = col_qn + rolling_label
 
-    if missing_columns := get_missing_columns(data, {col_fs, col_qt, col_qn}):
+    if missing_columns := get_missing_columns(lazy, {col_fs, col_qt, col_qn}):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
-    return data.with_columns(
+    return lazy.with_columns(
         (
             pl.col(col_fs)
             .rolling_mean(window_size=rolling, min_samples=rolling, center=True)
@@ -93,7 +93,7 @@ def compute_rolling_columns(
 
 
 def compute_normalized_columns(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     *,
     col_sv_eff: str = COL_SV_EFF,
     col_u0: str = COL_U0,
@@ -109,7 +109,7 @@ def compute_normalized_columns(
 
     required_columns = {col_sv_eff, col_fs, col_qn, col_u0, col_u2}
 
-    if missing_columns := get_missing_columns(data, required_columns):
+    if missing_columns := get_missing_columns(lazy, required_columns):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     col_fs_rol = col_fs + rolling_label
@@ -117,7 +117,7 @@ def compute_normalized_columns(
 
     col_qn_rol_kpa = pl.col(col_qn_rol) * 1000.0
 
-    return data.with_columns(
+    return lazy.with_columns(
         (col_qn_rol_kpa / pl.col(col_sv_eff)).alias(col_qt1),
         (
             pl.when(pl.col(col_fs_rol) > 0.0)
@@ -129,7 +129,7 @@ def compute_normalized_columns(
 
 
 def compute_behavior_columns(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     *,
     col_sv_eff: str = COL_SV_EFF,
     col_sv_tot: str = COL_SV_TOT,
@@ -149,11 +149,11 @@ def compute_behavior_columns(
 
     required_columns = {col_sv_eff, col_sv_tot, col_qt, col_fr}
 
-    if missing_columns := get_missing_columns(data, required_columns):
+    if missing_columns := get_missing_columns(lazy, required_columns):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     return (
-        data.with_columns(
+        lazy.with_columns(
             compute_behavior_plugin(
                 sv_eff=col_sv_eff,
                 sv_tot=col_sv_tot,

@@ -3,7 +3,7 @@ from typing import Literal
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
-from conic.core.calculate._utils import get_column_names
+from conic.core._utils import get_column_names
 from conic.engine._canonical import (
     COL_DEPTH,
     COL_FS,
@@ -17,7 +17,7 @@ from conic.engine._canonical import (
 
 
 def compute_hydrostatic_column(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     water_level: float | None = None,
     *,
     gamma_water: float = GAMMA_WATER,
@@ -26,7 +26,7 @@ def compute_hydrostatic_column(
     override: bool = False,
 ) -> pl.LazyFrame:
 
-    columns = get_column_names(data)
+    columns = get_column_names(lazy)
 
     if col_depth not in columns:
         raise ColumnNotFoundError(
@@ -40,9 +40,9 @@ def compute_hydrostatic_column(
         )
 
     if water_level is None:
-        data_with_u0 = data.with_columns(pl.lit(0.0).alias(col_u0))
+        data_with_u0 = lazy.with_columns(pl.lit(0.0).alias(col_u0))
     else:
-        data_with_u0 = data.with_columns(
+        data_with_u0 = lazy.with_columns(
             pl.when(pl.col(col_depth) >= water_level)
             .then((pl.col(col_depth) - water_level) * gamma_water)
             .otherwise(0.0)
@@ -53,7 +53,7 @@ def compute_hydrostatic_column(
 
 
 def compute_geostatic_columns(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     gamma_soil: float | None = None,
     *,
     col_depth: str = COL_DEPTH,
@@ -63,7 +63,7 @@ def compute_geostatic_columns(
     override: bool = False,
 ) -> pl.LazyFrame:
 
-    columns = get_column_names(data)
+    columns = get_column_names(lazy)
 
     if col_depth not in columns:
         raise ColumnNotFoundError(
@@ -77,12 +77,12 @@ def compute_geostatic_columns(
             f"override."
         )
     elif col_sv_tot in columns and col_sv_eff not in columns and not override:
-        data_with_sv_eff = data.with_columns(
+        data_with_sv_eff = lazy.with_columns(
             (pl.col(col_sv_tot) - pl.col(col_u0)).alias(col_sv_eff)
         )
         return data_with_sv_eff
     elif col_sv_eff in columns and col_sv_tot not in columns and not override:
-        data_with_sv_tot = data.with_columns(
+        data_with_sv_tot = lazy.with_columns(
             (pl.col(col_sv_eff) + pl.col(col_u0)).alias(col_sv_tot)
         )
         return data_with_sv_tot
@@ -92,14 +92,14 @@ def compute_geostatic_columns(
                 "a valid soil unit weight value (`gamma_soil`) must be "
                 "provided to compute geostatic stresses."
             )
-        return data.with_columns(
+        return lazy.with_columns(
             (sv_tot_expr := pl.col(col_depth) * gamma_soil).alias(col_sv_tot),
             (sv_tot_expr - pl.col(col_u0)).alias(col_sv_eff),
         )
 
 
 def adjust_depth_spacing(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     *,
     start_depth: float | None = None,
     spacing: float | None = None,
@@ -107,7 +107,7 @@ def adjust_depth_spacing(
     col_depth: str = COL_DEPTH,
 ) -> pl.LazyFrame:
 
-    if col_depth not in get_column_names(data):
+    if col_depth not in get_column_names(lazy):
         raise ColumnNotFoundError(
             f"depth column is missing in DataFrame: '{col_depth}'."
         )
@@ -124,7 +124,7 @@ def adjust_depth_spacing(
         ).round(digits)
     )
 
-    return data.with_columns(
+    return lazy.with_columns(
         (start_depth_expr + pl.int_range(pl.len()) * spacing_expr)
         .round(digits)
         .alias(col_depth)
@@ -132,7 +132,7 @@ def adjust_depth_spacing(
 
 
 def sanitize_columns(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     *,
     col_depth: str = COL_DEPTH,
     col_qc: str = COL_QC,
@@ -147,7 +147,7 @@ def sanitize_columns(
     required_columns = [col_depth, col_qc, col_fs, col_u2]
     optional_columns = [col_u0, col_sv_eff, col_sv_tot]
 
-    columns = get_column_names(data)
+    columns = get_column_names(lazy)
 
     if missing_columns := set(required_columns).difference(columns):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
@@ -158,11 +158,11 @@ def sanitize_columns(
         additional_columns = set(optional_columns).intersection(columns)
         selected_columns += list(additional_columns)
 
-    return data.select(selected_columns)
+    return lazy.select(selected_columns)
 
 
 def filter_by_indicators(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     indicators: list[float],
     *,
     action: Literal["remove", "select"] = "remove",
@@ -174,17 +174,17 @@ def filter_by_indicators(
     expr = pl.selectors.numeric().is_in(indicators)
     expr = pl.any_horizontal(expr)
 
-    return data.filter(expr.not_() if action == "remove" else expr)
+    return lazy.filter(expr.not_() if action == "remove" else expr)
 
 
 def split_by_indicators(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     indicators: list[float],
     *,
     index_col: str = "_id_",
 ) -> tuple[pl.LazyFrame, pl.LazyFrame]:
 
-    indexed_data = data.with_row_index(index_col)
+    indexed_data = lazy.with_row_index(index_col)
 
     rows_with = filter_by_indicators(indexed_data, indicators, action="select")
     rows_without = filter_by_indicators(indexed_data, indicators)
@@ -193,7 +193,7 @@ def split_by_indicators(
 
 
 def clean_by_indicators(
-    data: pl.LazyFrame,
+    lazy: pl.LazyFrame,
     indicators: list[float],
     *,
     mode: Literal["remove", "replace"] = "replace",
@@ -204,9 +204,9 @@ def clean_by_indicators(
 
     match mode:
         case "remove":
-            return filter_by_indicators(data, indicators, action="remove")
+            return filter_by_indicators(lazy, indicators, action="remove")
         case "replace":
-            return data.with_columns(
+            return lazy.with_columns(
                 pl.when(pl.selectors.numeric().is_in(indicators))
                 .then(float("nan"))
                 .otherwise(pl.selectors.numeric())
