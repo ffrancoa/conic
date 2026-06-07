@@ -345,7 +345,7 @@ dependencies = [
 
 [[package]]
 name = "conic"
-version = "0.5.7"
+version = "0.5.9"
 dependencies = [
  "polars",
  "pyo3",

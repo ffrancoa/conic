@@ -1,6 +1,6 @@
 [project]
 name = "conic"
-version = "0.5.7"
+version = "0.5.9"
 description = "A SCPTu Data-Driven Evaluator."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -8,9 +8,9 @@ authors = [
     { name = "Francesco Franco", email = "ffrancoa97@gmail.com" }
 ]
 
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
-    "polars>=1.40.1",
+    "polars>=1.41.2",
     "pydantic>=2.13.4",
 ]
 

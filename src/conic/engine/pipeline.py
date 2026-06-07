@@ -1,32 +1,14 @@
-import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from functools import partial
-from io import BytesIO
 from types import FunctionType
 from typing import Literal, NamedTuple, Self, TypedDict, cast, overload
 
 import polars as pl
 
 from conic.core.calculate import derive, prepare
+from conic.engine._utils import get_dataframe_fingerprint
 from conic.engine.config import Configurator
-
-
-def _dataframe_fingerprint(data: pl.DataFrame) -> str:
-    hasher = hashlib.sha256()
-    hasher.update(str(data.schema).encode())
-
-    hash_frame = data.hash_rows().to_frame()
-    hash_bytes = cast(BytesIO, hash_frame.write_ipc(file=None)).getvalue()
-
-    hasher.update(hash_bytes)
-
-    return hasher.hexdigest()[:16]
-
-
-def _bind(function: FunctionType, /, **kwargs: object) -> "Step":
-    return Step(name=function.__name__, apply=partial(function, **kwargs))
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,13 +17,20 @@ class Step:
     apply: Callable[[pl.LazyFrame], pl.LazyFrame]
 
 
+def bind(function: FunctionType, /, **kwargs: object) -> Step:
+    def apply(data: pl.LazyFrame) -> pl.LazyFrame:
+        return function(data, **kwargs)
+
+    return Step(name=function.__name__, apply=apply)
+
+
 @dataclass(frozen=True, slots=True)
 class StepCatalog:
     config: Configurator
 
     def sanitize_columns(self) -> Step:
         columns = self.config.columns.input
-        return _bind(
+        return bind(
             prepare.sanitize_columns,
             col_depth=columns.depth,
             col_qc=columns.qc,
@@ -55,7 +44,7 @@ class StepCatalog:
     def adjust_depth_spacing(self) -> Step:
         columns = self.config.columns.input
         cleansing = self.config.cleansing
-        return _bind(
+        return bind(
             prepare.adjust_depth_spacing,
             start_depth=cleansing.start_depth,
             spacing=cleansing.spacing,
@@ -64,7 +53,7 @@ class StepCatalog:
 
     def clean_by_indicators(self) -> Step:
         cleansing = self.config.cleansing
-        return _bind(
+        return bind(
             prepare.clean_by_indicators,
             indicators=cleansing.indicators,
             mode=cleansing.clean_mode,
@@ -73,7 +62,7 @@ class StepCatalog:
     def compute_hydrostatic_column(self, *, override: bool) -> Step:
         parameters = self.config.parameters
         columns = self.config.columns.input
-        return _bind(
+        return bind(
             prepare.compute_hydrostatic_column,
             water_level=parameters.water_level,
             gamma_water=parameters.gamma_water,
@@ -85,7 +74,7 @@ class StepCatalog:
     def compute_geostatic_columns(self, *, override: bool) -> Step:
         parameters = self.config.parameters
         columns = self.config.columns.input
-        return _bind(
+        return bind(
             prepare.compute_geostatic_columns,
             gamma_soil=parameters.gamma_soil,
             col_depth=columns.depth,
@@ -99,7 +88,7 @@ class StepCatalog:
         parameters = self.config.parameters
         input_columns = self.config.columns.input
         output_columns = self.config.columns.output
-        return _bind(
+        return bind(
             derive.compute_non_normalized_columns,
             area_ratio=parameters.area_ratio,
             col_sv_tot=input_columns.sv_tot,
@@ -115,7 +104,7 @@ class StepCatalog:
         parameters = self.config.parameters
         input_columns = self.config.columns.input
         output_columns = self.config.columns.output
-        return _bind(
+        return bind(
             derive.compute_rolling_columns,
             rolling=parameters.rolling,
             col_fs=input_columns.fs,
@@ -128,7 +117,7 @@ class StepCatalog:
         parameters = self.config.parameters
         input_columns = self.config.columns.input
         output_columns = self.config.columns.output
-        return _bind(
+        return bind(
             derive.compute_normalized_columns,
             col_sv_eff=input_columns.sv_eff,
             col_u0=input_columns.u0,
@@ -147,7 +136,7 @@ class StepCatalog:
         settings = self.config.settings
         input_columns = self.config.columns.input
         output_columns = self.config.columns.output
-        return _bind(
+        return bind(
             derive.compute_behavior_columns,
             col_sv_eff=input_columns.sv_eff,
             col_sv_tot=input_columns.sv_tot,
@@ -249,7 +238,7 @@ class Pipeliner:
             return out_data
 
         meta: PipelineMetadata = {
-            "data_hash": _dataframe_fingerprint(data),
+            "data_hash": get_dataframe_fingerprint(data),
             "source_path": None,
             "config": self.config.model_dump(),
             "steps": [step.name for step in self.steps],
