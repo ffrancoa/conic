@@ -4,6 +4,24 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-06-07
+
+### Added
+- `conic.core.correlate`: a new module bringing empirical liquefaction correlations. For now, it includes Robertson (2021) — clean-sand-equivalent resistance and liquefied undrained strength ratio — and Olson & Stark (2002) — normalized resistance and strength ratio with selectable `mean`/`lower`/`upper` bounds.
+- New functional helpers in `conic.express`: `read_csv()` to load a sounding straight into a ready-to-process DataFrame, `build_configurator()` to assemble and override a `Configurator` from a TOML file and/or keyword arguments, and `build_pipeliner()` to compose a custom ordered pipeline.
+- `conic.engine.catalog`: a single catalog of pipeline operations (e.g. `add_r21_columns()`) you can mix and match to build custom pipelines via `build_pipeliner()`.
+
+### Changed
+- `Pipeliner.standard()` is now the single standard preset and runs the full CPTu pipeline; whether optional columns are overridden is driven entirely by your `Configurator`.
+- `express.process_std()` now has a simpler signature — `process_std(data, config=None, *, metadata=False)`. Build and customize your configuration up front with `build_configurator()`.
+- Relocated the core processing functions: the former `conic.processing` now lives under `conic.core` (`core.calculate` for preparation/derivation, `core.correlate` for correlations).
+- Minimum supported Python is now `3.14` (previously `3.12`).
+- Updated `polars` to [`1.41.2`](https://github.com/pola-rs/polars/releases/tag/py-1.41.2).
+
+### Removed
+- The four pipeline presets `Pipeliner.standard_a0/a1/b0/b1()` and the `std_pipeliner="A0".."B1"` argument of `process_std()`. Use `Pipeliner.standard()` for the default flow, or `build_pipeliner()` + `conic.engine.catalog` operations for custom pipelines.
+
+
 ## [0.5.0] — 2026-06-01
 
 ### Added
@@ -52,9 +70,10 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 - On-demand reproducibility for pipeline runs implemented via `Pipeliner.run(df, metadata=True)`.
 - Core CPTu preprocessing functions inside `conic.preprocess`: `compute_hydrostatic`, `adjust_depth_spacing`, `clean_by_indicators`, and `filter_by_indicators`.
 
-[Unreleased]: https://github.com/ferrosoft/reson/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/ferrosoft/reson/releases/tag/v0.1.0
-[0.2.0]: https://github.com/ferrosoft/reson/releases/tag/v0.2.0
-[0.3.0]: https://github.com/ferrosoft/reson/releases/tag/v0.3.0
-[0.4.0]: https://github.com/ferrosoft/reson/releases/tag/v0.4.0
-[0.5.0]: https://github.com/ferrosoft/reson/releases/tag/v0.5.0
+[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.0...HEAD
+[0.1.0]: https://github.com/ferrosoft/conic/releases/tag/v0.1.0
+[0.2.0]: https://github.com/ferrosoft/conic/releases/tag/v0.2.0
+[0.3.0]: https://github.com/ferrosoft/conic/releases/tag/v0.3.0
+[0.4.0]: https://github.com/ferrosoft/conic/releases/tag/v0.4.0
+[0.5.0]: https://github.com/ferrosoft/conic/releases/tag/v0.5.0
+[0.6.0]: https://github.com/ferrosoft/conic/releases/tag/v0.6.0

@@ -1,1 +1,1 @@
-from conic.core.correlate.compile import add_r21_columns as add_r21_columns
+from conic.core.correlate.compose import add_r21_columns as add_r21_columns

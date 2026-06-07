@@ -1,5 +1,5 @@
 from conic.core.calculate import derive, prepare
-from conic.core.correlate import compile
+from conic.core.correlate import compose
 from conic.engine.config import Configurator
 from conic.engine.step import Operation, Step, bind
 
@@ -183,7 +183,7 @@ def add_r21_columns() -> Operation:
         columns = config.columns.output
 
         return bind(
-            compile.add_r21_columns,
+            compose.add_r21_columns,
             col_fr=columns.fr,
             col_qtn=columns.qtn,
             col_ic=columns.ic,
@@ -199,7 +199,7 @@ def add_os02_columns(*, bound: str = "mean") -> Operation:
         columns = config.columns.input
 
         return bind(
-            compile.add_os02_columns,
+            compose.add_os02_columns,
             bound=bound,
             p_ref=settings.p_ref,
             rolling=parameters.rolling,
