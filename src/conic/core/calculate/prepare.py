@@ -3,8 +3,8 @@ from typing import Literal
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
-from conic.calculate._utils import get_column_names
-from conic.prelude._canonical import (
+from conic.core.calculate._utils import get_column_names
+from conic.engine._canonical import (
     COL_DEPTH,
     COL_FS,
     COL_QC,

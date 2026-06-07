@@ -1,7 +1,7 @@
 import polars as pl
 
-from conic.calculate.prepare import split_by_indicators
-from conic.prelude._canonical import COL_DEPTH, COL_QC
+from conic.core.calculate.prepare import split_by_indicators
+from conic.engine._canonical import COL_DEPTH, COL_QC
 
 
 def test_full_behavior():

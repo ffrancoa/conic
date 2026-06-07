@@ -1,13 +1,13 @@
 import polars as pl
 
-from conic.prelude._canonical import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
-from conic.prelude.config import Configurator
-from conic.prelude.pipeline import Pipeliner, Step
+from conic.engine._canonical import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
+from conic.engine.config import Configurator
+from conic.engine.pipeline import Pipeliner, Step
 
 
 def test_default_pipeliner():
     config = Configurator.model_validate({"parameters": {"gamma_soil": 20.0}})
-    pipe = Pipeliner.standard_a1(config)
+    pipe = Pipeliner.standard(config)
 
     inp_data = pl.DataFrame(
         {

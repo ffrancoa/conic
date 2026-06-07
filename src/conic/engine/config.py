@@ -12,7 +12,7 @@ from pydantic import (
     PositiveInt,
 )
 
-from conic.prelude._canonical import (
+from conic.engine._canonical import (
     AREA_RATIO,
     CLEAN_MODE,
     COL_BQ,

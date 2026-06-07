@@ -2,8 +2,8 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.calculate.prepare import compute_hydrostatic_column
-from conic.prelude._canonical import COL_DEPTH, COL_U0
+from conic.core.calculate.prepare import compute_hydrostatic_column
+from conic.engine._canonical import COL_DEPTH, COL_U0
 
 
 def test_default_none():

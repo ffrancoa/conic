@@ -8,7 +8,7 @@ pub(crate) struct BehaviorVecs {
     pub ib_vec: Vec<f64>,
 }
 
-pub(crate) fn calc_n(sv_eff: f64, ic: f64, p_ref: f64) -> f64 {
+pub(crate) fn calcn(sv_eff: f64, ic: f64, p_ref: f64) -> f64 {
     let sv_eff_term = 0.05 * (sv_eff / p_ref);
     let ic_term = 0.381 * ic;
 
@@ -17,9 +17,9 @@ pub(crate) fn calc_n(sv_eff: f64, ic: f64, p_ref: f64) -> f64 {
 
 pub(crate) fn calc_qtn(sv_eff: f64, sv_tot: f64, qt: f64, n: f64, p_ref: f64) -> f64 {
     let qt_term = (qt - sv_tot) / p_ref;
-    let c_n = (p_ref / sv_eff).powf(n);
+    let cn = (p_ref / sv_eff).powf(n);
 
-    (qt_term * c_n).max(0.0001)
+    (qt_term * cn).max(0.0001)
 }
 
 pub(crate) fn calc_ic(fr: f64, qtn: f64) -> f64 {
@@ -86,7 +86,7 @@ pub(crate) fn compute_behavior(
         for _ in 0..(max_iter - 1) {
             let qtn_curr = calc_qtn(sv_eff_i, sv_tot_i, qt_i, n_curr, p_ref);
             let ic_curr = calc_ic(fr_i, qtn_curr);
-            let n_next = calc_n(sv_eff_i, ic_curr, p_ref);
+            let n_next = calcn(sv_eff_i, ic_curr, p_ref);
 
             let has_convg = (n_next - n_curr).abs() <= tolerance;
             convg = Some(has_convg);

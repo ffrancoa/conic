@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from conic.prelude.config import Configurator
+from conic.engine.config import Configurator
 
 
 def test_copy_with_gamma_soil():

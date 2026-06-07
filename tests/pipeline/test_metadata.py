@@ -1,13 +1,13 @@
 import polars as pl
 
-from conic.prelude._canonical import COL_DEPTH, COL_FS, COL_QC, COL_U2
-from conic.prelude.config import Configurator, Parameters
-from conic.prelude.pipeline import Pipeliner
+from conic.engine._canonical import COL_DEPTH, COL_FS, COL_QC, COL_U2
+from conic.engine.config import Configurator, Parameters
+from conic.engine.pipeline import Pipeliner
 
 
 def test_metadata_unpacking():
     config = Configurator(parameters=Parameters(water_level=2.0, gamma_soil=20.0))
-    pipeliner = Pipeliner.standard_a1(config)
+    pipeliner = Pipeliner.standard(config)
 
     inp_data = pl.DataFrame(
         {
@@ -26,7 +26,7 @@ def test_metadata_unpacking():
 
 def test_metadata_fields():
     config = Configurator(parameters=Parameters(water_level=2.0, gamma_soil=20.0))
-    pipeliner = Pipeliner.standard_a1(config)
+    pipeliner = Pipeliner.standard(config)
 
     data = pl.DataFrame(
         {
@@ -50,7 +50,7 @@ def test_metadata_fields():
 
 def test_hash_is_deterministic():
     config = Configurator(parameters=Parameters(water_level=1.0, gamma_soil=20.0))
-    pipeliner = Pipeliner.standard_a1(config)
+    pipeliner = Pipeliner.standard(config)
 
     data = pl.DataFrame(
         {
