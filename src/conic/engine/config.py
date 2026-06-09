@@ -208,14 +208,6 @@ class Configurator:
     settings: Settings = dataclasses.field(default_factory=Settings)
     columns: Columns = dataclasses.field(default_factory=Columns)
 
-    def _with_field(self, subclass_name: str, field_name: str, value: object) -> Self:
-        subclass = getattr(self, subclass_name)
-
-        new_data = dataclasses.asdict(subclass) | {field_name: value}
-        new_subclass = type(subclass).from_dict(new_data)
-
-        return dataclasses.replace(self, **{subclass_name: new_subclass})
-
     @classmethod
     def from_dict(cls, data: dict) -> Self:
         _validate_keys(cls, data)
@@ -233,6 +225,21 @@ class Configurator:
             data = data | {"columns": Columns.from_dict(data["columns"])}
 
         return cls(**data)
+
+    @classmethod
+    def from_toml(cls, file_path: Path | str) -> Self:
+        with Path(file_path).open("rb") as file:
+            config = tomllib.load(file)
+
+        return cls.from_dict(config)
+
+    def _with_field(self, subclass_name: str, field_name: str, value: object) -> Self:
+        subclass = getattr(self, subclass_name)
+
+        new_data = dataclasses.asdict(subclass) | {field_name: value}
+        new_subclass = type(subclass).from_dict(new_data)
+
+        return dataclasses.replace(self, **{subclass_name: new_subclass})
 
     def with_area_ratio(self, value: float) -> Self:
         return self._with_field("parameters", "area_ratio", value)
@@ -261,9 +268,11 @@ class Configurator:
     def with_clean_mode(self, value: str) -> Self:
         return self._with_field("cleansing", "clean_mode", value)
 
-    @classmethod
-    def from_toml(cls, file_path: Path | str) -> Self:
-        with Path(file_path).open("rb") as file:
-            config = tomllib.load(file)
+    def with_p_ref(self, value: str) -> Self:
+        return self._with_field("settings", "p_ref", value)
 
-        return cls.from_dict(config)
+    def with_max_iter(self, value: str) -> Self:
+        return self._with_field("settings", "max_iter", value)
+
+    def with_tolerance(self, value: str) -> Self:
+        return self._with_field("settings", "tolerance", value)
