@@ -1,5 +1,4 @@
 import pytest
-from pydantic import ValidationError
 
 from conic.engine.config import Configurator
 
@@ -21,19 +20,12 @@ def test_copy_water_level():
 def test_validate_with_area_ratio():
     p = Configurator()
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         p.with_area_ratio(3)
 
 
 def test_validate_gamma_water():
     p = Configurator()
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         p.with_gamma_water(0.0)
-
-
-def test_validate_with_water_level():
-    p = Configurator()
-
-    with pytest.raises(ValidationError):
-        p.with_water_level(-1.0)

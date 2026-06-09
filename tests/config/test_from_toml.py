@@ -1,7 +1,6 @@
 from textwrap import dedent
 
 import pytest
-from pydantic import ValidationError
 
 from conic.engine.config import Configurator
 
@@ -35,5 +34,5 @@ def test_validate_from_toml(tmp_path):
     toml_path = tmp_path / "conic.toml"
     toml_path.write_text(toml_content)
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         _ = Configurator.from_toml(toml_path)

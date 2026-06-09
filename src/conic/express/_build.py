@@ -1,11 +1,13 @@
+import dataclasses
 from pathlib import Path
 from typing import Any
 
 from conic.engine.config import Configurator, InputColumns, OutputColumns
 from conic.engine.pipeline import Operation, Pipeliner
 
-INPUT_COLUMNS = set(InputColumns.model_fields.keys())
-OUTPUT_COLUMNS = set(OutputColumns.model_fields.keys())
+INPUT_COLUMNS = {field.name for field in dataclasses.fields(InputColumns)}
+OUTPUT_COLUMNS = {field.name for field in dataclasses.fields(OutputColumns)}
+dataclasses.field()
 
 
 def _classify_columns(columns: dict[str, str]) -> dict[str, dict[str, str]]:
@@ -41,17 +43,17 @@ def build_configurator(
     overrides: dict[str, Any] = {}
 
     if parameters is not None:
-        overrides["parameters"] = config.parameters.model_dump() | parameters
+        overrides["parameters"] = dataclasses.asdict(config.parameters) | parameters
 
     if cleansing is not None:
-        overrides["cleansing"] = config.cleansing.model_dump() | cleansing
+        overrides["cleansing"] = dataclasses.asdict(config.cleansing) | cleansing
 
     if settings is not None:
-        overrides["settings"] = config.settings.model_dump() | settings
+        overrides["settings"] = dataclasses.asdict(config.settings) | settings
 
     if columns is not None:
         classified = _classify_columns(columns)
-        columns_dump = config.columns.model_dump()
+        columns_dump = dataclasses.asdict(config.columns)
         columns_dump["input"] |= classified["input"]
         columns_dump["output"] |= classified["output"]
         overrides["columns"] = columns_dump
@@ -59,7 +61,7 @@ def build_configurator(
     if not overrides:
         return config
 
-    return Configurator.model_validate(config.model_dump() | overrides)
+    return Configurator.from_dict(dataclasses.asdict(config) | overrides)
 
 
 def build_pipeliner(

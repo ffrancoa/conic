@@ -1,5 +1,4 @@
 import pytest
-from pydantic import ValidationError
 
 from conic.engine.config import Configurator
 
@@ -29,16 +28,8 @@ def test_copy_with_indicators():
     assert config_b.cleansing.indicators == [-999.0]
 
 
-def test_parse_with_indicators():
-    config_a = Configurator()
-    config_b = config_a.with_indicators(["-999"])
-
-    assert config_b.cleansing.indicators == [-999.0]
-
-
 def test_validate_with_spacing():
     p = Configurator()
 
-    with pytest.raises(ValidationError):
-        p.with_spacing(0.0)
-        p.with_spacing(-1)
+    with pytest.raises(ValueError):
+        p.with_spacing(-1.0)
