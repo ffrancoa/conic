@@ -1,6 +1,6 @@
 [project]
 name = "conic"
-version = "0.6.1"
+version = "0.6.2"
 description = "A SCPTu Data-Driven Evaluator."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -8,7 +8,7 @@ authors = [
     { name = "Francesco Franco", email = "ffrancoa97@gmail.com" }
 ]
 
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "fastexcel[polars]>=0.20.2",
     "polars>=1.41.2",
@@ -48,7 +48,7 @@ cache-keys = [
 ]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py312"
 line-length = 88
 
 [tool.ruff.lint]
