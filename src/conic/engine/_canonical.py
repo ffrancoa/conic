@@ -23,6 +23,8 @@ COL_U0: str = "u0 (kPa)"
 COL_SV_TOT: str = "σv_tot (kPa)"
 COL_SV_EFF: str = "σv_eff (kPa)"
 
+COL_VS: str = "Vs (m/s)"
+
 # columns.output
 COL_QT: str = "qt (MPa)"
 COL_QN: str = "qn (MPa)"

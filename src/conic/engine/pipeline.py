@@ -39,7 +39,7 @@ class Pipeliner:
 
         return cls(config=config, steps=steps)
 
-    def run(self, data: pl.DataFrame, *, metadata: bool = False) -> pl.DataFrame:
+    def run(self, data: pl.DataFrame) -> pl.DataFrame:
 
         lazy = data.lazy()
 
