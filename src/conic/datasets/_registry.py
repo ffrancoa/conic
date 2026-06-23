@@ -8,6 +8,12 @@ from conic.datasets._metadata import (
     PREMSTALLER_RECORD,
     PREMSTALLER_REFERENCE,
     PREMSTALLER_SOURCE_DOI,
+    TAILINGS_CITATION,
+    TAILINGS_ID_COL,
+    TAILINGS_LICENSE,
+    TAILINGS_RECORD,
+    TAILINGS_REFERENCE,
+    TAILINGS_SOURCE_DOI,
 )
 from conic.engine._canonical import (
     COL_DEPTH,
@@ -82,6 +88,20 @@ ENTRIES: tuple[DatasetEntry, ...] = (
         reference=PREMSTALLER_REFERENCE,
         source_doi=PREMSTALLER_SOURCE_DOI,
         license=PREMSTALLER_LICENSE,
+    ),
+    DatasetEntry(
+        name="tailings_cptu",
+        filename="tailings_cptu.parquet",
+        url=_get_zenodo_url(TAILINGS_RECORD, "tailings_cptu.parquet"),
+        sha256="ddfec64ca05ba95d65e55ef86538018267d89e0fb02685155029c42811bc8e22",
+        test_type="CPTu",
+        n_soundings=16,
+        columns=_CPTU_COLUMNS,
+        id_column=TAILINGS_ID_COL,
+        citation=TAILINGS_CITATION,
+        reference=TAILINGS_REFERENCE,
+        source_doi=TAILINGS_SOURCE_DOI,
+        license=TAILINGS_LICENSE,
     ),
 )
 
