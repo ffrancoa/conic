@@ -3,11 +3,11 @@ from dataclasses import dataclass
 
 from conic.datasets._metadata import (
     PREMSTALLER_CITATION,
-    PREMSTALLER_DOI,
     PREMSTALLER_ID_COL,
     PREMSTALLER_LICENSE,
     PREMSTALLER_RECORD,
     PREMSTALLER_REFERENCE,
+    PREMSTALLER_SOURCE_DOI,
 )
 from conic.engine._canonical import (
     COL_DEPTH,
@@ -33,7 +33,7 @@ class DatasetEntry:
     id_column: str
     citation: str
     reference: str
-    doi: str
+    source_doi: str
     license: str
 
 
@@ -66,7 +66,7 @@ ENTRIES: tuple[DatasetEntry, ...] = (
         id_column=PREMSTALLER_ID_COL,
         citation=PREMSTALLER_CITATION,
         reference=PREMSTALLER_REFERENCE,
-        doi=PREMSTALLER_DOI,
+        source_doi=PREMSTALLER_SOURCE_DOI,
         license=PREMSTALLER_LICENSE,
     ),
     DatasetEntry(
@@ -80,7 +80,7 @@ ENTRIES: tuple[DatasetEntry, ...] = (
         id_column=PREMSTALLER_ID_COL,
         citation=PREMSTALLER_CITATION,
         reference=PREMSTALLER_REFERENCE,
-        doi=PREMSTALLER_DOI,
+        source_doi=PREMSTALLER_SOURCE_DOI,
         license=PREMSTALLER_LICENSE,
     ),
 )
@@ -135,5 +135,5 @@ def list_datasets(name: str | None = None) -> None:
         print(f"\n▌ {title} [{source!r}]")
         print(f"    Reference : {meta.reference}")
         print(f"    Soundings : {variants}")
-        print(f"    DOI       : {meta.doi}")
+        print(f"    DOI       : {meta.source_doi}")
         print(f"    License   : {meta.license}")
