@@ -4,6 +4,21 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.6.3] — 2026-06-23
+
+### Added
+- `conic.datasets`: a new module to pull open CPT datasets straight from public Zenodo records. `load_dataset()` returns a `ConicDataset` that bundles the lazy data with its metadata and exposes `get_sounding(id)`; `fetch_dataset()` pre-downloads one or every variant into a local cache; and `list_datasets()` prints the available catalog. Ships the Premstaller (CPTu + SCPTu) and Tailings (CPTu) datasets, cached content-addressed with SHA-256 integrity checks.
+- `conic.express.read_excel()` to load a sounding from an Excel workbook (selecting the sheet by number or name) into a ready-to-process DataFrame.
+
+### Changed
+- `Configurator` and its sub-models are now plain Python dataclasses instead of Pydantic models — the Pydantic dependency is gone and import/startup time drops noticeably. Build from dicts with `Configurator.from_dict()`, snapshot with `.to_dict()`, and note that invalid values now raise a plain `ValueError`.
+- Minimum supported Python is back to `3.12` (0.6.0 had raised it to `3.14`); nothing in the library requires a newer interpreter.
+- Updated the Rust build stack to `polars` `0.54.4`, `pyo3` `0.28`, and `pyo3-polars` `0.27`.
+
+### Removed
+- On-demand run metadata: `Pipeliner.run()` now returns a `polars.DataFrame` directly (the `metadata=` flag and the `PipelineResult` return type are gone).
+
+
 ## [0.6.0] — 2026-06-07
 
 ### Added
@@ -70,10 +85,11 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 - On-demand reproducibility for pipeline runs implemented via `Pipeliner.run(df, metadata=True)`.
 - Core CPTu preprocessing functions inside `conic.preprocess`: `compute_hydrostatic`, `adjust_depth_spacing`, `clean_by_indicators`, and `filter_by_indicators`.
 
-[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.3...HEAD
 [0.1.0]: https://github.com/ferrosoft/conic/releases/tag/v0.1.0
 [0.2.0]: https://github.com/ferrosoft/conic/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ferrosoft/conic/releases/tag/v0.3.0
 [0.4.0]: https://github.com/ferrosoft/conic/releases/tag/v0.4.0
 [0.5.0]: https://github.com/ferrosoft/conic/releases/tag/v0.5.0
 [0.6.0]: https://github.com/ferrosoft/conic/releases/tag/v0.6.0
+[0.6.3]: https://github.com/ferrosoft/conic/releases/tag/v0.6.3

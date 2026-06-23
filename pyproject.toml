@@ -1,6 +1,6 @@
 [project]
 name = "conic"
-version = "0.6.2"
+version = "0.6.3"
 description = "A SCPTu Data-Driven Evaluator."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -30,9 +30,9 @@ build-backend = "maturin"
 
 [dependency-groups]
 dev = [
-    "pytest>=9.0.3",
+    "pytest>=9.1.1",
     "pytest-benchmark>=5.2.3",
-    "ruff>=0.15.14",
+    "ruff>=0.15.18",
 ]
 
 [tool.maturin]
