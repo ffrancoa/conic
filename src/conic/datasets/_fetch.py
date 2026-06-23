@@ -9,8 +9,8 @@ from urllib.parse import urlsplit
 import platformdirs
 import polars as pl
 
-from conic.datasets._dataset import Dataset
-from conic.datasets._registry import DatasetEntry, _get_entry
+from conic.datasets._dataset import ConicDataset
+from conic.datasets._registry import DatasetEntry, _get_entries, _get_entry
 
 _TIMEOUT: float = 30.0
 _CHUNK: int = 1 << 20
@@ -78,28 +78,55 @@ def _fetch_to_cache(entry: DatasetEntry, path: Path) -> None:
         tmp_path.unlink(missing_ok=True)
 
 
-def _scan_entry(
-    entry: DatasetEntry, cache_path: Path | str | None = None
-) -> pl.LazyFrame:
+def _ensure_entry(entry: DatasetEntry, cache_path: Path | str | None = None) -> Path:
     path = _get_entry_path(entry, cache_path)
 
     if not path.exists():
         _fetch_to_cache(entry, path)
 
-    return pl.scan_parquet(path)
+    return path
 
 
-def fetch_dataset(name: str, cache_path: Path | str | None = None) -> pl.LazyFrame:
-    return _scan_entry(_get_entry(name), cache_path)
+def fetch_dataset(
+    source: str,
+    test_type: str = "all",
+    *,
+    cache_path: Path | str | None = None,
+) -> None:
+
+    test_types = ("cptu", "scptu", "all")
+
+    if test_type not in test_types:
+        available = ", ".join(test_types)
+        raise ValueError(
+            f"unknown test type {test_type!r}; available test types are: '{available}'"
+        )
+
+    if test_type == "all":
+        entries = _get_entries(source)
+    else:
+        entries = (_get_entry(f"{source.lower()}_{test_type}"),)
+
+    for entry in entries:
+        _ensure_entry(entry, cache_path)
 
 
 def load_dataset(
     source: str,
-    test_type: str,
+    test_type: str = "cptu",
     *,
     cache_path: Path | str | None = None,
-) -> Dataset:
+) -> ConicDataset:
+
+    test_types = ("cptu", "scptu")
+
+    if test_type not in test_types:
+        available = ", ".join(test_types)
+        raise ValueError(
+            f"unknown test type {test_type!r}; available test types are: '{available}'"
+        )
 
     entry = _get_entry(f"{source.lower()}_{test_type.lower()}")
+    path = _ensure_entry(entry, cache_path)
 
-    return Dataset(entry=entry, data=_scan_entry(entry, cache_path))
+    return ConicDataset(meta=entry, data=pl.scan_parquet(path))

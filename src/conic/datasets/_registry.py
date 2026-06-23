@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 
 from conic.datasets._metadata import (
@@ -6,6 +7,7 @@ from conic.datasets._metadata import (
     PREMSTALLER_ID_COL,
     PREMSTALLER_LICENSE,
     PREMSTALLER_RECORD,
+    PREMSTALLER_REFERENCE,
 )
 from conic.engine._canonical import (
     COL_DEPTH,
@@ -30,6 +32,7 @@ class DatasetEntry:
     columns: tuple[str, ...]
     id_column: str
     citation: str
+    reference: str
     doi: str
     license: str
 
@@ -56,12 +59,13 @@ ENTRIES: tuple[DatasetEntry, ...] = (
         name="premstaller_cptu",
         filename="premstaller_cptu.parquet",
         url=_get_zenodo_url(PREMSTALLER_RECORD, "premstaller_cptu.parquet"),
-        sha256="5ede5e284139fe382b0d47ff9842d49a676149b4a31332304bc9351d0a8c4d55",
+        sha256="7e7f25d5433dac56d2019b33ce743077868ad796211a249b8a8d6ea1140bb15a",
         test_type="CPTu",
         n_soundings=312,
         columns=_CPTU_COLUMNS,
         id_column=PREMSTALLER_ID_COL,
         citation=PREMSTALLER_CITATION,
+        reference=PREMSTALLER_REFERENCE,
         doi=PREMSTALLER_DOI,
         license=PREMSTALLER_LICENSE,
     ),
@@ -69,12 +73,13 @@ ENTRIES: tuple[DatasetEntry, ...] = (
         name="premstaller_scptu",
         filename="premstaller_scptu.parquet",
         url=_get_zenodo_url(PREMSTALLER_RECORD, "premstaller_scptu.parquet"),
-        sha256="4275f38f363e0aa516c933ca8d0ff315a9f81618a19785c66b0f0375f2845cfa",
+        sha256="0a4775a24c49d5d5ca5898796355111d10106bb7a8b6b5e23b73c782c32f8128",
         test_type="SCPTu",
         n_soundings=50,
         columns=_SCPTU_COLUMNS,
         id_column=PREMSTALLER_ID_COL,
         citation=PREMSTALLER_CITATION,
+        reference=PREMSTALLER_REFERENCE,
         doi=PREMSTALLER_DOI,
         license=PREMSTALLER_LICENSE,
     ),
@@ -94,9 +99,41 @@ def _get_entry(name: str) -> DatasetEntry:
         ) from None
 
 
-def list_datasets(*, test_type: str | None = None) -> tuple[DatasetEntry, ...]:
-    return tuple(
-        entry
-        for entry in ENTRIES
-        if (test_type is None or entry.test_type == test_type)
-    )
+def _get_entries(source: str) -> tuple[DatasetEntry, ...]:
+    prefix = f"{source.lower()}_"
+    entries = tuple(entry for entry in ENTRIES if entry.name.startswith(prefix))
+
+    if not entries:
+        available = ", ".join(sorted(_BY_NAME))
+        raise ValueError(
+            f"unknown dataset source {source!r}; available datasets are: '{available}'"
+        )
+
+    return entries
+
+
+def _title_from_citation(citation: str) -> str:
+    match = re.search(r"\(\d{4}\)\.\s*(.*?)\.", citation)
+    return match.group(1) if match else citation
+
+
+def list_datasets(name: str | None = None) -> None:
+    if name is None:
+        sources = tuple(
+            dict.fromkeys(entry.name.rsplit("_", 1)[0] for entry in ENTRIES)
+        )
+    else:
+        sources = (name,)
+
+    for source in sources:
+        entries = _get_entries(source)
+        meta = entries[0]
+
+        title = _title_from_citation(meta.citation)
+        variants = " · ".join(f"{e.test_type} ({e.n_soundings})" for e in entries)
+
+        print(f"\n▌ {title} [{source!r}]")
+        print(f"    Reference : {meta.reference}")
+        print(f"    Soundings : {variants}")
+        print(f"    DOI       : {meta.doi}")
+        print(f"    License   : {meta.license}")
