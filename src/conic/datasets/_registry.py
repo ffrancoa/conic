@@ -1,20 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from conic.datasets._metadata import (
-    PREMSTALLER_CITATION,
-    PREMSTALLER_ID_COL,
-    PREMSTALLER_LICENSE,
-    PREMSTALLER_RECORD,
-    PREMSTALLER_REFERENCE,
-    PREMSTALLER_SOURCE_DOI,
-    TAILINGS_CITATION,
-    TAILINGS_ID_COL,
-    TAILINGS_LICENSE,
-    TAILINGS_RECORD,
-    TAILINGS_REFERENCE,
-    TAILINGS_SOURCE_DOI,
-)
+from conic.datasets._metadata import PREMSTALLER, TAILINGS, SourceMetadata
 from conic.engine._canonical import (
     COL_DEPTH,
     COL_FS,
@@ -27,24 +14,23 @@ from conic.engine._canonical import (
 )
 
 
+def _get_zenodo_url(zenodo_record: str, filename: str) -> str:
+    return f"https://zenodo.org/records/{zenodo_record}/files/{filename}?download=1"
+
+
 @dataclass(frozen=True, slots=True)
 class DatasetEntry:
     name: str
     filename: str
-    url: str
     sha256: str
     test_type: str
     n_soundings: int
     columns: tuple[str, ...]
-    id_column: str
-    citation: str
-    reference: str
-    source_doi: str
-    license: str
+    source: SourceMetadata
 
-
-def _get_zenodo_url(zenodo_record: str, filename: str) -> str:
-    return f"https://zenodo.org/records/{zenodo_record}/files/{filename}?download=1"
+    @property
+    def url(self) -> str:
+        return _get_zenodo_url(self.source.record, self.filename)
 
 
 _CPTU_COLUMNS: tuple[str, ...] = (
@@ -64,44 +50,29 @@ ENTRIES: tuple[DatasetEntry, ...] = (
     DatasetEntry(
         name="premstaller_cptu",
         filename="premstaller_cptu.parquet",
-        url=_get_zenodo_url(PREMSTALLER_RECORD, "premstaller_cptu.parquet"),
         sha256="7e7f25d5433dac56d2019b33ce743077868ad796211a249b8a8d6ea1140bb15a",
         test_type="CPTu",
         n_soundings=312,
         columns=_CPTU_COLUMNS,
-        id_column=PREMSTALLER_ID_COL,
-        citation=PREMSTALLER_CITATION,
-        reference=PREMSTALLER_REFERENCE,
-        source_doi=PREMSTALLER_SOURCE_DOI,
-        license=PREMSTALLER_LICENSE,
+        source=PREMSTALLER,
     ),
     DatasetEntry(
         name="premstaller_scptu",
         filename="premstaller_scptu.parquet",
-        url=_get_zenodo_url(PREMSTALLER_RECORD, "premstaller_scptu.parquet"),
         sha256="0a4775a24c49d5d5ca5898796355111d10106bb7a8b6b5e23b73c782c32f8128",
         test_type="SCPTu",
         n_soundings=50,
         columns=_SCPTU_COLUMNS,
-        id_column=PREMSTALLER_ID_COL,
-        citation=PREMSTALLER_CITATION,
-        reference=PREMSTALLER_REFERENCE,
-        source_doi=PREMSTALLER_SOURCE_DOI,
-        license=PREMSTALLER_LICENSE,
+        source=PREMSTALLER,
     ),
     DatasetEntry(
         name="tailings_cptu",
         filename="tailings_cptu.parquet",
-        url=_get_zenodo_url(TAILINGS_RECORD, "tailings_cptu.parquet"),
         sha256="ddfec64ca05ba95d65e55ef86538018267d89e0fb02685155029c42811bc8e22",
         test_type="CPTu",
         n_soundings=16,
         columns=_CPTU_COLUMNS,
-        id_column=TAILINGS_ID_COL,
-        citation=TAILINGS_CITATION,
-        reference=TAILINGS_REFERENCE,
-        source_doi=TAILINGS_SOURCE_DOI,
-        license=TAILINGS_LICENSE,
+        source=TAILINGS,
     ),
 )
 
@@ -149,11 +120,11 @@ def list_datasets(name: str | None = None) -> None:
         entries = _get_entries(source)
         meta = entries[0]
 
-        title = _title_from_citation(meta.citation)
+        title = _title_from_citation(meta.source.citation)
         variants = " · ".join(f"{e.test_type} ({e.n_soundings})" for e in entries)
 
         print(f"\n▌ {title} [{source!r}]")
-        print(f"    Reference : {meta.reference}")
+        print(f"    Reference : {meta.source.reference}")
         print(f"    Soundings : {variants}")
-        print(f"    DOI       : {meta.source_doi}")
-        print(f"    License   : {meta.license}")
+        print(f"    DOI       : {meta.source.doi}")
+        print(f"    License   : {meta.source.license}")

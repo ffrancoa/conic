@@ -22,7 +22,7 @@ class ConicDataset:
 
         return cast(
             pl.DataFrame,
-            self.data.filter(pl.col(self.meta.id_column) == sounding_id)
+            self.data.filter(pl.col(self.meta.source.id_col) == sounding_id)
             .select(self.meta.columns)
             .collect(),
         )
