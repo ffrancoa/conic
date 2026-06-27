@@ -66,12 +66,14 @@ def compute_rolling_columns(
     rolling_label: str = ROLLING_LABEL,
 ) -> pl.LazyFrame:
 
+    required_columns = {col_fs, col_qt, col_qn}
+
+    if missing_columns := get_missing_columns(lazy, required_columns):
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+
     col_fs_rol = col_fs + rolling_label
     col_qt_rol = col_qt + rolling_label
     col_qn_rol = col_qn + rolling_label
-
-    if missing_columns := get_missing_columns(lazy, {col_fs, col_qt, col_qn}):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
     return lazy.with_columns(
         (

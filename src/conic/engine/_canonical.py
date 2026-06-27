@@ -7,6 +7,8 @@ ROLLING_LABEL: str = "*"
 
 # cleansing
 CLEAN_MODE: str = "replace"
+ALIGN_SOUNDING: bool = False
+MAX_OFFSET: int = 5
 
 # settings
 P_REF: float = 101.33

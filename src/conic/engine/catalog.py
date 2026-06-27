@@ -4,12 +4,12 @@ from conic.engine.config import Configurator
 from conic.engine.step import Operation, Step, bind
 
 
-def sanitize_columns() -> Operation:
+def sanitize_sounding() -> Operation:
     def build(config: Configurator) -> Step:
         columns = config.columns.input
 
         return bind(
-            prepare.sanitize_columns,
+            prepare.sanitize_sounding,
             col_depth=columns.depth,
             col_qc=columns.qc,
             col_fs=columns.fs,
@@ -32,6 +32,24 @@ def adjust_depth_spacing() -> Operation:
             start_depth=cleansing.start_depth,
             spacing=cleansing.spacing,
             col_depth=columns.depth,
+        )
+
+    return Operation(build)
+
+
+def align_sounding() -> Operation:
+    def build(config: Configurator) -> Step:
+        if not config.cleansing.align_sounding:
+            return Step(name="align_sounding", apply=lambda lazy: lazy)
+
+        columns = config.columns.input
+
+        return bind(
+            prepare.align_sounding,
+            col_depth=columns.depth,
+            col_qc=columns.qc,
+            col_fs=columns.fs,
+            indicators=config.cleansing.indicators,
         )
 
     return Operation(build)

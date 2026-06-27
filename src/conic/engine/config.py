@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Self
 
 from conic.engine._canonical import (
+    ALIGN_SOUNDING,
     AREA_RATIO,
     CLEAN_MODE,
     COL_BQ,
@@ -90,6 +91,7 @@ class Cleansing:
 
     indicators: list[float] = dataclasses.field(default_factory=list)
     clean_mode: str = CLEAN_MODE
+    align_sounding: bool = ALIGN_SOUNDING
 
     def __post_init__(self):
         if self.start_depth is not None and self.start_depth < 0.0:
@@ -267,6 +269,9 @@ class Configurator:
 
     def with_clean_mode(self, value: str) -> Self:
         return self._with_field("cleansing", "clean_mode", value)
+
+    def with_align_sounding(self, value: bool) -> Self:
+        return self._with_field("cleansing", "align_sounding", value)
 
     def with_p_ref(self, value: str) -> Self:
         return self._with_field("settings", "p_ref", value)

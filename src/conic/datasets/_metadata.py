@@ -14,7 +14,7 @@ class SourceMetadata:
 PREMSTALLER = SourceMetadata(
     citation=(
         "Oberhollenzer, S., Premstaller, M., Marte, R., Tschuchnigg, F., "
-        "Erharter, G.H., Marcher, T. (2021). Cone penetration test dataset "
+        "Erharter, G.H., Marcher, T. (2021). Cone Penetration Test Dataset "
         "Premstaller Geotechnik. Data in Brief, 34, 106618."
     ),
     doi="10.1016/j.dib.2020.106618",
