@@ -33,3 +33,16 @@ TAILINGS = SourceMetadata(
     record="20807062",
     reference="Arnold & Macedo (2023)",
 )
+
+CANTERBURY = SourceMetadata(
+    citation=(
+        "Geyin, M., Maurer, B.W., Bradley, B.A., Green, R.A., "
+        "van Ballegooy, S. (2020). CPT-Based Liquefaction Case Histories "
+        "Resulting from the 2010-2016 Canterbury, New Zealand, Earthquakes: "
+        "A Curated Digital Dataset. DesignSafe-CI."
+    ),
+    doi="10.17603/ds2-tygh-ht91",
+    license="ODC-By v1.0",
+    record="20839217",
+    reference="Geyin et al. (2020)",
+)

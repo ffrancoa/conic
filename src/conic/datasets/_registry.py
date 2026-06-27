@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from conic.datasets._metadata import PREMSTALLER, TAILINGS, SourceMetadata
+from conic.datasets._metadata import CANTERBURY, PREMSTALLER, TAILINGS, SourceMetadata
 from conic.engine._canonical import (
     COL_DEPTH,
     COL_FS,
@@ -47,6 +47,15 @@ _SCPTU_COLUMNS: tuple[str, ...] = (*_CPTU_COLUMNS, COL_VS)
 
 
 ENTRIES: tuple[DatasetEntry, ...] = (
+    DatasetEntry(
+        name="canterbury_cptu",
+        filename="canterbury_cptu.parquet",
+        sha256="9d2837f6dbe4571f71b38ce25aebb80f1e641a750b291e2643047e3807a59aeb",
+        test_type="CPTu",
+        n_soundings=4825,
+        columns=_CPTU_COLUMNS,
+        source=CANTERBURY,
+    ),
     DatasetEntry(
         name="premstaller_cptu",
         filename="premstaller_cptu.parquet",

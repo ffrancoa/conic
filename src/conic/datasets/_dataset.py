@@ -17,7 +17,8 @@ class ConicDataset:
     def get_sounding(self, sounding_id: int) -> pl.DataFrame:
         if not 1 <= sounding_id <= self.meta.n_soundings:
             raise ValueError(
-                f"sounding id must be in 1..{self.meta.n_soundings}; got {sounding_id}"
+                f"`sounding id` must be in range 1..{self.meta.n_soundings}; got "
+                f"{sounding_id!r}"
             )
 
         return cast(
