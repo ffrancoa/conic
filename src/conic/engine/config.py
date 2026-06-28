@@ -61,7 +61,7 @@ class Parameters:
     def __post_init__(self):
         if self.area_ratio < 0.0 or self.area_ratio > 1.0:
             raise ValueError(
-                f"Piezocone area ratio must be a positive number lower than 1.0; got "
+                f"piezocone area ratio must be a positive number lower than 1.0; got "
                 f"'{self.area_ratio}'"
             )
         if self.rolling not in (1, 3, 5):

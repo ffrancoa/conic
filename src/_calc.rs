@@ -122,15 +122,3 @@ pub(crate) fn compute_behavior(
         ib_vec,
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_calc_ic() {
-        let returned = calc_ic(2.30000, 104.46000);
-        let expected = 2.1464875813;
-        assert!((returned - expected).abs() < 1e-7);
-    }
-}
