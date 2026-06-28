@@ -21,7 +21,9 @@ simple closure can express it, it belongs in Python.
   No Polars dependency, no PyO3 dependency.
 - `_impl.rs`: the Polars bridge. `#[polars_expr]` functions, `Series`
   extraction, kwargs deserialization via serde, Struct assembly.
-- `lib.rs`: plugin registration only.
+- `lib.rs`: global allocator (`PolarsAllocator`) and `mod`
+  declarations. Plugin registration is handled by the
+  `#[polars_expr]` proc macro in `_impl.rs`.
 
 Keep the boundary sharp: `_impl.rs` calls into `_calc.rs`, never
 the reverse.

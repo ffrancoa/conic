@@ -81,6 +81,8 @@ skips binding accordingly.
 
 ## Pipeliner
 
+`Pipeliner` is `@dataclass(frozen=True, slots=True)`.
+
 - `Pipeliner.standard(config)`: builds from `STANDARD_OPS`.
 - `Pipeliner.from_operations(config, operations)`: arbitrary
   pipeline from a tuple of `Operation`.

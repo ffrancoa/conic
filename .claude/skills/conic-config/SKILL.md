@@ -14,7 +14,8 @@ that holds no data. It composes four sub-models, all
 `settings`, `columns`.
 
 Access is two levels: `config.parameters.gamma_soil`. The only
-exception is `columns`, which has three: `config.columns.input.depth`.
+exception is `columns`, which has three:
+`config.columns.input.depth`, `config.columns.output.qt`.
 
 ## Construction
 
