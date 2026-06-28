@@ -1,3 +1,6 @@
+# Claude user-settings
+.claude/settings.local.json
+
 # Python-generated files
 __pycache__/
 *.py[cod]
