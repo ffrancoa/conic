@@ -16,7 +16,6 @@ MAX_SU_LIQ_RATIO: float = 0.25
 
 def compute_kc(
     lazy: pl.LazyFrame,
-    *,
     col_ic: str,
     col_kc: str = COL_KC_R21,
 ) -> pl.LazyFrame:
@@ -46,7 +45,6 @@ def compute_kc(
 
 def compute_qtncs(
     lazy: pl.LazyFrame,
-    *,
     col_qtn: str,
     col_kc: str = COL_KC_R21,
     col_qtncs: str = COL_QTNCS_R21,
@@ -60,7 +58,6 @@ def compute_qtncs(
 
 def compute_su_liq_ratio(
     lazy: pl.LazyFrame,
-    *,
     col_fr: str,
     col_ic: str,
     col_qtncs: str = COL_QTNCS_R21,
@@ -88,3 +85,17 @@ def compute_su_liq_ratio(
             .clip(upper_bound=max_su_liq_ratio)
         ).alias(col_su_liq_ratio)
     )
+
+
+def add_r21_columns(
+    lazy: pl.LazyFrame,
+    col_fr: str,
+    col_qtn: str,
+    col_ic: str,
+) -> pl.LazyFrame:
+
+    lazy = compute_kc(lazy, col_ic)
+    lazy = compute_qtncs(lazy, col_qtn)
+    lazy = compute_su_liq_ratio(lazy, col_fr, col_ic)
+
+    return lazy

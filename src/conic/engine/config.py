@@ -30,6 +30,7 @@ from conic.engine._canonical import (
     COL_U2,
     GAMMA_WATER,
     MAX_ITER,
+    MAX_SLEEVE_OFFSET,
     P_REF,
     ROLLING,
     ROLLING_LABEL,
@@ -64,6 +65,7 @@ class Parameters:
                 f"piezocone area ratio must be a positive number lower than 1.0; got "
                 f"'{self.area_ratio}'"
             )
+
         if self.rolling not in (1, 3, 5):
             raise ValueError(f"rolling value must be 1, 3 or 5; got '{self.rolling}'")
 
@@ -72,6 +74,7 @@ class Parameters:
                 f"water unit weight (`gamma_water`) must be a (reasonable) positive "
                 f"number; got '{self.gamma_water}'"
             )
+
         if self.gamma_soil is not None and self.gamma_soil <= 0.0:
             raise ValueError(
                 f"soil unit weight (`gamma_soil`) must be a (reasonable) positive "
@@ -92,6 +95,7 @@ class Cleansing:
     indicators: list[float] = dataclasses.field(default_factory=list)
     clean_mode: str = CLEAN_MODE
     align_sounding: bool = ALIGN_SOUNDING
+    max_sleeve_offset: int = MAX_SLEEVE_OFFSET
 
     def __post_init__(self):
         if self.start_depth is not None and self.start_depth < 0.0:
@@ -99,6 +103,7 @@ class Cleansing:
                 f"start depth used for depth adjustment (`start_depth`) must be a "
                 f"positive number lower than ; got '{self.start_depth}'"
             )
+
         if self.spacing is not None and self.spacing < 0.0:
             raise ValueError(
                 f"depth spacing must be a positive number; got '{self.spacing}'"
@@ -107,6 +112,12 @@ class Cleansing:
         if self.clean_mode not in ("remove", "replace"):
             raise ValueError(
                 f"clean mode must be 'remove' o 'replace'; got '{self.clean_mode}'"
+            )
+
+        if self.max_sleeve_offset < 0:
+            raise ValueError(
+                f"the maximum alignment sleeve offset (`max_sleeve_offset`) must be a "
+                f"(reasonable) positive integer number; got '{self.max_sleeve_offset}'"
             )
 
     @classmethod
@@ -127,11 +138,13 @@ class Settings:
                 f"reference pressure (`p_ref`) must be a (reasonable) positive number; "
                 f"got '{self.p_ref}'"
             )
+
         if self.max_iter < 2:
             raise ValueError(
                 f"the maximum number of iterations (`max_iter`) must be at least 2, "
                 f"got '{self.max_iter}'"
             )
+
         if self.tolerance >= 1.0:
             raise ValueError(
                 f"convergence tolerance must be less than 1.0, got '{self.tolerance}'"
@@ -272,6 +285,9 @@ class Configurator:
 
     def with_align_sounding(self, value: bool) -> Self:
         return self._with_field("cleansing", "align_sounding", value)
+
+    def with_max_sleeve_offset(self, value: int) -> Self:
+        return self._with_field("cleansing", "max_sleeve_offset", value)
 
     def with_p_ref(self, value: str) -> Self:
         return self._with_field("settings", "p_ref", value)

@@ -12,7 +12,7 @@ from conic.engine._canonical import (
     COL_U0,
     COL_U2,
     GAMMA_WATER,
-    MAX_OFFSET,
+    MAX_SLEEVE_OFFSET,
 )
 
 
@@ -23,7 +23,7 @@ def _expr_estimate_mean_spacing(col_depth: str = COL_DEPTH, digits: int = 3) -> 
 
 
 def _expr_estimate_sleeve_offset(
-    col_qc: str, col_fs: str, max_offset: int, indicators: list[float] | None
+    col_qc: str, col_fs: str, max_sleeve_offset: int, indicators: list[float] | None
 ) -> pl.Expr:
 
     cleaned_qc_column = pl.col(col_qc).fill_nan(None)
@@ -37,7 +37,7 @@ def _expr_estimate_sleeve_offset(
             cleaned_fs_column, indicators, None
         )
 
-    window_size = 2 * max_offset + 1
+    window_size = 2 * max_sleeve_offset + 1
 
     detrended_qc_column = cleaned_qc_column - cleaned_qc_column.rolling_mean(
         window_size, center=True
@@ -49,7 +49,7 @@ def _expr_estimate_sleeve_offset(
     pearson_correlations = pl.concat_list(
         [
             pl.corr(detrended_qc_column, detrended_fs_column.shift(lag))
-            for lag in range(-max_offset, max_offset + 1)
+            for lag in range(-max_sleeve_offset, max_sleeve_offset + 1)
         ]
     )
 
@@ -59,7 +59,7 @@ def _expr_estimate_sleeve_offset(
     return (
         pl.when(max_correlation.is_nan() | max_correlation.is_null())
         .then(pl.lit(0, dtype=pl.Int64))  # no correlation (i.e., offset = 0)
-        .otherwise(max_correlation_index - max_offset)
+        .otherwise(max_correlation_index - max_sleeve_offset)
     )
 
 
@@ -121,19 +121,22 @@ def align_sounding(
     col_depth: str = COL_DEPTH,
     col_qc: str = COL_QC,
     col_fs: str = COL_FS,
-    max_offset: int = MAX_OFFSET,
+    max_sleeve_offset: int = MAX_SLEEVE_OFFSET,
     indicators: list[float] | None = None,
 ) -> pl.LazyFrame:
 
     if missing_columns := get_missing_columns(lazy, {col_depth, col_qc, col_fs}):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
 
-    if max_offset <= 0:
+    if max_sleeve_offset <= 0:
         raise ValueError(
-            f"invalid max offset {max_offset!r}; value must be a positive integer"
+            f"maximum sleeve offset must be a positive integer; got "
+            f"{max_sleeve_offset!r}"
         )
 
-    sleeve_offset = _expr_estimate_sleeve_offset(col_qc, col_fs, max_offset, indicators)
+    sleeve_offset = _expr_estimate_sleeve_offset(
+        col_qc, col_fs, max_sleeve_offset, indicators
+    )
 
     return lazy.with_columns(pl.col(col_fs).shift(sleeve_offset.first()))
 

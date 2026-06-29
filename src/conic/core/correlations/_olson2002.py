@@ -1,5 +1,3 @@
-from typing import Literal
-
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
@@ -14,44 +12,47 @@ SU_LIQ_RATIO_STD: float = 0.03
 
 def compute_qc1(
     lazy: pl.LazyFrame,
-    *,
-    p_ref: float,
-    rolling: int,
     col_sv_eff: str,
-    col_qc: str,
+    col_qt: str,
     col_qc1: str = COL_QC1_OS02,
+    *,
+    rolling_label: str,
+    p_ref: float,
 ) -> pl.LazyFrame:
 
-    if missing_columns := get_missing_columns(lazy, {col_sv_eff, col_qc}):
+    col_qt_rol = col_qt + rolling_label
+
+    if missing_columns := get_missing_columns(lazy, {col_sv_eff, col_qt_rol}):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
-    col_qc_rol = (
-        pl.col(col_qc)
-        .rolling_mean(window_size=rolling, min_samples=rolling, center=True)
-        .fill_null(float("nan"))
-    )
-
     return lazy.with_columns(
-        ((col_qc_rol * 1.8) / (0.8 + (pl.col(col_sv_eff) / p_ref))).alias(col_qc1)
-    )
+        (
+            (1.8 * pl.col(col_qt_rol)) / (0.8 + (pl.col(col_sv_eff) / p_ref))
+        ).alias(col_qc1)
+    )  # fmt: off
 
 
 def compute_su_liq_ratio(
     lazy: pl.LazyFrame,
-    *,
-    bound: Literal["mean", "lower", "upper"],
     col_qc1: str = COL_QC1_OS02,
     col_su_liq_ratio: str = COL_SU_LIQ_RATIO_OS02,
     max_su_liq_ratio: float = MAX_SU_LIQ_RATIO,
+    *,
+    envelope: str,
 ) -> pl.LazyFrame:
 
-    match bound:
+    match envelope:
         case "mean":
             epsilon = 0.00
         case "lower":
             epsilon = -SU_LIQ_RATIO_STD
         case "upper":
             epsilon = SU_LIQ_RATIO_STD
+        case _:
+            raise ValueError(
+                f"invalid envelope choice, valid options are 'mean', 'lower' and "
+                f"'upper'; got {envelope!r}"
+            )
 
     return lazy.with_columns(
         (
@@ -61,3 +62,25 @@ def compute_su_liq_ratio(
             .clip(upper_bound=max_su_liq_ratio)
         ).alias(col_su_liq_ratio)
     )
+
+
+def add_os02_columns(
+    lazy: pl.LazyFrame,
+    col_sv_eff: str,
+    col_qt: str,
+    *,
+    rolling_label: str,
+    p_ref: float,
+    envelope: str,
+) -> pl.LazyFrame:
+
+    lazy = compute_qc1(
+        lazy,
+        col_sv_eff,
+        col_qt,
+        rolling_label=rolling_label,
+        p_ref=p_ref,
+    )
+    lazy = compute_su_liq_ratio(lazy, envelope=envelope)
+
+    return lazy

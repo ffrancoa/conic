@@ -47,12 +47,12 @@ def compute_non_normalized_columns(
     if missing_columns := get_missing_columns(lazy, {col_fs, col_qc, col_u2}):
         raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
 
-    col_qt_mpa = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
+    expr_col_qt_mpa = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
 
     return lazy.with_columns(
-        col_qt_mpa.alias(col_qt),
-        (col_qt_mpa - pl.col(col_sv_tot) / 1000.0).alias(col_qn),
-        (pl.col(col_fs) / (col_qt_mpa * 1000.0) * 100.0).alias(col_rf),
+        expr_col_qt_mpa.alias(col_qt),
+        (expr_col_qt_mpa - pl.col(col_sv_tot) / 1000.0).alias(col_qn),
+        (pl.col(col_fs) / (expr_col_qt_mpa * 1000.0) * 100.0).alias(col_rf),
     )
 
 
