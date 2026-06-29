@@ -73,14 +73,8 @@ def add_os02_columns(
     p_ref: float,
     envelope: str,
 ) -> pl.LazyFrame:
-
-    lazy = compute_qc1(
-        lazy,
-        col_sv_eff,
-        col_qt,
-        rolling_label=rolling_label,
-        p_ref=p_ref,
-    )
-    lazy = compute_su_liq_ratio(lazy, envelope=envelope)
-
-    return lazy
+    return (
+        lazy
+        .pipe(compute_qc1, col_sv_eff, col_qt, rolling_label=rolling_label, p_ref=p_ref)
+        .pipe(compute_su_liq_ratio, envelope=envelope)
+    )  # fmt: off

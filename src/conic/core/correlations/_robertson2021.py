@@ -93,9 +93,9 @@ def add_r21_columns(
     col_qtn: str,
     col_ic: str,
 ) -> pl.LazyFrame:
-
-    lazy = compute_kc(lazy, col_ic)
-    lazy = compute_qtncs(lazy, col_qtn)
-    lazy = compute_su_liq_ratio(lazy, col_fr, col_ic)
-
-    return lazy
+    return (
+        lazy
+        .pipe(compute_kc, col_ic)
+        .pipe(compute_qtncs, col_qtn)
+        .pipe(compute_su_liq_ratio, col_fr, col_ic)
+    )  # fmt: off
