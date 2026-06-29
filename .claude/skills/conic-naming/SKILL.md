@@ -70,7 +70,6 @@ Column-name parameters: prefix `col_`. Example: `col_depth`, `col_qc`,
   `_plugins.py`, `_utils.py`.
 - Public modules: no underscore. Example: `config.py`, `catalog.py`,
   `pipeline.py`.
-- Correlation composition module: `compose.py` in `core/correlate/`.
-  Contains the public `add_<tag>_columns` functions that wire
-  private correlation modules together.
+- Correlation modules export their public `add_<tag>_columns`
+  facade directly; `core/correlations/__init__.py` re-exports them.
 

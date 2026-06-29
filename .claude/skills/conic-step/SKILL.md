@@ -28,7 +28,7 @@ where kwargs are extracted from the `Configurator`.
 
 ## Where Each Piece Lives
 
-- Pure functions: `core/calculate/` or `core/correlate/`. Self-sufficient,
+- Pure functions: `core/calculate/` or `core/correlations/`. Self-sufficient,
   no dependency on engine types.
 - Catalog factories: `engine/catalog.py`. Each factory is a public
   function `(**step_params) -> Operation` whose inner `build(config)`
@@ -60,9 +60,10 @@ skips binding accordingly.
 ## Pure Function Signatures
 
 - Accept `lazy: pl.LazyFrame` as first positional argument.
-- All configuration-derived values as keyword arguments with
-  defaults from `_canonical.py`.
-- Column names as `col_*: str` parameters.
+- Column names as positional `col_*: str` parameters (after `lazy`),
+  with defaults from module-level constants where applicable.
+- Remaining configuration-derived values as keyword-only arguments
+  (after `*`) with defaults from `_canonical.py` where applicable.
 - Return `pl.LazyFrame`.
 - No imports from `engine/`. No `Configurator`, `Step`, or
   `Operation` in the signature or body.
