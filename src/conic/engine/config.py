@@ -5,24 +5,33 @@ from pathlib import Path
 from typing import Any, Self
 
 from conic.engine._canonical import (
-    ALIGN_SOUNDING,
     AREA_RATIO,
     CLEAN_MODE,
     COL_BQ,
     COL_CD,
     COL_CONVG,
+    COL_CONVG_BI14,
     COL_DEPTH,
+    COL_FC_BI14,
     COL_FR,
     COL_FS,
     COL_IB,
     COL_IC,
+    COL_KC_R21,
+    COL_M_BI14,
     COL_N,
     COL_QC,
+    COL_QC1_OS02,
+    COL_QC1N_BI14,
+    COL_QC1NCS_BI14,
     COL_QN,
     COL_QT,
     COL_QT1,
     COL_QTN,
+    COL_QTNCS_R21,
     COL_RF,
+    COL_SU_LIQ_RATIO_OS02,
+    COL_SU_LIQ_RATIO_R21,
     COL_SV_EFF,
     COL_SV_TOT,
     COL_U,
@@ -94,7 +103,6 @@ class Cleansing:
 
     indicators: list[float] = dataclasses.field(default_factory=list)
     clean_mode: str = CLEAN_MODE
-    align_sounding: bool = ALIGN_SOUNDING
     max_sleeve_offset: int = MAX_SLEEVE_OFFSET
 
     def __post_init__(self):
@@ -117,7 +125,7 @@ class Cleansing:
         if self.max_sleeve_offset < 0:
             raise ValueError(
                 f"the maximum alignment sleeve offset (`max_sleeve_offset`) must be a "
-                f"(reasonable) positive integer number; got '{self.max_sleeve_offset}'"
+                f"non-negative integer; got '{self.max_sleeve_offset}'"
             )
 
     @classmethod
@@ -199,9 +207,71 @@ class OutputColumns:
 
 
 @dataclass(frozen=True, slots=True)
+class BI14Columns:
+    fc: str = COL_FC_BI14
+    m: str = COL_M_BI14
+    qc1n: str = COL_QC1N_BI14
+    qc1ncs: str = COL_QC1NCS_BI14
+    convg: str = COL_CONVG_BI14
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
+class R21Columns:
+    kc: str = COL_KC_R21
+    qtncs: str = COL_QTNCS_R21
+    su_liq_ratio: str = COL_SU_LIQ_RATIO_R21
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
+class OS02Columns:
+    qc1: str = COL_QC1_OS02
+    su_liq_ratio: str = COL_SU_LIQ_RATIO_OS02
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
+class CorrelationColumns:
+    bi14: BI14Columns = dataclasses.field(default_factory=BI14Columns)
+    r21: R21Columns = dataclasses.field(default_factory=R21Columns)
+    os02: OS02Columns = dataclasses.field(default_factory=OS02Columns)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+
+        if "bi14" in data and isinstance(data["bi14"], dict):
+            data = data | {"bi14": BI14Columns.from_dict(data["bi14"])}
+
+        if "r21" in data and isinstance(data["r21"], dict):
+            data = data | {"r21": R21Columns.from_dict(data["r21"])}
+
+        if "os02" in data and isinstance(data["os02"], dict):
+            data = data | {"os02": OS02Columns.from_dict(data["os02"])}
+
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
 class Columns:
     input: InputColumns = dataclasses.field(default_factory=InputColumns)
     output: OutputColumns = dataclasses.field(default_factory=OutputColumns)
+    correlation: CorrelationColumns = dataclasses.field(
+        default_factory=CorrelationColumns
+    )
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
@@ -212,6 +282,11 @@ class Columns:
 
         if "output" in data and isinstance(data["output"], dict):
             data = data | {"output": OutputColumns.from_dict(data["output"])}
+
+        if "correlation" in data and isinstance(data["correlation"], dict):
+            data = data | {
+                "correlation": CorrelationColumns.from_dict(data["correlation"])
+            }
 
         return cls(**data)
 
@@ -282,9 +357,6 @@ class Configurator:
 
     def with_clean_mode(self, value: str) -> Self:
         return self._with_field("cleansing", "clean_mode", value)
-
-    def with_align_sounding(self, value: bool) -> Self:
-        return self._with_field("cleansing", "align_sounding", value)
 
     def with_max_sleeve_offset(self, value: int) -> Self:
         return self._with_field("cleansing", "max_sleeve_offset", value)

@@ -3,10 +3,6 @@ from polars.exceptions import ColumnNotFoundError
 
 from conic.core._utils import get_column_names
 
-COL_KC_R21: str = "Kc (-) [R21]"
-COL_QTNCS_R21: str = "Qtn,cs (-) [R21]"
-COL_SU_LIQ_RATIO_R21: str = "Su_liq (-) [R21]"
-
 IC_CLEANSAND_THRESHOLD: float = 1.7
 IC_SANDLIKE_THRESHOLD: float = 2.6
 IC_CLAYLIKE_THRESHOLD: float = 3.0
@@ -17,13 +13,13 @@ MAX_SU_LIQ_RATIO: float = 0.25
 def compute_kc(
     lazy: pl.LazyFrame,
     col_ic: str,
-    col_kc: str = COL_KC_R21,
+    col_kc: str,
 ) -> pl.LazyFrame:
 
     if col_ic not in get_column_names(lazy):
-        raise ColumnNotFoundError(f"ic column is missing in DataFrame: '{col_ic}'.")
+        raise ColumnNotFoundError(f"ic column is missing in DataFrame: '{col_ic}'")
 
-    kc_transitional = (
+    kc_transitional_column = (
         1.8346 * pl.col(col_ic).pow(5)
         - 23.673 * pl.col(col_ic).pow(4)
         + 124.020 * pl.col(col_ic).pow(3)
@@ -38,7 +34,7 @@ def compute_kc(
             .then(1.0)
             .when(pl.col(col_ic) >= IC_CLAYLIKE_THRESHOLD)
             .then(float("nan"))
-            .otherwise(kc_transitional)
+            .otherwise(kc_transitional_column)
         ).alias(col_kc)
     )
 
@@ -46,12 +42,12 @@ def compute_kc(
 def compute_qtncs(
     lazy: pl.LazyFrame,
     col_qtn: str,
-    col_kc: str = COL_KC_R21,
-    col_qtncs: str = COL_QTNCS_R21,
+    col_kc: str,
+    col_qtncs: str,
 ) -> pl.LazyFrame:
 
     if col_qtn not in get_column_names(lazy):
-        raise ColumnNotFoundError(f"qtn column is missing in DataFrame: '{col_qtn}'.")
+        raise ColumnNotFoundError(f"qtn column is missing in DataFrame: '{col_qtn}'")
 
     return lazy.with_columns((pl.col(col_qtn) * pl.col(col_kc)).alias(col_qtncs))
 
@@ -60,28 +56,29 @@ def compute_su_liq_ratio(
     lazy: pl.LazyFrame,
     col_fr: str,
     col_ic: str,
-    col_qtncs: str = COL_QTNCS_R21,
-    col_su_liq_ratio: str = COL_SU_LIQ_RATIO_R21,
-    max_su_liq_ratio: float = MAX_SU_LIQ_RATIO,
+    col_qtncs: str,
+    col_su_liq_ratio: str,
+    *,
+    max_su_liq_ratio: float,
 ) -> pl.LazyFrame:
 
     if col_fr not in get_column_names(lazy):
-        raise ColumnNotFoundError(f"fr column is missing in DataFrame: '{col_fr}'.")
+        raise ColumnNotFoundError(f"fr column is missing in DataFrame: '{col_fr}'")
 
-    su_liq_claylike = pl.col(col_fr) * pl.col(col_qtncs)
-    su_liq_sandlike = (
+    su_liq_claylike_column = pl.col(col_fr) * pl.col(col_qtncs)
+    su_liq_sandlike_column = (
         0.0007 * (0.084 * pl.col(col_qtncs)).exp() + 0.3 / pl.col(col_qtncs)
     )  # fmt: off
 
     return lazy.with_columns(
         (
             pl.when(pl.col(col_ic) >= IC_CLAYLIKE_THRESHOLD)
-            .then(su_liq_claylike)
+            .then(su_liq_claylike_column)
             .when(pl.col(col_qtncs) <= 20.0)
             .then(0.02)
             .when(pl.col(col_qtncs) >= 80.0)
             .then(float("nan"))
-            .otherwise(su_liq_sandlike)
+            .otherwise(su_liq_sandlike_column)
             .clip(upper_bound=max_su_liq_ratio)
         ).alias(col_su_liq_ratio)
     )
@@ -92,10 +89,18 @@ def add_r21_columns(
     col_fr: str,
     col_qtn: str,
     col_ic: str,
+    col_kc: str,
+    col_qtncs: str,
+    col_su_liq_ratio: str,
+    *,
+    max_su_liq_ratio: float,
 ) -> pl.LazyFrame:
     return (
         lazy
-        .pipe(compute_kc, col_ic)
-        .pipe(compute_qtncs, col_qtn)
-        .pipe(compute_su_liq_ratio, col_fr, col_ic)
+        .pipe(compute_kc, col_ic, col_kc)
+        .pipe(compute_qtncs, col_qtn, col_kc, col_qtncs)
+        .pipe(
+            compute_su_liq_ratio, col_fr, col_ic, col_qtncs, col_su_liq_ratio,
+            max_su_liq_ratio=max_su_liq_ratio,
+        )
     )  # fmt: off

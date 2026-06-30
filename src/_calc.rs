@@ -1,11 +1,9 @@
-pub(crate) struct BehaviorVecs {
+pub(crate) struct QtnVecs {
     pub vec_size: usize,
     pub n_vec: Vec<f64>,
     pub qtn_vec: Vec<f64>,
     pub ic_vec: Vec<f64>,
     pub convg_vec: Vec<Option<bool>>,
-    pub cd_vec: Vec<f64>,
-    pub ib_vec: Vec<f64>,
 }
 
 pub(crate) fn calc_n(sv_eff: f64, ic: f64, p_ref: f64) -> f64 {
@@ -29,21 +27,7 @@ pub(crate) fn calc_ic(fr: f64, qtn: f64) -> f64 {
     (fr_term.powi(2) + qtn_term.powi(2)).sqrt()
 }
 
-pub(crate) fn calc_cd(fr: f64, qtn: f64) -> f64 {
-    let fr_term = (1.0 + 0.06 * fr).powi(17);
-    let qtn_term = qtn - 11.0;
-
-    (qtn_term * fr_term).clamp(0.0, 140.0)
-}
-
-pub(crate) fn calc_ib(fr: f64, qtn: f64) -> f64 {
-    let num = qtn + 10.0;
-    let den = 70.0 + qtn * fr;
-
-    100.0 * (num / den)
-}
-
-pub(crate) fn compute_behavior(
+pub(crate) fn compute_qtn(
     sv_eff: &[f64],
     sv_tot: &[f64],
     qt: &[f64],
@@ -51,16 +35,13 @@ pub(crate) fn compute_behavior(
     p_ref: f64,
     max_iter: usize,
     tolerance: f64,
-) -> BehaviorVecs {
+) -> QtnVecs {
     let vec_size = qt.len();
 
-    let mut ic_vec = Vec::with_capacity(vec_size);
-    let mut qtn_vec = Vec::with_capacity(vec_size);
     let mut n_vec = Vec::with_capacity(vec_size);
+    let mut qtn_vec = Vec::with_capacity(vec_size);
+    let mut ic_vec = Vec::with_capacity(vec_size);
     let mut convg_vec = Vec::with_capacity(vec_size);
-
-    let mut cd_vec = Vec::with_capacity(vec_size);
-    let mut ib_vec = Vec::with_capacity(vec_size);
 
     for i in 0..vec_size {
         let sv_eff_i = sv_eff[i];
@@ -72,8 +53,6 @@ pub(crate) fn compute_behavior(
             n_vec.push(f64::NAN);
             qtn_vec.push(f64::NAN);
             ic_vec.push(f64::NAN);
-            cd_vec.push(f64::NAN);
-            ib_vec.push(f64::NAN);
 
             convg_vec.push(None);
 
@@ -107,18 +86,13 @@ pub(crate) fn compute_behavior(
         n_vec.push(n_i);
         qtn_vec.push(qtn_i);
         ic_vec.push(ic_i);
-
-        cd_vec.push(calc_cd(fr_i, qtn_i));
-        ib_vec.push(calc_ib(fr_i, qtn_i));
     }
 
-    BehaviorVecs {
+    QtnVecs {
         vec_size,
         n_vec,
         qtn_vec,
         ic_vec,
         convg_vec,
-        cd_vec,
-        ib_vec,
     }
 }

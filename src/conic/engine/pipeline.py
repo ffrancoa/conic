@@ -8,10 +8,11 @@ from conic.engine.config import Configurator
 from conic.engine.step import Operation, Step
 
 STANDARD_OPS: tuple[Operation, ...] = (
-    catalog.sanitize_sounding(),
+    catalog.filter_input_columns(),
     catalog.adjust_depth_spacing(),
-    catalog.align_sounding(),
+    catalog.align_sleeve_column(),
     catalog.clean_by_indicators(),
+    catalog.floor_input_columns(),
     catalog.compute_hydrostatic_column(override=True),
     catalog.compute_geostatic_columns(override=True),
     catalog.compute_non_normalized_columns(),

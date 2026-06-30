@@ -1,6 +1,7 @@
 use pyo3_polars::PolarsAllocator;
 
 mod _calc;
+mod _corr;
 mod _impl;
 
 #[global_allocator]

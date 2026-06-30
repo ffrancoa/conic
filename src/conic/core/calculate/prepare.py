@@ -2,21 +2,9 @@ import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
 from conic.core._utils import get_column_names, get_missing_columns
-from conic.engine._canonical import (
-    CLEAN_MODE,
-    COL_DEPTH,
-    COL_FS,
-    COL_QC,
-    COL_SV_EFF,
-    COL_SV_TOT,
-    COL_U0,
-    COL_U2,
-    GAMMA_WATER,
-    MAX_SLEEVE_OFFSET,
-)
 
 
-def _expr_estimate_mean_spacing(col_depth: str = COL_DEPTH, digits: int = 3) -> pl.Expr:
+def _expr_estimate_mean_spacing(col_depth: str, digits: int = 3) -> pl.Expr:
     return (
         (pl.col(col_depth).last() - pl.col(col_depth).first()) / (pl.len() - 1)
     ).round(digits)
@@ -86,11 +74,11 @@ def _remove_rows_with_indicators(
 
 def adjust_depth_spacing(
     lazy: pl.LazyFrame,
+    col_depth: str,
     *,
-    start_depth: float | None = None,
-    spacing: float | None = None,
+    start_depth: float | None,
+    spacing: float | None,
     digits: int = 3,
-    col_depth: str = COL_DEPTH,
 ) -> pl.LazyFrame:
 
     if col_depth not in get_column_names(lazy):
@@ -115,13 +103,13 @@ def adjust_depth_spacing(
     )
 
 
-def align_sounding(
+def align_sleeve_column(
     lazy: pl.LazyFrame,
+    col_depth: str,
+    col_qc: str,
+    col_fs: str,
     *,
-    col_depth: str = COL_DEPTH,
-    col_qc: str = COL_QC,
-    col_fs: str = COL_FS,
-    max_sleeve_offset: int = MAX_SLEEVE_OFFSET,
+    max_sleeve_offset: int,
     indicators: list[float] | None = None,
 ) -> pl.LazyFrame:
 
@@ -134,18 +122,18 @@ def align_sounding(
             f"{max_sleeve_offset!r}"
         )
 
-    sleeve_offset = _expr_estimate_sleeve_offset(
+    sleeve_offset_column = _expr_estimate_sleeve_offset(
         col_qc, col_fs, max_sleeve_offset, indicators
     )
 
-    return lazy.with_columns(pl.col(col_fs).shift(sleeve_offset.first()))
+    return lazy.with_columns(pl.col(col_fs).shift(sleeve_offset_column.first()))
 
 
 def clean_by_indicators(
     lazy: pl.LazyFrame,
-    indicators: list[float] | None,
     *,
-    mode: str = CLEAN_MODE,
+    indicators: list[float] | None,
+    mode: str,
     replace_value: float = float("nan"),
 ) -> pl.LazyFrame:
 
@@ -169,13 +157,39 @@ def clean_by_indicators(
         return lazy
 
 
+def floor_input_columns(
+    lazy: pl.LazyFrame,
+    col_qc: str,
+    col_fs: str,
+    col_sv_eff: str,
+    *,
+    p_ref: float,
+) -> pl.LazyFrame:
+
+    floor = 0.001 * p_ref
+    columns = get_column_names(lazy)
+
+    target_columns = [col_qc, col_fs]
+
+    if col_sv_eff in columns:
+        target_columns.append(col_sv_eff)
+
+    return lazy.with_columns(
+        pl.when(pl.col(col) == 0.0)
+        .then(floor)
+        .otherwise(pl.col(col))
+        .alias(col)
+        for col in target_columns
+    )  # fmt: off
+
+
 def compute_hydrostatic_column(
     lazy: pl.LazyFrame,
-    water_level: float | None = None,
+    col_depth: str,
+    col_u0: str,
     *,
-    gamma_water: float = GAMMA_WATER,
-    col_depth: str = COL_DEPTH,
-    col_u0: str = COL_U0,
+    water_level: float | None,
+    gamma_water: float,
     override: bool = False,
 ) -> pl.LazyFrame:
 
@@ -207,12 +221,12 @@ def compute_hydrostatic_column(
 
 def compute_geostatic_columns(
     lazy: pl.LazyFrame,
-    gamma_soil: float | None = None,
+    col_depth: str,
+    col_sv_eff: str,
+    col_sv_tot: str,
+    col_u0: str,
     *,
-    col_depth: str = COL_DEPTH,
-    col_sv_eff: str = COL_SV_EFF,
-    col_sv_tot: str = COL_SV_TOT,
-    col_u0: str = COL_U0,
+    gamma_soil: float | None,
     override: bool = False,
 ) -> pl.LazyFrame:
 
@@ -251,17 +265,15 @@ def compute_geostatic_columns(
         )
 
 
-def sanitize_sounding(
+def filter_input_columns(
     lazy: pl.LazyFrame,
-    *,
-    col_depth: str = COL_DEPTH,
-    col_qc: str = COL_QC,
-    col_fs: str = COL_FS,
-    col_u2: str = COL_U2,
-    col_u0: str = COL_U0,
-    col_sv_eff: str = COL_SV_EFF,
-    col_sv_tot: str = COL_SV_TOT,
-    include_optional: bool = True,
+    col_depth: str,
+    col_qc: str,
+    col_fs: str,
+    col_u2: str,
+    col_u0: str,
+    col_sv_eff: str,
+    col_sv_tot: str,
 ) -> pl.LazyFrame:
 
     required_columns = [col_depth, col_qc, col_fs, col_u2]
@@ -270,12 +282,8 @@ def sanitize_sounding(
     columns = get_column_names(lazy)
 
     if missing_columns := set(required_columns).difference(columns):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
 
-    selected_columns = required_columns
+    present_optional = set(optional_columns).intersection(columns)
 
-    if include_optional:
-        additional_columns = set(optional_columns).intersection(columns)
-        selected_columns += list(additional_columns)
-
-    return lazy.select(selected_columns)
+    return lazy.select(required_columns + list(present_optional))

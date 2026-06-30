@@ -1,69 +1,105 @@
 import polars as pl
 from polars.exceptions import ColumnNotFoundError
 
-from conic.core._plugins import compute_behavior_plugin
+from conic.core._plugins import compute_qtn_plugin
 from conic.core._utils import get_missing_columns
-from conic.engine._canonical import (
-    COL_BQ,
-    COL_CD,
-    COL_CONVG,
-    COL_FR,
-    COL_FS,
-    COL_IB,
-    COL_IC,
-    COL_N,
-    COL_QC,
-    COL_QN,
-    COL_QT,
-    COL_QT1,
-    COL_QTN,
-    COL_RF,
-    COL_SV_EFF,
-    COL_SV_TOT,
-    COL_U,
-    COL_U0,
-    COL_U2,
-    MAX_ITER,
-    P_REF,
-    ROLLING,
-    ROLLING_LABEL,
-    TOLERANCE,
-)
+
+COL_TEMP = "_temp"
+
+
+def _compute_cd_columns(
+    lazy: pl.LazyFrame,
+    col_fr: str,
+    col_qtn: str,
+    col_cd: str,
+    col_ib: str,
+) -> pl.LazyFrame:
+
+    fr_column = pl.col(col_fr)
+    qtn_column = pl.col(col_qtn)
+
+    return lazy.with_columns(
+        ((qtn_column - 11.0) * (1.0 + 0.06 * fr_column).pow(17))
+        .clip(0.0, 140.0)
+        .alias(col_cd),
+        (100.0 * (qtn_column + 10.0) / (70.0 + qtn_column * fr_column))
+        .alias(col_ib),
+    )  # fmt: off
+
+
+def _compute_qtn_columns(
+    lazy: pl.LazyFrame,
+    col_sv_eff: str,
+    col_sv_tot: str,
+    col_qt_rol: str,
+    col_fr: str,
+    col_n: str,
+    col_qtn: str,
+    col_ic: str,
+    col_convg: str,
+    p_ref: float,
+    max_iter: int,
+    tolerance: float,
+) -> pl.LazyFrame:
+
+    return (
+        lazy.with_columns(
+            compute_qtn_plugin(
+                sv_eff=col_sv_eff,
+                sv_tot=col_sv_tot,
+                qt=col_qt_rol,
+                fr=col_fr,
+                p_ref=p_ref,
+                max_iter=max_iter,
+                tolerance=tolerance,
+            ).alias(COL_TEMP)
+        )
+        .with_columns(
+            pl.col(COL_TEMP).struct.field("n").alias(col_n),
+            pl.col(COL_TEMP).struct.field("qtn").alias(col_qtn),
+            pl.col(COL_TEMP).struct.field("ic").alias(col_ic),
+            pl.col(COL_TEMP).struct.field("convg").alias(col_convg),
+        )
+        .drop(COL_TEMP)
+    )
 
 
 def compute_non_normalized_columns(
     lazy: pl.LazyFrame,
-    area_ratio: float,
+    col_sv_tot: str,
+    col_u2: str,
+    col_fs: str,
+    col_qc: str,
+    col_qt: str,
+    col_qn: str,
+    col_rf: str,
     *,
-    col_sv_tot: str = COL_SV_TOT,
-    col_u2: str = COL_U2,
-    col_fs: str = COL_FS,
-    col_qc: str = COL_QC,
-    col_qt: str = COL_QT,
-    col_qn: str = COL_QN,
-    col_rf: str = COL_RF,
+    area_ratio: float,
 ) -> pl.LazyFrame:
 
     if missing_columns := get_missing_columns(lazy, {col_fs, col_qc, col_u2}):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
 
-    expr_col_qt_mpa = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
+    qt_column = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
 
     return lazy.with_columns(
-        expr_col_qt_mpa.alias(col_qt),
-        (expr_col_qt_mpa - pl.col(col_sv_tot) / 1000.0).alias(col_qn),
-        (pl.col(col_fs) / (expr_col_qt_mpa * 1000.0) * 100.0).alias(col_rf),
-    )
+        qt_column
+        .alias(col_qt),
+        (qt_column - pl.col(col_sv_tot) / 1000.0)
+        .alias(col_qn),
+        (pl.col(col_fs) / (qt_column * 1000.0) * 100.0)
+        .alias(col_rf),
+    )  # fmt: off
 
 
 def compute_rolling_columns(
     lazy: pl.LazyFrame,
-    rolling: int = ROLLING,
+    col_fs: str,
+    col_qt: str,
+    col_qn: str,
     *,
-    col_fs: str = COL_FS,
-    col_qt: str = COL_QT,
-    col_qn: str = COL_QN,
-    rolling_label: str = ROLLING_LABEL,
+    rolling: int,
+    rolling_label: str,
 ) -> pl.LazyFrame:
 
     required_columns = {col_fs, col_qt, col_qn}
@@ -96,83 +132,82 @@ def compute_rolling_columns(
 
 def compute_normalized_columns(
     lazy: pl.LazyFrame,
+    col_sv_eff: str,
+    col_u0: str,
+    col_u2: str,
+    col_fs: str,
+    col_qn: str,
+    col_qt1: str,
+    col_fr: str,
+    col_bq: str,
+    col_u: str,
     *,
-    col_sv_eff: str = COL_SV_EFF,
-    col_u0: str = COL_U0,
-    col_u2: str = COL_U2,
-    col_fs: str = COL_FS,
-    col_qn: str = COL_QN,
-    col_qt1: str = COL_QT1,
-    col_fr: str = COL_FR,
-    col_bq: str = COL_BQ,
-    col_u: str = COL_U,
-    rolling_label: str = ROLLING_LABEL,
+    rolling_label: str,
 ) -> pl.LazyFrame:
 
     required_columns = {col_sv_eff, col_fs, col_qn, col_u0, col_u2}
 
     if missing_columns := get_missing_columns(lazy, required_columns):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
 
     col_fs_rol = col_fs + rolling_label
     col_qn_rol = col_qn + rolling_label
 
-    col_qn_rol_kpa = pl.col(col_qn_rol) * 1000.0
+    qn_rol_kpa_column = pl.col(col_qn_rol) * 1000.0
 
-    return lazy.with_columns(
-        (col_qn_rol_kpa / pl.col(col_sv_eff)).alias(col_qt1),
-        (
-            pl.when(pl.col(col_fs_rol) > 0.0)
-            .then(100.0 * pl.col(col_fs_rol) / col_qn_rol_kpa)
-            .otherwise(float("nan"))
-        ).alias(col_fr),
-        ((pl.col(col_u2) - pl.col(col_u0)) / col_qn_rol_kpa).alias(col_bq),
-    ).with_columns((pl.col(col_qt1) * pl.col(col_bq)).alias(col_u))
+    return (
+        lazy.with_columns(
+            (qn_rol_kpa_column / pl.col(col_sv_eff))
+            .alias(col_qt1),
+            (
+                pl.when(pl.col(col_fs_rol) > 0.0)
+                .then(100.0 * pl.col(col_fs_rol) / qn_rol_kpa_column)
+                .otherwise(float("nan"))
+            ).alias(col_fr),
+            ((pl.col(col_u2) - pl.col(col_u0)) / qn_rol_kpa_column)
+            .alias(col_bq),
+        )
+        .with_columns(
+            (pl.col(col_qt1) * pl.col(col_bq))
+            .alias(col_u),
+        )
+    )  # fmt: off
 
 
 def compute_behavior_columns(
     lazy: pl.LazyFrame,
+    col_sv_eff: str,
+    col_sv_tot: str,
+    col_qt_rol: str,
+    col_fr: str,
+    col_n: str,
+    col_qtn: str,
+    col_ic: str,
+    col_convg: str,
+    col_cd: str,
+    col_ib: str,
     *,
-    col_sv_eff: str = COL_SV_EFF,
-    col_sv_tot: str = COL_SV_TOT,
-    col_qt: str = COL_QT,
-    col_fr: str = COL_FR,
-    col_n: str = COL_N,
-    col_qtn: str = COL_QTN,
-    col_ic: str = COL_IC,
-    col_convg: str = COL_CONVG,
-    col_cd: str = COL_CD,
-    col_ib: str = COL_IB,
-    p_ref: float = P_REF,
-    max_iter: int = MAX_ITER,
-    tolerance: float = TOLERANCE,
-    rolling_label: str = ROLLING_LABEL,
+    p_ref: float,
+    max_iter: int,
+    tolerance: float,
 ) -> pl.LazyFrame:
 
-    required_columns = {col_sv_eff, col_sv_tot, col_qt, col_fr}
+    required_columns = {col_sv_eff, col_sv_tot, col_qt_rol, col_fr}
 
     if missing_columns := get_missing_columns(lazy, required_columns):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'.")
+        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
 
-    return (
-        lazy.with_columns(
-            compute_behavior_plugin(
-                sv_eff=col_sv_eff,
-                sv_tot=col_sv_tot,
-                qt=(col_qt + rolling_label),
-                fr=col_fr,
-                p_ref=p_ref,
-                max_iter=max_iter,
-                tolerance=tolerance,
-            ).alias("_temp")
-        )
-        .with_columns(
-            pl.col("_temp").struct.field("n").alias(col_n),
-            pl.col("_temp").struct.field("qtn").alias(col_qtn),
-            pl.col("_temp").struct.field("ic").alias(col_ic),
-            pl.col("_temp").struct.field("convg").alias(col_convg),
-            pl.col("_temp").struct.field("cd").alias(col_cd),
-            pl.col("_temp").struct.field("ib").alias(col_ib),
-        )
-        .drop("_temp")
-    )
+    return lazy.pipe(
+        _compute_qtn_columns,
+        col_sv_eff,
+        col_sv_tot,
+        col_qt_rol,
+        col_fr,
+        col_n,
+        col_qtn,
+        col_ic,
+        col_convg,
+        p_ref,
+        max_iter,
+        tolerance,
+    ).pipe(_compute_cd_columns, col_fr, col_qtn, col_cd, col_ib)

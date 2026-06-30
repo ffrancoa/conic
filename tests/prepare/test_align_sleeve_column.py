@@ -2,7 +2,7 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.core.calculate.prepare import align_sounding
+from conic.core.calculate.prepare import align_sleeve_column
 from conic.engine._canonical import COL_DEPTH, COL_FS, COL_QC
 
 # Signal with clear transitions for lag estimation.
@@ -24,35 +24,40 @@ def _lagged(signal: list[float], k: int) -> list[float]:
     return [0.0] * k + signal[:-k]
 
 
+def _align(lazy: pl.LazyFrame, *, max_sleeve_offset: int, **kwargs) -> pl.LazyFrame:
+    return align_sleeve_column(
+        lazy, COL_DEPTH, COL_QC, COL_FS, max_sleeve_offset=max_sleeve_offset, **kwargs
+    )
+
+
 # --- error cases ---
 
 
 def test_missing_columns_raises():
     data = pl.DataFrame({COL_DEPTH: [0.0, 0.5]}).lazy()
     with pytest.raises(ColumnNotFoundError):
-        align_sounding(data).collect()
+        _align(data, max_sleeve_offset=3).collect()
 
 
-def test_invalid_max_offset_raises():
+def test_invalid_max_sleeve_offset_raises():
     data = _make_lazy([0.0, 1.0], [0.0, 1.0])
     with pytest.raises(ValueError, match="positive integer"):
-        align_sounding(data, max_offset=0).collect()
+        _align(data, max_sleeve_offset=0).collect()
 
 
-def test_negative_max_offset_raises():
+def test_negative_max_sleeve_offset_raises():
     data = _make_lazy([0.0, 1.0], [0.0, 1.0])
     with pytest.raises(ValueError):
-        align_sounding(data, max_offset=-1).collect()
+        _align(data, max_sleeve_offset=-1).collect()
 
 
 # --- zero offset (identity) ---
 
 
 def test_zero_offset_preserves_length_and_values():
-    # fs == qc → no lag → offset = 0 → data unchanged
     signal = (_BLOCK * 4)[:30]
     lazy = _make_lazy(signal, signal)
-    result = align_sounding(lazy, max_offset=3).collect()
+    result = _align(lazy, max_sleeve_offset=3).collect()
 
     assert len(result) == len(signal)
     assert result[COL_FS].to_list() == signal
@@ -63,23 +68,23 @@ def test_zero_offset_preserves_length_and_values():
 
 def test_k2_preserves_all_rows():
     k = 2
-    qc_vals = _BLOCK * 4  # 40 rows
+    qc_vals = _BLOCK * 4
     fs_vals = _lagged(qc_vals, k)
     lazy = _make_lazy(qc_vals, fs_vals)
 
-    result = align_sounding(lazy, max_offset=5).collect()
+    result = _align(lazy, max_sleeve_offset=5).collect()
 
     assert len(result) == len(qc_vals)
 
 
 def test_k2_aligns_fs_with_null_tail():
     k = 2
-    qc_vals = _BLOCK * 4  # 40 rows
+    qc_vals = _BLOCK * 4
     fs_vals = _lagged(qc_vals, k)
     n = len(qc_vals)
     lazy = _make_lazy(qc_vals, fs_vals)
 
-    result = align_sounding(lazy, max_offset=5).collect()
+    result = _align(lazy, max_sleeve_offset=5).collect()
 
     assert result[COL_FS][: n - k].to_list() == qc_vals[: n - k]
     assert result[COL_FS][-k:].is_null().all()
@@ -87,23 +92,23 @@ def test_k2_aligns_fs_with_null_tail():
 
 def test_k3_preserves_all_rows():
     k = 3
-    qc_vals = _BLOCK * 5  # 50 rows
+    qc_vals = _BLOCK * 5
     fs_vals = _lagged(qc_vals, k)
     lazy = _make_lazy(qc_vals, fs_vals)
 
-    result = align_sounding(lazy, max_offset=5).collect()
+    result = _align(lazy, max_sleeve_offset=5).collect()
 
     assert len(result) == len(qc_vals)
 
 
 def test_k3_aligns_fs_with_null_tail():
     k = 3
-    qc_vals = _BLOCK * 5  # 50 rows
+    qc_vals = _BLOCK * 5
     fs_vals = _lagged(qc_vals, k)
     n = len(qc_vals)
     lazy = _make_lazy(qc_vals, fs_vals)
 
-    result = align_sounding(lazy, max_offset=5).collect()
+    result = _align(lazy, max_sleeve_offset=5).collect()
 
     assert result[COL_FS][: n - k].to_list() == qc_vals[: n - k]
     assert result[COL_FS][-k:].is_null().all()
@@ -113,10 +118,9 @@ def test_k3_aligns_fs_with_null_tail():
 
 
 def test_flat_signal_preserves_length():
-    # Constant signal → correlations undefined → offset = 0 (no-op)
     vals = [5.0] * 30
     lazy = _make_lazy(vals, vals)
-    result = align_sounding(lazy, max_offset=3).collect()
+    result = _align(lazy, max_sleeve_offset=3).collect()
 
     assert len(result) == 30
 
@@ -124,7 +128,7 @@ def test_flat_signal_preserves_length():
 def test_flat_signal_preserves_fs_values():
     vals = [5.0] * 30
     lazy = _make_lazy(vals, vals)
-    result = align_sounding(lazy, max_offset=3).collect()
+    result = _align(lazy, max_sleeve_offset=3).collect()
 
     assert result[COL_FS].to_list() == vals
 
@@ -140,22 +144,19 @@ def test_indicators_accepted_without_error():
     n = len(qc_vals)
     lazy = _make_lazy(qc_vals, fs_vals)
 
-    result = align_sounding(lazy, max_offset=5, indicators=[sentinel]).collect()
+    result = _align(lazy, max_sleeve_offset=5, indicators=[sentinel]).collect()
 
     assert len(result) == n
 
 
 def test_indicators_sentinel_columns_excluded():
-    # Verify that sentinel masking is applied: a channel made entirely of sentinel
-    # values + the other channel flat → degenerate case → offset = 0, no shift.
     sentinel = -9999.0
     n = 30
     qc_vals = [sentinel] * n
     fs_vals = [5.0] * n
     lazy = _make_lazy(qc_vals, fs_vals)
 
-    result = align_sounding(lazy, max_offset=3, indicators=[sentinel]).collect()
+    result = _align(lazy, max_sleeve_offset=3, indicators=[sentinel]).collect()
 
-    # Masked qc is all-null → no correlation signal → offset falls back to 0
     assert len(result) == n
     assert result[COL_FS].to_list() == fs_vals

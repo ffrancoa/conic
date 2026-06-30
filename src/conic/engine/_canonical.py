@@ -7,8 +7,7 @@ ROLLING_LABEL: str = "*"
 
 # cleansing
 CLEAN_MODE: str = "replace"
-ALIGN_SOUNDING: bool = False
-MAX_SLEEVE_OFFSET: int = 5
+MAX_SLEEVE_OFFSET: int = 0
 
 # settings
 P_REF: float = 101.33
@@ -44,3 +43,19 @@ COL_CONVG: str = "convg. (-)"
 
 COL_CD: str = "CD (-)"
 COL_IB: str = "IB (-)"
+
+# columns.correlation.bi14
+COL_FC_BI14: str = "FC (%) [BI14]"
+COL_M_BI14: str = "m (-) [BI14]"
+COL_QC1N_BI14: str = "qc1n (-) [BI14]"
+COL_QC1NCS_BI14: str = "qc1ncs (-) [BI14]"
+COL_CONVG_BI14: str = "convg. (-) [BI14]"
+
+# columns.correlation.r21
+COL_KC_R21: str = "Kc (-) [R21]"
+COL_QTNCS_R21: str = "Qtn,cs (-) [R21]"
+COL_SU_LIQ_RATIO_R21: str = "Su_liq (-) [R21]"
+
+# columns.correlation.os02
+COL_QC1_OS02: str = "qc1 (MPa) [OS02]"
+COL_SU_LIQ_RATIO_OS02: str = "Su_liq (-) [OS02]"
