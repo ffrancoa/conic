@@ -1,57 +1,44 @@
 ---
 name: conic-rust
 description: >
-  Rust layer conventions for conic. Use when writing, modifying, or
-  reviewing code in _calc.rs, _impl.rs, lib.rs, or the maturin/PyO3
-  build configuration.
+  Rust layer for conic: iterative solvers, Polars plugin bridge,
+  maturin build.
 ---
 
 ## When to Use Rust
 
-Reserve Rust for iterative or coupled kernels — computations that
-require per-row convergence loops or tightly interdependent fields.
-Standalone elementwise arithmetic stays in native Polars expressions.
-
-The test: if `pl.when/then/otherwise` or `map_elements` with a
-simple closure can express it, it belongs in Python.
+Only for iterative/coupled kernels needing per-row convergence loops.
+If `pl.when/then/otherwise` can express it, keep it in Python.
 
 ## Module Structure
 
-- `_calc.rs`: pure arithmetic (`f64 -> f64`) and convergence logic.
-  No Polars dependency, no PyO3 dependency.
-- `_impl.rs`: the Polars bridge. `#[polars_expr]` functions, `Series`
-  extraction, kwargs deserialization via serde, Struct assembly.
-- `lib.rs`: global allocator (`PolarsAllocator`) and `mod`
-  declarations. Plugin registration is handled by the
-  `#[polars_expr]` proc macro in `_impl.rs`.
+- `_calc.rs`: Robertson 2016 solver (n, Qtn, Ic). Pure arithmetic.
+- `_corr.rs`: Boulanger & Idriss 2014 solver (qc1Ncs). Pure arithmetic.
+- `_impl.rs`: Polars bridge. `#[polars_expr]` functions, Series
+  extraction, kwargs via serde (`IterationKwargs`), Struct assembly.
+- `lib.rs`: `PolarsAllocator`, `mod` declarations.
 
-Keep the boundary sharp: `_impl.rs` calls into `_calc.rs`, never
-the reverse.
+Boundary: `_impl.rs` calls into `_calc.rs`/`_corr.rs`, never reverse.
 
 ## Build
 
-Mixed Python+Rust via maturin. abi3 wheels with py312 ABI floor.
-The `extension-module` feature is gated behind `default` so
-`cargo test` can link without `libpython`.
+Mixed Python+Rust via maturin. abi3 wheels, py312 ABI floor.
+`extension-module` gated behind `default` so `cargo test` links
+without `libpython`.
+
+Development: `maturin develop` (debug mode). No `--release` locally.
+CI handles `--release` for PyPI.
 
 ## Testing
 
-No Rust-side tests. All Rust logic is tested from the Python layer
-through the plugin interface. This keeps the test suite unified and
-avoids the overhead of maintaining a parallel Rust test harness
-with mock data.
+No Rust-side tests. All tested from Python through the plugin
+interface.
 
 ## Plugin Pattern
 
-A `#[polars_expr]` function takes input columns plus kwargs
-(deserialized from the Python side), processes per row, and
-returns a Polars Struct that gets unpacked on the Python side.
-Python-side registration lives in `core/_plugins.py`.
+`#[polars_expr]` takes input columns + kwargs, processes per row,
+returns Polars Struct unpacked on Python side. Registration in
+`core/_plugins.py`.
 
-## Naming
-
-Follow standard Rust conventions. The plugin name exposed via
-`#[polars_expr]` matches the Python-side operation it backs:
-`compute_behavior` in Rust corresponds to
-`compute_behavior_columns` in the catalog.
-
+Naming: `compute_qtn` (Rust) -> `compute_qtn_plugin` (Python).
+`compute_qc1n` -> `compute_qc1n_plugin`.

@@ -1,75 +1,44 @@
 ---
 name: conic-naming
 description: >
-  Naming conventions for the conic codebase. Use when writing, renaming,
-  or reviewing Python code in conic — functions, variables,
-  parameters, columns, modules, and correlation artifacts.
+  Naming conventions for conic: functions, variables, parameters,
+  columns, modules, and error messages.
 ---
 
 ## Functions
 
-Use generous, descriptive names that read as technical prose.
-Never abbreviate at the cost of clarity.
+- Processing: `verb_object` (`compute_hydrostatic_column`),
+  `verb_by_object` when criterion-driven (`clean_by_indicators`).
+- Correlation facades: `add_<tag>_columns` (`add_r21_columns`).
+- Expression helpers: `_expr_` prefix, private, return `pl.Expr`.
+- Private frame helpers: `_` prefix, no `_expr_`.
 
-- Pure processing functions: `verb_object` when unconditional,
-  `verb_by_object` when a criterion selects behavior.
-  Examples: `adjust_depth_spacing`, `clean_by_indicators`,
-  `compute_hydrostatic_column`.
+## Variables
 
-- Correlation factories: `add_<tag>_columns` where `<tag>` is a
-  lowercase author-year code. Example: `add_r21_columns`,
-  `add_os02_columns`.
+- Column names (`str`): `col_` prefix (`col_fs`, `col_qt`).
+- Column expressions (`pl.Expr`): `_column` suffix
+  (`qt_column`, `detrended_qc_column`, `qn_rol_kpa_column`).
+- Name after domain meaning, not the operation.
+- Brevity where context removes ambiguity: `lazy`, `digits`, `mode`.
 
-- Expression-returning helpers: prefix `_expr_`.
-  Example: `_expr_estimate_sleeve_offset`, `_expr_estimate_mean_spacing`.
+## Column Name Literals
 
-- Private helpers that operate on frames: prefix `_`, no `_expr_`.
-  Example: `_remove_rows_with_indicators`.
+All live in `_canonical.py` as `COL_*` constants. Never hardcode
+elsewhere. Correlation columns carry provenance: `Su_liq [R21]`.
 
-## Variables and Parameters
+## Error Messages
 
-Names reflect what the value represents in the domain, not the
-operation that produced it.
+Lowercase, no trailing period. Name the offending value/field.
+Show rejected value with `!r`. State recovery when possible.
 
-Good: `detrended_qc_column`, `pearson_correlations`,
-`max_correlation_index`, `sleeve_offset`, `global_mask`,
-`cleaned_fs_column`.
+## Parameters (Pure Functions)
 
-Bad: `rolling_subtracted`, `corr_list`, `idx`, `result`, `temp`.
-
-Brevity is acceptable where context already removes ambiguity:
-`lazy` (not `lazy_frame`), `col_depth` (not `column_depth`),
-`digits` (not `rounding_digits`), `mode` (not `clean_mode_string`).
-
-The test: could someone reading only the name infer what the variable
-holds without checking the assignment?
-
-## Column Names
-
-All column-name literals live exclusively in `_canonical.py` as
-module-level constants prefixed `COL_`. Never hardcode a column
-string anywhere else.
-
-Correlation output columns carry an author-year provenance tag:
-`Su_liq [R21]`, `qc1 [OS02]`.
-
-## Parameters in Pure Functions
-
-Use native Python types (`float`, `str`, `int`, `list[float]`), never
-config or validation types. Defaults come from `_canonical.py`
-constants.
-
-Column-name parameters: prefix `col_`. Example: `col_depth`, `col_qc`,
-`col_fs`, `col_u2`.
+Native Python types only. No defaults. `col_*: str` positional
+after `lazy`. Config values keyword-only after `*`.
 
 ## Modules
 
-- Correlation modules: `_author_year.py`. Example: `_robertson2021.py`,
-  `_olson2002.py`.
-- Private modules: leading underscore. Example: `_canonical.py`,
-  `_plugins.py`, `_utils.py`.
-- Public modules: no underscore. Example: `config.py`, `catalog.py`,
-  `pipeline.py`.
-- Correlation modules export their public `add_<tag>_columns`
-  facade directly; `core/correlations/__init__.py` re-exports them.
-
+- Correlation: `_author_year.py`. Re-exported via `correlations/__init__.py`.
+- Private: leading `_`. Public: no underscore.
+- Envelope variants use `ENVELOPE_MAP: dict[str, float]` lookup,
+  not `match/case`, when all branches map to a float.
