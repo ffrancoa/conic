@@ -1,7 +1,6 @@
 import polars as pl
-from polars.exceptions import ColumnNotFoundError
 
-from conic.core._utils import get_missing_columns
+from conic.core._utils import check_required_columns
 
 DEFAULT_ENVELOPE: str = "mean"
 MAX_SU_LIQ_RATIO: float = 0.15
@@ -23,8 +22,7 @@ def compute_qc1(
     p_ref: float,
 ) -> pl.LazyFrame:
 
-    if missing_columns := get_missing_columns(lazy, {col_sv_eff, col_qt_rol}):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+    check_required_columns(lazy, {col_sv_eff, col_qt_rol})
 
     return lazy.with_columns(
         (

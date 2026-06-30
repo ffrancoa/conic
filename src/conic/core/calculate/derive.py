@@ -1,8 +1,7 @@
 import polars as pl
-from polars.exceptions import ColumnNotFoundError
 
 from conic.core._plugins import compute_qtn_plugin
-from conic.core._utils import get_missing_columns
+from conic.core._utils import check_required_columns
 
 COL_TEMP = "_temp"
 
@@ -77,8 +76,7 @@ def compute_non_normalized_columns(
     area_ratio: float,
 ) -> pl.LazyFrame:
 
-    if missing_columns := get_missing_columns(lazy, {col_fs, col_qc, col_u2}):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+    check_required_columns(lazy, {col_fs, col_qc, col_u2})
 
     qt_column = pl.col(col_qc) + (1 - area_ratio) * (pl.col(col_u2) / 1000.0)
 
@@ -102,10 +100,7 @@ def compute_rolling_columns(
     rolling_label: str,
 ) -> pl.LazyFrame:
 
-    required_columns = {col_fs, col_qt, col_qn}
-
-    if missing_columns := get_missing_columns(lazy, required_columns):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+    check_required_columns(lazy, {col_fs, col_qt, col_qn})
 
     col_fs_rol = col_fs + rolling_label
     col_qt_rol = col_qt + rolling_label
@@ -145,10 +140,7 @@ def compute_normalized_columns(
     rolling_label: str,
 ) -> pl.LazyFrame:
 
-    required_columns = {col_sv_eff, col_fs, col_qn, col_u0, col_u2}
-
-    if missing_columns := get_missing_columns(lazy, required_columns):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+    check_required_columns(lazy, {col_sv_eff, col_fs, col_qn, col_u0, col_u2})
 
     col_fs_rol = col_fs + rolling_label
     col_qn_rol = col_qn + rolling_label
@@ -192,10 +184,7 @@ def compute_behavior_columns(
     tolerance: float,
 ) -> pl.LazyFrame:
 
-    required_columns = {col_sv_eff, col_sv_tot, col_qt_rol, col_fr}
-
-    if missing_columns := get_missing_columns(lazy, required_columns):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+    check_required_columns(lazy, {col_sv_eff, col_sv_tot, col_qt_rol, col_fr})
 
     return lazy.pipe(
         _compute_qtn_columns,

@@ -1,8 +1,7 @@
 import polars as pl
-from polars.exceptions import ColumnNotFoundError
 
 from conic.core._plugins import compute_qc1n_plugin
-from conic.core._utils import get_column_names
+from conic.core._utils import check_required_columns
 
 COL_TEMP = "_temp"
 
@@ -24,8 +23,7 @@ def compute_fc(
     fitting_term: float | None,
 ) -> pl.LazyFrame:
 
-    if col_ic not in get_column_names(lazy):
-        raise ColumnNotFoundError(f"ic column is missing in DataFrame: '{col_ic}'")
+    check_required_columns(lazy, {col_ic})
 
     if (envelope is None) == (fitting_term is None):
         raise ValueError("exactly one of 'envelope' or 'fitting_term' must be provided")

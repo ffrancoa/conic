@@ -1,7 +1,6 @@
 import polars as pl
-from polars.exceptions import ColumnNotFoundError
 
-from conic.core._utils import get_column_names
+from conic.core._utils import check_required_columns
 
 IC_CLEANSAND_THRESHOLD: float = 1.7
 IC_SANDLIKE_THRESHOLD: float = 2.6
@@ -16,8 +15,7 @@ def compute_kc(
     col_kc: str,
 ) -> pl.LazyFrame:
 
-    if col_ic not in get_column_names(lazy):
-        raise ColumnNotFoundError(f"ic column is missing in DataFrame: '{col_ic}'")
+    check_required_columns(lazy, {col_ic})
 
     kc_transitional_column = (
         1.8346 * pl.col(col_ic).pow(5)
@@ -46,8 +44,7 @@ def compute_qtncs(
     col_qtncs: str,
 ) -> pl.LazyFrame:
 
-    if col_qtn not in get_column_names(lazy):
-        raise ColumnNotFoundError(f"qtn column is missing in DataFrame: '{col_qtn}'")
+    check_required_columns(lazy, {col_qtn})
 
     return lazy.with_columns((pl.col(col_qtn) * pl.col(col_kc)).alias(col_qtncs))
 
@@ -62,8 +59,7 @@ def compute_su_liq_ratio(
     max_su_liq_ratio: float,
 ) -> pl.LazyFrame:
 
-    if col_fr not in get_column_names(lazy):
-        raise ColumnNotFoundError(f"fr column is missing in DataFrame: '{col_fr}'")
+    check_required_columns(lazy, {col_fr})
 
     su_liq_claylike_column = pl.col(col_fr) * pl.col(col_qtncs)
     su_liq_sandlike_column = (

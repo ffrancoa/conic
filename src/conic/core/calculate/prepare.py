@@ -1,7 +1,6 @@
 import polars as pl
-from polars.exceptions import ColumnNotFoundError
 
-from conic.core._utils import get_column_names, get_missing_columns
+from conic.core._utils import check_required_columns, has_column
 
 
 def _expr_estimate_mean_spacing(col_depth: str, digits: int = 3) -> pl.Expr:
@@ -81,10 +80,7 @@ def adjust_depth_spacing(
     digits: int = 3,
 ) -> pl.LazyFrame:
 
-    if col_depth not in get_column_names(lazy):
-        raise ColumnNotFoundError(
-            f"depth column is missing in DataFrame: '{col_depth}'"
-        )
+    check_required_columns(lazy, {col_depth})
 
     start_depth_expr = (
         pl.lit(start_depth) if start_depth is not None else pl.col(col_depth).first()
@@ -113,8 +109,7 @@ def align_sleeve_column(
     indicators: list[float] | None = None,
 ) -> pl.LazyFrame:
 
-    if missing_columns := get_missing_columns(lazy, {col_depth, col_qc, col_fs}):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+    check_required_columns(lazy, {col_depth, col_qc, col_fs})
 
     if max_sleeve_offset <= 0:
         raise ValueError(
@@ -167,11 +162,10 @@ def floor_input_columns(
 ) -> pl.LazyFrame:
 
     floor = 0.001 * p_ref
-    columns = get_column_names(lazy)
 
     target_columns = [col_qc, col_fs]
 
-    if col_sv_eff in columns:
+    if has_column(lazy, col_sv_eff):
         target_columns.append(col_sv_eff)
 
     return lazy.with_columns(
@@ -193,14 +187,9 @@ def compute_hydrostatic_column(
     override: bool = False,
 ) -> pl.LazyFrame:
 
-    columns = get_column_names(lazy)
+    check_required_columns(lazy, {col_depth})
 
-    if col_depth not in columns:
-        raise ColumnNotFoundError(
-            f"depth column is missing in DataFrame: '{col_depth}'"
-        )
-
-    if col_u0 in columns and not override:
+    if has_column(lazy, col_u0) and not override:
         raise ValueError(
             f"hydrostatic pressure ('{col_u0}') was already included in "
             f"this DataFrame; set `override=True` to override"
@@ -230,29 +219,25 @@ def compute_geostatic_columns(
     override: bool = False,
 ) -> pl.LazyFrame:
 
-    columns = get_column_names(lazy)
+    check_required_columns(lazy, {col_depth})
 
-    if col_depth not in columns:
-        raise ColumnNotFoundError(
-            f"depth column is missing in DataFrame: '{col_depth}'"
-        )
+    has_sv_eff = has_column(lazy, col_sv_eff)
+    has_sv_tot = has_column(lazy, col_sv_tot)
 
-    if {col_sv_eff, col_sv_tot}.issubset(columns) and not override:
+    if has_sv_eff and has_sv_tot and not override:
         raise ValueError(
             f"geostatic columns ('{col_sv_eff}' and '{col_sv_tot}') were "
             f"already included in this DataFrame; set `override=True` to "
             f"override"
         )
-    elif col_sv_tot in columns and col_sv_eff not in columns and not override:
-        data_with_sv_eff = lazy.with_columns(
+    elif has_sv_tot and not has_sv_eff and not override:
+        return lazy.with_columns(
             (pl.col(col_sv_tot) - pl.col(col_u0)).alias(col_sv_eff)
         )
-        return data_with_sv_eff
-    elif col_sv_eff in columns and col_sv_tot not in columns and not override:
-        data_with_sv_tot = lazy.with_columns(
+    elif has_sv_eff and not has_sv_tot and not override:
+        return lazy.with_columns(
             (pl.col(col_sv_eff) + pl.col(col_u0)).alias(col_sv_tot)
         )
-        return data_with_sv_tot
     else:
         if gamma_soil is None or gamma_soil <= 0:
             raise ValueError(
@@ -279,11 +264,8 @@ def filter_input_columns(
     required_columns = [col_depth, col_qc, col_fs, col_u2]
     optional_columns = [col_u0, col_sv_eff, col_sv_tot]
 
-    columns = get_column_names(lazy)
+    check_required_columns(lazy, set(required_columns))
 
-    if missing_columns := set(required_columns).difference(columns):
-        raise ColumnNotFoundError(f"missing required columns: '{missing_columns}'")
+    present_optional = [col for col in optional_columns if has_column(lazy, col)]
 
-    present_optional = set(optional_columns).intersection(columns)
-
-    return lazy.select(required_columns + list(present_optional))
+    return lazy.select(required_columns + present_optional)

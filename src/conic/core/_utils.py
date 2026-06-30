@@ -1,15 +1,13 @@
 from polars import LazyFrame
+from polars.exceptions import ColumnNotFoundError
 
 
-def get_column_names(lazy: LazyFrame) -> list[str]:
-    return lazy.collect_schema().names()
+def check_required_columns(lazy: LazyFrame, required_columns: set[str]) -> None:
+    columns = lazy.collect_schema().names()
+
+    if missing_columns := required_columns.difference(columns):
+        raise ColumnNotFoundError(f"missing required columns: {missing_columns}")
 
 
-def get_missing_columns(
-    lazy: LazyFrame, required_columns: list[str] | set[str]
-) -> set[str]:
-
-    columns = get_column_names(lazy)
-    missing_columns = set(required_columns).difference(columns)
-
-    return missing_columns
+def has_column(lazy: LazyFrame, col: str) -> bool:
+    return col in lazy.collect_schema().names()
