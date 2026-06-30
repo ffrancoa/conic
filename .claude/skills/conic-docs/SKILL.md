@@ -1,16 +1,18 @@
 ---
 name: conic-docs
 description: >
-  Docstring conventions for conic. Use when writing, modifying,
-  or reviewing docstrings in any module.
+  Docstring and changelog conventions for conic. Use when writing,
+  modifying, or reviewing docstrings or CHANGELOG.md entries.
 ---
 
-## Format
+## Docstrings
+
+### Format
 
 NumPy style. Max line length 72 characters (PEP 257). No blank
 line between the closing `"""` and the first line of code.
 
-## Structure
+### Structure
 
 1. **Summary line**: one sentence, imperative mood. Describes
    what the function does from the perspective of a geotechnical
@@ -31,7 +33,7 @@ line between the closing `"""` and the first line of code.
    continuation (`...`) to stay within 72 chars. Show output
    only when it clarifies the result.
 
-## Audience
+### Audience
 
 Write for a geotechnical engineer who understands CPTu data but
 may not be a Python expert. Use domain terms naturally (`qc`,
@@ -39,7 +41,7 @@ may not be a Python expert. Use domain terms naturally (`qc`,
 them. Explain Polars or Python behavior only when non-obvious
 (e.g. strict cast, schema inference depth).
 
-## What to Document
+### What to Document
 
 - All public functions (no leading underscore).
 - Public classes and their `__init__` (via class-level docstring).
@@ -49,10 +51,47 @@ Do not document:
 - Module-level constants.
 - Re-exports in `__init__.py`.
 
-## Avoid
+### Avoid
 
 - Repeating the type hint as the entire parameter description.
 - Implementation details that belong in code comments.
 - References to internal modules, config fields, or pipeline
   stages that the end user does not interact with.
 - Trailing blank lines inside the docstring.
+
+## Changelog
+
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+with [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+### Entry Style
+
+- Factual, third-person prose. No second-person ("you can now..."),
+  no marketing tone ("finally!", "exciting new...").
+- Each entry is a single bullet describing one cohesive change.
+  Use semicolons to chain closely related details within the
+  same bullet rather than splitting into multiple bullets.
+- No trailing period on bullet entries.
+- API surfaces in backticks: modules as dotted paths
+  (`conic.datasets`), functions with parentheses
+  (`load_dataset()`), classes bare (`Configurator`), parameters
+  with backticks and no parens (`metadata=`).
+- External version references as links:
+  `` [`1.41.2`](https://github.com/...) ``
+
+### Section Order
+
+`Added`, then `Changed`, then `Removed`. Omit empty sections.
+
+### Structure
+
+- `[Unreleased]` section always present at the top, even if empty.
+- Version heading format: `## [x.y.z] — YYYY-MM-DD`.
+- Version comparison links at the bottom of the file.
+
+### Audience
+
+Same as docstrings: a geotechnical engineer who uses the library.
+Describe what changed from the user's perspective, not internal
+refactors unless they have a visible effect (e.g. import path
+change, dependency removal, performance improvement).

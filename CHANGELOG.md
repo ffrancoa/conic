@@ -4,6 +4,24 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.6.4] — 2026-06-29
+
+### Added
+- `conic.core.correlations`: Boulanger & Idriss (2014) correlation for fines content, stress-normalized tip resistance (qc1N), and clean-sand equivalent (qc1Ncs) via iterative convergence; exposed as `add_bi14_columns()` and wired into the catalog and standard pipeline
+- Sleeve friction alignment via `align_sleeve_column()`, which estimates the optimal lag between qc and fs by cross-correlating detrended signals and shifts fs accordingly
+- `floor_input_columns()` guard step that replaces zero-valued input columns (qc, fs, and sv_eff when present) with a small fraction of the reference pressure to prevent division-by-zero in downstream normalizations
+- Canterbury and Nisqually open CPTu datasets in `conic.datasets`
+- Docstrings (NumPy style) for all public functions in `conic.express`
+
+### Changed
+- Renamed `conic.core.correlate` module to `conic.core.correlations`; the public re-exports remain the same
+- Renamed `process_std()` to `process_standard()` in `conic.express`
+- Correlation output column names now live in `_canonical.py` and flow through `Configurator` via `config.columns.correlation.<tag>` (nested `BI14Columns`, `R21Columns`, `OS02Columns` dataclasses in `config.py`); they are no longer hardcoded in each correlation module
+- Unified column validation across `conic.core`: all modules now use `check_required_columns()` and `has_column()` from `conic.core._utils` instead of ad-hoc patterns
+- Correlation functions use a pipe-based composition pattern instead of `pl.concat` for chaining LazyFrame operations
+- `SourceMetadata` dataclass in `conic.datasets` now centralizes citation, DOI, license, and Zenodo record fields per source, replacing the previous flat metadata layout
+- Updated `polars` to [`1.42.0`](https://github.com/pola-rs/polars/releases/tag/py-1.42.0)
+
 ## [0.6.3] — 2026-06-23
 
 ### Added
@@ -85,7 +103,8 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 - On-demand reproducibility for pipeline runs implemented via `Pipeliner.run(df, metadata=True)`.
 - Core CPTu preprocessing functions inside `conic.preprocess`: `compute_hydrostatic`, `adjust_depth_spacing`, `clean_by_indicators`, and `filter_by_indicators`.
 
-[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.4...HEAD
+[0.6.4]: https://github.com/ferrosoft/conic/compare/v0.6.3...v0.6.4
 [0.1.0]: https://github.com/ferrosoft/conic/releases/tag/v0.1.0
 [0.2.0]: https://github.com/ferrosoft/conic/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ferrosoft/conic/releases/tag/v0.3.0
