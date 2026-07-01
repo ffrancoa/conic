@@ -11,10 +11,12 @@ from conic.engine._canonical import (
     COL_CD,
     COL_CONVG,
     COL_CONVG_BI14,
+    COL_CONVG_INV,
     COL_DEPTH,
     COL_FC_BI14,
     COL_FR,
     COL_FS,
+    COL_FS_INV,
     COL_IB,
     COL_IC,
     COL_KC_R21,
@@ -27,6 +29,7 @@ from conic.engine._canonical import (
     COL_QN,
     COL_QT,
     COL_QT1,
+    COL_QT_INV,
     COL_QTN,
     COL_QTNCS_R21,
     COL_RF,
@@ -37,13 +40,21 @@ from conic.engine._canonical import (
     COL_U,
     COL_U0,
     COL_U2,
+    DC,
+    DZ,
     GAMMA_WATER,
+    M50,
+    MQ,
+    MT,
+    MZ,
     MAX_ITER,
     MAX_SLEEVE_OFFSET,
     P_REF,
     ROLLING,
     ROLLING_LABEL,
+    STALL_TOLERANCE,
     TOLERANCE,
+    Z50_REF,
 )
 
 
@@ -165,6 +176,52 @@ class Settings:
 
 
 @dataclass(frozen=True, slots=True)
+class InverseFilter:
+    dc: float = DC
+    dz: float = DZ
+    z50_ref: float = Z50_REF
+    mz: float = MZ
+    m50: float = M50
+    mq: float = MQ
+    mt: float = MT
+    stall_tolerance: float = STALL_TOLERANCE
+
+    def __post_init__(self):
+        if self.dc <= 0.0:
+            raise ValueError(
+                f"cone diameter (`dc`) must be a positive number; got '{self.dc}'"
+            )
+
+        if self.dz <= 0.0:
+            raise ValueError(
+                f"data spacing (`dz`) must be a positive number; got '{self.dz}'"
+            )
+
+        if self.z50_ref <= 0.0:
+            raise ValueError(
+                f"reference filter extension (`z50_ref`) must be a positive "
+                f"number; got '{self.z50_ref}'"
+            )
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
+class InverseFilterColumns:
+    qt_inv: str = COL_QT_INV
+    fs_inv: str = COL_FS_INV
+    convg: str = COL_CONVG_INV
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
 class InputColumns:
     depth: str = COL_DEPTH
     qc: str = COL_QC
@@ -272,6 +329,9 @@ class Columns:
     correlation: CorrelationColumns = dataclasses.field(
         default_factory=CorrelationColumns
     )
+    inverse_filter: InverseFilterColumns = dataclasses.field(
+        default_factory=InverseFilterColumns
+    )
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
@@ -288,6 +348,13 @@ class Columns:
                 "correlation": CorrelationColumns.from_dict(data["correlation"])
             }
 
+        if "inverse_filter" in data and isinstance(data["inverse_filter"], dict):
+            data = data | {
+                "inverse_filter": InverseFilterColumns.from_dict(
+                    data["inverse_filter"]
+                )
+            }
+
         return cls(**data)
 
 
@@ -297,6 +364,9 @@ class Configurator:
     cleansing: Cleansing = dataclasses.field(default_factory=Cleansing)
     settings: Settings = dataclasses.field(default_factory=Settings)
     columns: Columns = dataclasses.field(default_factory=Columns)
+    inverse_filter: InverseFilter = dataclasses.field(
+        default_factory=InverseFilter
+    )
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
@@ -313,6 +383,11 @@ class Configurator:
 
         if "columns" in data and isinstance(data["columns"], dict):
             data = data | {"columns": Columns.from_dict(data["columns"])}
+
+        if "inverse_filter" in data and isinstance(data["inverse_filter"], dict):
+            data = data | {
+                "inverse_filter": InverseFilter.from_dict(data["inverse_filter"])
+            }
 
         return cls(**data)
 

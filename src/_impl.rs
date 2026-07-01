@@ -5,6 +5,7 @@ use serde::Deserialize;
 
 use super::_calc;
 use super::_corr;
+use super::_filt;
 
 #[derive(Deserialize)]
 struct IterationKwargs {
@@ -102,6 +103,76 @@ fn compute_qc1n(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Seri
         "series_output".into(),
         result.vec_size,
         [&m_series, &qc1n_series, &qc1ncs_series, &convg_series].into_iter(),
+    )?;
+
+    Ok(struct_chunked.into_series())
+}
+
+#[derive(Deserialize)]
+struct InverseFilterKwargs {
+    dc: f64,
+    dz: f64,
+    z50_ref: f64,
+    mz: f64,
+    m50: f64,
+    mq: f64,
+    mt: f64,
+    p_ref: f64,
+    max_iter: usize,
+    tolerance: f64,
+    stall_tolerance: f64,
+}
+
+fn inverse_filter_output(_input_fields: &[Field]) -> PolarsResult<Field> {
+    let fields = vec![
+        Field::new("qt_inv".into(), DataType::Float64),
+        Field::new("fs_inv".into(), DataType::Float64),
+        Field::new("converged".into(), DataType::Boolean),
+    ];
+
+    Ok(Field::new("series_output".into(), DataType::Struct(fields)))
+}
+
+#[polars_expr(output_type_func=inverse_filter_output)]
+fn inverse_filter(inputs: &[Series], kwargs: InverseFilterKwargs) -> PolarsResult<Series> {
+    let qt_slice = inputs[0].f64()?.cont_slice()?;
+    let fs_slice = inputs[1].f64()?.cont_slice()?;
+    let fr_slice = inputs[2].f64()?.cont_slice()?;
+    let sv_eff_slice = inputs[3].f64()?.cont_slice()?;
+    let sv_tot_slice = inputs[4].f64()?.cont_slice()?;
+
+    let params = _filt::InverseFilterParams {
+        dc: kwargs.dc,
+        dz: kwargs.dz,
+        z50_ref: kwargs.z50_ref,
+        mz: kwargs.mz,
+        m50: kwargs.m50,
+        mq: kwargs.mq,
+        mt: kwargs.mt,
+        max_iter: kwargs.max_iter,
+        tolerance: kwargs.tolerance,
+        stall_tolerance: kwargs.stall_tolerance,
+    };
+
+    let result = _filt::inverse_filter(
+        qt_slice,
+        fs_slice,
+        fr_slice,
+        sv_eff_slice,
+        sv_tot_slice,
+        kwargs.p_ref,
+        &params,
+    );
+
+    let qt_inv_series = Series::new("qt_inv".into(), result.qt_inv);
+    let fs_inv_series = Series::new("fs_inv".into(), result.fs_inv);
+    let converged_vec: Vec<Option<bool>> = vec![Some(result.converged); result.vec_size];
+    let converged_series = Series::new("converged".into(), converged_vec);
+
+    let struct_chunked = StructChunked::from_series(
+        "series_output".into(),
+        result.vec_size,
+        [&qt_inv_series, &fs_inv_series, &converged_series].into_iter(),
     )?;
 
     Ok(struct_chunked.into_series())

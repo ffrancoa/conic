@@ -1,5 +1,5 @@
 from conic.core import correlations
-from conic.core.calculate import derive, prepare
+from conic.core.calculate import derive, inverse_filter, prepare
 from conic.core.correlations import _boulanger2014 as bi14
 from conic.core.correlations import _olson2002 as os02
 from conic.core.correlations import _robertson2021 as r21
@@ -213,6 +213,40 @@ def compute_behavior_columns() -> Operation:
             p_ref=settings.p_ref,
             max_iter=settings.max_iter,
             tolerance=settings.tolerance,
+        )
+
+    return Operation(build)
+
+
+def compute_inverse_filter() -> Operation:
+    def build(config: Configurator) -> Step:
+        settings = config.settings
+        inv = config.inverse_filter
+        input_columns = config.columns.input
+        output_columns = config.columns.output
+        inv_columns = config.columns.inverse_filter
+
+        return bind(
+            inverse_filter.compute_inverse_filter,
+            col_qt=output_columns.qt,
+            col_fs=input_columns.fs,
+            col_fr=output_columns.fr,
+            col_sv_eff=input_columns.sv_eff,
+            col_sv_tot=input_columns.sv_tot,
+            col_qt_inv=inv_columns.qt_inv,
+            col_fs_inv=inv_columns.fs_inv,
+            col_convg=inv_columns.convg,
+            dc=inv.dc,
+            dz=inv.dz,
+            z50_ref=inv.z50_ref,
+            mz=inv.mz,
+            m50=inv.m50,
+            mq=inv.mq,
+            mt=inv.mt,
+            p_ref=settings.p_ref,
+            max_iter=settings.max_iter,
+            tolerance=settings.tolerance,
+            stall_tolerance=inv.stall_tolerance,
         )
 
     return Operation(build)
