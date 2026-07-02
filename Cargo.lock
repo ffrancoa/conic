@@ -428,7 +428,7 @@ dependencies = [
 
 [[package]]
 name = "conic-cli"
-version = "0.6.5"
+version = "0.6.6"
 dependencies = [
  "clap",
  "indicatif",
@@ -436,11 +436,11 @@ dependencies = [
 
 [[package]]
 name = "conic-correlations"
-version = "0.6.5"
+version = "0.6.6"
 
 [[package]]
 name = "conic-plugins"
-version = "0.6.5"
+version = "0.6.6"
 dependencies = [
  "conic-correlations",
  "conic-processing",
@@ -453,11 +453,11 @@ dependencies = [
 
 [[package]]
 name = "conic-processing"
-version = "0.6.5"
+version = "0.6.6"
 
 [[package]]
 name = "conic-tools"
-version = "0.6.5"
+version = "0.6.6"
 dependencies = [
  "conic-processing",
 ]
