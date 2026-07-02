@@ -7,91 +7,48 @@ description: >
 
 ## Docstrings
 
-### Format
+NumPy style, max line 72 chars (PEP 257). No blank line between closing
+`"""` and the first line of code; no trailing blank lines inside.
 
-NumPy style. Max line length 72 characters (PEP 257). No blank
-line between the closing `"""` and the first line of code.
-
-### Structure
-
-1. **Summary line**: one sentence, imperative mood. Describes
-   what the function does from the perspective of a geotechnical
-   engineer using the library, not implementation details.
-2. **Extended description** (optional): only when the summary
-   cannot stand alone. Explain *why* the function behaves a
-   certain way (e.g. why columns are cast, why a parameter
-   exists). No redundancy with the summary.
-3. **Parameters**: one entry per parameter. Include type and
-   default after the name (`param : type, default value`).
-   Use prose types (`str or None`, `Path or str`), not Python
-   syntax (`str | None`). Description focuses on what the
-   user needs to know, not internal handling.
+Structure (later sections optional):
+1. **Summary**: one imperative sentence from the geotech user's view,
+   not implementation.
+2. **Extended description**: only if summary can't stand alone; explain
+   *why* (a cast, a param's existence). No redundancy.
+3. **Parameters**: `param : type, default value` per entry; prose types
+   (`str or None`, `Path or str`), not `str | None`. Describe what the
+   user needs, not internal handling.
 4. **Returns**: type on its own line, description indented below.
-5. **Raises** (optional): only document exceptions the caller
-   should anticipate. Fully qualified exception name.
-6. **Examples** (optional): realistic CPTu usage. Use `>>>`
-   continuation (`...`) to stay within 72 chars. Show output
-   only when it clarifies the result.
+5. **Raises**: only exceptions the caller anticipates; fully qualified.
+6. **Examples**: realistic CPTu usage; `>>>` with `...` continuation
+   under 72 chars; show output only when it clarifies.
 
-### Audience
+Audience: a geotech engineer fluent in CPTu (`qc`, `fs`, `u2`, `header
+row`) but not necessarily Python. Explain Polars/Python behavior only
+when non-obvious (strict cast, schema inference depth).
 
-Write for a geotechnical engineer who understands CPTu data but
-may not be a Python expert. Use domain terms naturally (`qc`,
-`fs`, `u2`, `header row`, `units row`) without over-explaining
-them. Explain Polars or Python behavior only when non-obvious
-(e.g. strict cast, schema inference depth).
+Document all public functions and public classes (+ `__init__` via the
+class docstring). Do NOT document private fns (`_expr_*`, `_compute_*`,
+`_validate_*`), module constants, or `__init__.py` re-exports.
 
-### What to Document
-
-- All public functions (no leading underscore).
-- Public classes and their `__init__` (via class-level docstring).
-
-Do not document:
-- Private functions (`_expr_*`, `_compute_*`, `_validate_*`).
-- Module-level constants.
-- Re-exports in `__init__.py`.
-
-### Avoid
-
-- Repeating the type hint as the entire parameter description.
-- Implementation details that belong in code comments.
-- References to internal modules, config fields, or pipeline
-  stages that the end user does not interact with.
-- Trailing blank lines inside the docstring.
+Avoid: restating the type hint as the whole param description;
+implementation details (belong in comments); references to internal
+modules/config fields/pipeline stages the user never touches.
 
 ## Changelog
 
-Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
-with [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) +
+[SemVer](https://semver.org/spec/v2.0.0.html).
 
-### Entry Style
-
-- Factual, third-person prose. No second-person ("you can now..."),
-  no marketing tone ("finally!", "exciting new...").
-- Each entry is a single bullet describing one cohesive change.
-  Use semicolons to chain closely related details within the
-  same bullet rather than splitting into multiple bullets.
-- No trailing period on bullet entries.
-- API surfaces in backticks: modules as dotted paths
-  (`conic.datasets`), functions with parentheses
-  (`load_dataset()`), classes bare (`Configurator`), parameters
-  with backticks and no parens (`metadata=`).
-- External version references as links:
-  `` [`1.41.2`](https://github.com/...) ``
-
-### Section Order
-
-`Added`, then `Changed`, then `Removed`. Omit empty sections.
-
-### Structure
-
-- `[Unreleased]` section always present at the top, even if empty.
-- Version heading format: `## [x.y.z] — YYYY-MM-DD`.
-- Version comparison links at the bottom of the file.
-
-### Audience
-
-Same as docstrings: a geotechnical engineer who uses the library.
-Describe what changed from the user's perspective, not internal
-refactors unless they have a visible effect (e.g. import path
-change, dependency removal, performance improvement).
+- `[Unreleased]` always at top, even if empty. Version heading
+  `## [x.y.z] — YYYY-MM-DD` (em-dash). Comparison links at file bottom.
+- Section order `Added`, `Changed`, `Removed`; omit empty ones.
+- Factual third-person prose; no second-person ("you can now..."), no
+  marketing ("finally!"). One cohesive change per bullet; chain related
+  details with semicolons, not extra bullets. No trailing period.
+- API in backticks: modules dotted (`conic.datasets`), functions with
+  parens (`load_dataset()`), classes bare (`Configurator`), params with
+  no parens (`metadata=`). External versions as links:
+  `` [`1.42.0`](https://github.com/...) ``.
+- Audience as docstrings: describe user-visible change, not internal
+  refactors unless they show (import path, dependency, performance).

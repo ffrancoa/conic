@@ -7,43 +7,51 @@ description: >
 
 ## Module Layout
 
-- `_metadata.py`: `SourceMetadata` (citation, doi, license, record,
-  reference, id_col). One instance per source.
-- `_registry.py`: `DatasetEntry` (name, filename, sha256, test_type,
-  n_soundings, columns, source). `url` is a `@property` from
-  `source.record` + `filename`. Keyed by `"{source}_{test_type}"`.
-- `_fetch.py`: download, SHA-256 verify, atomic write to
-  content-addressed cache (`root/<sha256>/filename`).
-- `_dataset.py`: `ConicDataset` with `meta`, `data` (LazyFrame),
-  `__len__`, `get_sounding(id)`.
-- `__init__.py`: exports `ConicDataset`, `fetch_dataset`,
+- `_metadata.py`: `SourceMetadata(citation, doi, license, record,
+  reference, id_col="Sorted ID")`, one frozen instance per source.
+- `_registry.py`: `DatasetEntry(name, filename, sha256, test_type,
+  n_soundings, columns, source)`; `url` is a `@property` building the
+  Zenodo URL from `source.record` + `filename`. `ENTRIES` tuple indexed
+  by `_BY_NAME` on `entry.name` (`"{source}_{test_type.lower()}"`, e.g.
+  `"premstaller_scptu"`). `list_datasets(name=None)` prints the catalog.
+- `_fetch.py`: https-only download, SHA-256 verify (mismatch ->
+  `ValueError`), atomic write via temp file to content-addressed cache
+  `root/<sha256>/filename`. Root = `cache_path` arg, else `CONIC_DATA`
+  env, else `platformdirs.user_cache_dir("conic")/datasets`. Network
+  failure -> `ConnectionError`.
+- `_dataset.py`: `ConicDataset(meta, data: LazyFrame)` with `__len__`
+  and `get_sounding(id)`.
+- `__init__.py` exports: `ConicDataset`, `fetch_dataset`,
   `load_dataset`, `DatasetEntry`, `list_datasets`.
 
 ## Parquet Schema
 
-Canonical column order:
-
-CPTu: `Sorted ID`, `Original ID`, [Grouping label], `Area ratio (-)`,
+Canonical column order (on disk):
+CPTu -> `Sorted ID`, `Original ID`, [Grouping label], `Area ratio (-)`,
 `Depth (m)`, `qc (MPa)`, `fs (kPa)`, `u2 (kPa)`, `u0 (kPa)`,
-`σv_tot (kPa)`, `σv_eff (kPa)`.
+`σv_tot (kPa)`, `σv_eff (kPa)`. SCPTu appends `Vs (m/s)`.
 
-SCPTu appends `Vs (m/s)`.
-
-- `Sorted ID`: dense int 1..N, the selection key.
+- `Sorted ID`: dense int 1..N, the `id_col` selection key.
 - `Original ID`: source identifier for traceability.
-- [Grouping label]: dataset-specific, omit when no meaningful grouping.
-- `Area ratio (-)`: per-sounding or per-location constant, never null.
+- [Grouping label]: dataset-specific; omit when no meaningful grouping.
+- `Area ratio (-)`: per-sounding/location constant, never null.
+
+`DatasetEntry.columns` holds the returned processing columns
+(`Depth (m)`..`σv_eff (kPa)` [+ `Vs (m/s)`]) minus the ID columns.
 
 ## API
 
-- `load_dataset(source, test_type)` -> `ConicDataset`.
-- `get_sounding(id)` filters by `id_col`, selects `entry.columns`,
-  collects to `DataFrame`.
-- `fetch_dataset(source, test_type)` pre-fetches to cache.
+- `load_dataset(source, test_type="cptu", *, cache_path=None)` ->
+  `ConicDataset`. Resolves `f"{source.lower()}_{test_type.lower()}"`,
+  ensures cache, `scan_parquet`.
+- `fetch_dataset(source, test_type="all", *, cache_path=None)` ->
+  pre-fetch one variant or all (`"all"`) into cache.
+- `ConicDataset.get_sounding(id)`: validates `1..n_soundings`, filters
+  by `source.id_col`, selects `meta.columns`, collects to `DataFrame`.
 
 ## Licensing
 
-- "Publicly available" != redistributable. Explicit license required.
+- "Publicly available" != redistributable; explicit license required.
 - DesignSafe: check each dataset's landing page individually.
-- Re-hosting derivatives on Zenodo: maintain upstream license,
-  attribute original authors.
+- Re-hosting derivatives on Zenodo: keep upstream license, attribute
+  original authors.

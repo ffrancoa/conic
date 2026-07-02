@@ -7,7 +7,7 @@ description: >
 
 ## Functions
 
-- Processing: `verb_object` (`compute_hydrostatic_column`),
+- Processing: `verb_object` (`compute_hydrostatic_column`);
   `verb_by_object` when criterion-driven (`clean_by_indicators`).
 - Correlation facades: `add_<tag>_columns` (`add_r21_columns`).
 - Expression helpers: `_expr_` prefix, private, return `pl.Expr`.
@@ -16,29 +16,30 @@ description: >
 ## Variables
 
 - Column names (`str`): `col_` prefix (`col_fs`, `col_qt`).
-- Column expressions (`pl.Expr`): `_column` suffix
-  (`qt_column`, `detrended_qc_column`, `qn_rol_kpa_column`).
-- Name after domain meaning, not the operation.
-- Brevity where context removes ambiguity: `lazy`, `digits`, `mode`.
+- Column expressions (`pl.Expr`): `_column` suffix (`qt_column`,
+  `detrended_qc_column`, `qn_rol_kpa_column`).
+- Name after domain meaning, not the operation. Be terse where context
+  disambiguates (`lazy`, `digits`, `mode`).
 
-## Column Name Literals
+## Column Literals
 
-All live in `_canonical.py` as `COL_*` constants. Never hardcode
-elsewhere. Correlation columns carry provenance: `Su_liq [R21]`.
-
-## Error Messages
-
-Lowercase, no trailing period. Name the offending value/field.
-Show rejected value with `!r`. State recovery when possible.
+Core columns: `COL_*` constants in `engine/_defaults.py`. Tool columns:
+`tools/<tool>/_defaults.py`. Never hardcode elsewhere. Correlation
+columns carry provenance: `Su_liq [R21]`.
 
 ## Parameters (Pure Functions)
 
-Native Python types only. No defaults. `col_*: str` positional
-after `lazy`. Config values keyword-only after `*`.
+Native Python types, no defaults. `col_*: str` positional after `lazy`;
+config values keyword-only after `*`.
 
 ## Modules
 
-- Correlation: `_author_year.py`. Re-exported via `correlations/__init__.py`.
+- Correlation: `_author_year.py`, re-exported via `correlations/__init__.py`.
 - Private: leading `_`. Public: no underscore.
-- Envelope variants use `ENVELOPE_MAP: dict[str, float]` lookup,
-  not `match/case`, when all branches map to a float.
+- Envelope variants: `ENVELOPE_MAP: dict[str, float]` lookup, not
+  `match/case`, when all branches map to a float.
+
+## Error Messages
+
+Lowercase, no trailing period; name the offending value/field; show it
+with `!r`; state recovery. See conic-errors.

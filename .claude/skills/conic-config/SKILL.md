@@ -5,46 +5,52 @@ description: >
   mapping, defaults, mutation methods.
 ---
 
-## Architecture
+## Structure
 
-`Configurator` is a plain `@dataclass` composing four frozen/slotted
-sub-models: `parameters`, `cleansing`, `settings`, `columns`.
-
-Access: `config.parameters.gamma_soil`. `columns` has three levels:
-`config.columns.input.depth`, `config.columns.output.qt`,
-`config.columns.correlation.r21.kc`.
+`Configurator` (`engine/_configurator.py`): plain `@dataclass` composing
+frozen/slotted sub-models `parameters`, `cleansing`, `settings`,
+`columns`, plus `tools: dict[str, object]`. Access
+`config.parameters.gamma_soil`. `columns` is 3-level:
+`.input.depth`, `.output.qt`, `.correlation.r21.kc`.
 
 ## Construction
 
-- `Configurator()`: all defaults.
-- `Configurator.from_dict(data)`: nested dicts coerced to sub-models.
-- `Configurator.from_toml(path)`: TOML parsed then routed to `from_dict`.
+- `Configurator()` -> all defaults.
+- `from_dict(data)` -> nested dicts coerced to sub-models.
+- `from_toml(path)` -> TOML parsed, routed to `from_dict`.
 
-Each sub-model has `from_dict` with `_validate_keys` rejecting
-unknown fields. Never bypass `from_dict`.
+Every sub-model has `from_dict` running `_validate_keys` (unknown
+fields -> `ValueError`). Never bypass `from_dict`.
 
-## Modification
+## Mutation
 
-Immutable sub-models. Changes via `with_*` methods returning new
-`Configurator`. Internal `_with_field` pattern:
-`asdict` -> merge update -> `type(submodel).from_dict(merged)`
-(re-runs `__post_init__`) -> `replace(self, ...)`.
+Sub-models immutable; use `with_*` returning a new `Configurator`.
+Internal `_with_field`: `asdict(submodel)` -> merge -> `type(submodel)
+.from_dict(merged)` (re-runs `__post_init__`) -> `replace(self, ...)`.
+Never `dataclasses.replace` a sub-model directly.
 
-Never `dataclasses.replace` directly on a sub-model.
+## Tools
+
+Registered into `config.tools` via `with_tool(name, obj)`. A tool may
+span multiple keys. `inverse_filter` uses two:
+- `with_tool("inverse_filter", Config(...))` -> required; `operation()`
+  raises if missing/wrong type.
+- `with_tool("inverse_filter_columns", Columns(...))` -> optional output
+  names; defaults to `Columns()` when absent.
+
+`Config`/`Columns` are separate dataclasses in `tools/<tool>/_config.py`
+and `_columns.py`; `Columns` is NOT nested in `Config`. Register it
+separately to rename tool outputs.
 
 ## Defaults
 
-All defaults in `_canonical.py` as module-level constants.
-Sub-model fields reference these. Mutable defaults use
-`field(default_factory=...)`.
+Core: module constants in `engine/_defaults.py`, referenced by fields;
+mutable ones via `field(default_factory=...)`. Tool defaults in
+`tools/<tool>/_defaults.py`.
 
-## TOML Mapping
+## Rules
 
-Python attribute names = TOML keys. No aliases, no renaming.
-
-## Validation
-
-- Unknown keys: `_validate_keys` in `from_dict`.
-- Invalid values: `__post_init__` with `ValueError`.
+- TOML keys == Python attribute names. No aliases/renaming.
+- Value validation in `__post_init__` (`ValueError`).
 - Optional numerics: `is None`, never truthiness.
-- Two layers only: code defaults + optional user TOML file.
+- Two layers only: code defaults + optional user TOML.
