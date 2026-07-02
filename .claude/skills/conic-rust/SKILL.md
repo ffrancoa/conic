@@ -2,7 +2,7 @@
 name: conic-rust
 description: >
   Rust layer for conic: iterative solvers, Polars plugin bridge,
-  maturin build.
+  CLI binary, maturin build.
 ---
 
 ## When to Use Rust
@@ -12,17 +12,20 @@ If `pl.when/then/otherwise` expresses it, keep it in Python.
 
 ## Workspace Layout
 
-Root `Cargo.toml` is a virtual workspace. All Rust code lives under
-`conic-plugins/`:
+Root `Cargo.toml` is a virtual workspace with two top-level crates:
 
+- `conic-cli/` (bin): pure Rust CLI binary. Uses clap (with `cargo`
+  feature for `crate_version!`/`crate_description!` macros) and
+  indicatif. No PyO3 dependency. CI compiles it per-platform and
+  places it in `data/scripts/` so maturin includes it in the wheel.
 - `conic-plugins/` (cdylib): Polars plugin bridge.
   - `src/lib.rs`: `PolarsAllocator`, `mod` declarations.
   - `src/bridge.rs`: `#[polars_expr]` fns, Series extraction,
     kwargs via serde (`IterationKwargs`), Struct assembly.
-- `conic-plugins/processing/` (rlib): Robertson 2016 solver (n, Qtn, Ic).
-- `conic-plugins/correlations/` (rlib): Boulanger & Idriss 2014 solver (qc1Ncs).
-- `conic-plugins/tools/` (rlib): inverse filter solver (Boulanger & DeJong 2018).
-  Depends on `conic-processing` for `calc_qtn`/`calc_ic`/`calc_n`.
+  - `processing/` (rlib): Robertson 2016 solver (n, Qtn, Ic).
+  - `correlations/` (rlib): Boulanger & Idriss 2014 solver (qc1Ncs).
+  - `tools/` (rlib): inverse filter solver (Boulanger & DeJong 2018).
+    Depends on `conic-processing` for `calc_qtn`/`calc_ic`/`calc_n`.
 
 Boundary: `bridge.rs` calls into the three rlib crates, never reverse.
 
