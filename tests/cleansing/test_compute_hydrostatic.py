@@ -2,8 +2,8 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.processing._cleansing import compute_hydrostatic_column
 from conic.engine._defaults import COL_DEPTH, COL_U0, GAMMA_WATER
+from conic.processing._cleansing import compute_hydrostatic_column
 
 
 def _hydrostatic(lazy, *, water_level, gamma_water=GAMMA_WATER, **kwargs):

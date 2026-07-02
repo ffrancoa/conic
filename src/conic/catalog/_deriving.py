@@ -1,6 +1,6 @@
-from conic.processing import _deriving
 from conic.engine import Configurator
 from conic.engine._pipeliner import Operation, Step, bind
+from conic.processing import _deriving
 
 
 def compute_non_normalized_columns() -> Operation:

@@ -2,8 +2,8 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.processing._cleansing import adjust_depth_spacing
 from conic.engine._defaults import COL_DEPTH
+from conic.processing._cleansing import adjust_depth_spacing
 
 
 def test_invalid_depth_col():

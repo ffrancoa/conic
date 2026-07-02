@@ -1,7 +1,7 @@
 import polars as pl
 
-from conic.engine._defaults import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
 from conic.engine import Configurator, Pipeliner
+from conic.engine._defaults import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
 from conic.engine._pipeliner import Step
 
 

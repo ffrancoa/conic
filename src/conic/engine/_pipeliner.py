@@ -68,6 +68,7 @@ class Pipeliner:
     ...        catalog.compute_non_normalized_columns())
     >>> pipe = Pipeliner.from_operations(config, ops)
     """
+
     config: Configurator
     steps: tuple[Step, ...]
 

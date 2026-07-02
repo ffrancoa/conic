@@ -1,6 +1,6 @@
-from conic.processing import _cleansing
 from conic.engine import Configurator
 from conic.engine._pipeliner import Operation, Step, bind
+from conic.processing import _cleansing
 
 
 def filter_input_columns() -> Operation:

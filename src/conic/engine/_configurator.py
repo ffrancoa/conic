@@ -324,6 +324,7 @@ class Configurator:
 
     >>> config = Configurator.from_toml("project.toml")
     """
+
     parameters: Parameters = dataclasses.field(default_factory=Parameters)
     cleansing: Cleansing = dataclasses.field(default_factory=Cleansing)
     settings: Settings = dataclasses.field(default_factory=Settings)
