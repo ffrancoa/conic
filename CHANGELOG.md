@@ -4,6 +4,16 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.6.5] — 2026-07-02
+
+### Added
+- `conic` CLI binary (pure Rust, ships inside the wheel); supports `--help` and `--version` for now
+- Rust workspace restructured into `conic-plugins/` (cdylib bridge) with `processing/`, `correlations/`, and `tools/` sub-crates (rlibs); Rust source no longer lives alongside Python in `src/`
+
+### Changed
+- Root `Cargo.toml` is now a virtual workspace; the Polars plugin cdylib moved to `conic-plugins/Cargo.toml` via maturin `manifest-path`
+- CI release workflow compiles the CLI binary per platform and bundles it into the wheel via maturin `data/scripts/`
+
 ## [0.6.4] — 2026-06-29
 
 ### Added
@@ -103,7 +113,8 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 - On-demand reproducibility for pipeline runs implemented via `Pipeliner.run(df, metadata=True)`.
 - Core CPTu preprocessing functions inside `conic.preprocess`: `compute_hydrostatic`, `adjust_depth_spacing`, `clean_by_indicators`, and `filter_by_indicators`.
 
-[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.5...HEAD
+[0.6.5]: https://github.com/ferrosoft/conic/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/ferrosoft/conic/compare/v0.6.3...v0.6.4
 [0.1.0]: https://github.com/ferrosoft/conic/releases/tag/v0.1.0
 [0.2.0]: https://github.com/ferrosoft/conic/releases/tag/v0.2.0
