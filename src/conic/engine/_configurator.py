@@ -4,19 +4,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Self
 
-from conic.engine._canonical import (
+from conic.engine._defaults import (
     AREA_RATIO,
     CLEAN_MODE,
     COL_BQ,
     COL_CD,
     COL_CONVG,
     COL_CONVG_BI14,
-    COL_CONVG_INV,
     COL_DEPTH,
     COL_FC_BI14,
     COL_FR,
     COL_FS,
-    COL_FS_INV,
     COL_IB,
     COL_IC,
     COL_KC_R21,
@@ -29,7 +27,6 @@ from conic.engine._canonical import (
     COL_QN,
     COL_QT,
     COL_QT1,
-    COL_QT_INV,
     COL_QTN,
     COL_QTNCS_R21,
     COL_RF,
@@ -40,21 +37,13 @@ from conic.engine._canonical import (
     COL_U,
     COL_U0,
     COL_U2,
-    DC,
-    DZ,
     GAMMA_WATER,
-    M50,
-    MQ,
-    MT,
-    MZ,
     MAX_ITER,
     MAX_SLEEVE_OFFSET,
     P_REF,
     ROLLING,
     ROLLING_LABEL,
-    STALL_TOLERANCE,
     TOLERANCE,
-    Z50_REF,
 )
 
 
@@ -176,52 +165,6 @@ class Settings:
 
 
 @dataclass(frozen=True, slots=True)
-class InverseFilter:
-    dc: float = DC
-    dz: float = DZ
-    z50_ref: float = Z50_REF
-    mz: float = MZ
-    m50: float = M50
-    mq: float = MQ
-    mt: float = MT
-    stall_tolerance: float = STALL_TOLERANCE
-
-    def __post_init__(self):
-        if self.dc <= 0.0:
-            raise ValueError(
-                f"cone diameter (`dc`) must be a positive number; got '{self.dc}'"
-            )
-
-        if self.dz <= 0.0:
-            raise ValueError(
-                f"data spacing (`dz`) must be a positive number; got '{self.dz}'"
-            )
-
-        if self.z50_ref <= 0.0:
-            raise ValueError(
-                f"reference filter extension (`z50_ref`) must be a positive "
-                f"number; got '{self.z50_ref}'"
-            )
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        _validate_keys(cls, data)
-        return cls(**data)
-
-
-@dataclass(frozen=True, slots=True)
-class InverseFilterColumns:
-    qt_inv: str = COL_QT_INV
-    fs_inv: str = COL_FS_INV
-    convg: str = COL_CONVG_INV
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        _validate_keys(cls, data)
-        return cls(**data)
-
-
-@dataclass(frozen=True, slots=True)
 class InputColumns:
     depth: str = COL_DEPTH
     qc: str = COL_QC
@@ -329,9 +272,6 @@ class Columns:
     correlation: CorrelationColumns = dataclasses.field(
         default_factory=CorrelationColumns
     )
-    inverse_filter: InverseFilterColumns = dataclasses.field(
-        default_factory=InverseFilterColumns
-    )
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
@@ -348,28 +288,67 @@ class Columns:
                 "correlation": CorrelationColumns.from_dict(data["correlation"])
             }
 
-        if "inverse_filter" in data and isinstance(data["inverse_filter"], dict):
-            data = data | {
-                "inverse_filter": InverseFilterColumns.from_dict(
-                    data["inverse_filter"]
-                )
-            }
-
         return cls(**data)
 
 
 @dataclass
 class Configurator:
+    """Manage CPTu processing parameters, column names, and settings.
+
+    Compose a configuration from code defaults, a TOML file, or
+    a combination of both using ``from_dict`` or ``from_toml``.
+    Individual values can be overridden after construction with
+    the fluent ``with_*`` methods, each of which returns a new
+    ``Configurator`` with the change applied.
+
+    Parameters
+    ----------
+    parameters : Parameters
+        Test parameters such as area ratio, rolling window,
+        and unit weights.
+    cleansing : Cleansing
+        Data-cleaning rules: start depth, spacing, indicator
+        values, cleaning mode, and sleeve alignment offset.
+    settings : Settings
+        Solver settings: reference pressure, maximum
+        iterations, and convergence tolerance.
+    columns : Columns
+        Input, output, and correlation column name mappings.
+    tools : dict
+        Registered tool configurations, keyed by tool name.
+
+    Examples
+    --------
+    >>> config = Configurator()
+    >>> config = config.with_gamma_soil(18.0)
+
+    >>> config = Configurator.from_toml("project.toml")
+    """
     parameters: Parameters = dataclasses.field(default_factory=Parameters)
     cleansing: Cleansing = dataclasses.field(default_factory=Cleansing)
     settings: Settings = dataclasses.field(default_factory=Settings)
     columns: Columns = dataclasses.field(default_factory=Columns)
-    inverse_filter: InverseFilter = dataclasses.field(
-        default_factory=InverseFilter
-    )
+    tools: dict[str, object] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
+        """Create a Configurator from a nested dictionary.
+
+        Parameters
+        ----------
+        data : dict
+            Nested mapping whose keys match the attribute
+            names of ``Configurator`` and its sub-models.
+
+        Returns
+        -------
+        Configurator
+
+        Raises
+        ------
+        ValueError
+            If any key is not a recognized field.
+        """
         _validate_keys(cls, data)
 
         if "parameters" in data and isinstance(data["parameters"], dict):
@@ -384,15 +363,30 @@ class Configurator:
         if "columns" in data and isinstance(data["columns"], dict):
             data = data | {"columns": Columns.from_dict(data["columns"])}
 
-        if "inverse_filter" in data and isinstance(data["inverse_filter"], dict):
-            data = data | {
-                "inverse_filter": InverseFilter.from_dict(data["inverse_filter"])
-            }
-
         return cls(**data)
 
     @classmethod
     def from_toml(cls, file_path: Path | str) -> Self:
+        """Create a Configurator from a TOML file.
+
+        Parameters
+        ----------
+        file_path : Path or str
+            Path to a TOML configuration file whose keys
+            match the attribute names of ``Configurator``
+            and its sub-models.
+
+        Returns
+        -------
+        Configurator
+
+        Raises
+        ------
+        ValueError
+            If any key is not a recognized field.
+        FileNotFoundError
+            If the file does not exist.
+        """
         with Path(file_path).open("rb") as file:
             config = tomllib.load(file)
 
@@ -407,40 +401,71 @@ class Configurator:
         return dataclasses.replace(self, **{subclass_name: new_subclass})
 
     def with_area_ratio(self, value: float) -> Self:
+        """Return a copy with a new piezocone area ratio."""
         return self._with_field("parameters", "area_ratio", value)
 
     def with_rolling(self, value: int) -> Self:
+        """Return a copy with a new rolling window size."""
         return self._with_field("parameters", "rolling", value)
 
     def with_gamma_water(self, value: float) -> Self:
+        """Return a copy with a new water unit weight."""
         return self._with_field("parameters", "gamma_water", value)
 
     def with_gamma_soil(self, value: float | None) -> Self:
+        """Return a copy with a new soil unit weight."""
         return self._with_field("parameters", "gamma_soil", value)
 
     def with_water_level(self, value: float | None) -> Self:
+        """Return a copy with a new water level depth."""
         return self._with_field("parameters", "water_level", value)
 
     def with_start_depth(self, value: float | None) -> Self:
+        """Return a copy with a new start depth."""
         return self._with_field("cleansing", "start_depth", value)
 
     def with_spacing(self, value: float | None) -> Self:
+        """Return a copy with a new depth spacing."""
         return self._with_field("cleansing", "spacing", value)
 
     def with_indicators(self, values: list[float]) -> Self:
+        """Return a copy with new indicator values."""
         return self._with_field("cleansing", "indicators", values)
 
     def with_clean_mode(self, value: str) -> Self:
+        """Return a copy with a new cleaning mode."""
         return self._with_field("cleansing", "clean_mode", value)
 
     def with_max_sleeve_offset(self, value: int) -> Self:
+        """Return a copy with a new sleeve alignment offset."""
         return self._with_field("cleansing", "max_sleeve_offset", value)
 
     def with_p_ref(self, value: str) -> Self:
+        """Return a copy with a new reference pressure."""
         return self._with_field("settings", "p_ref", value)
 
     def with_max_iter(self, value: str) -> Self:
+        """Return a copy with a new iteration limit."""
         return self._with_field("settings", "max_iter", value)
 
     def with_tolerance(self, value: str) -> Self:
+        """Return a copy with a new convergence tolerance."""
         return self._with_field("settings", "tolerance", value)
+
+    def with_tool(self, name: str, tool_config: object) -> Self:
+        """Return a copy with a tool configuration registered.
+
+        Parameters
+        ----------
+        name : str
+            Key under which the tool config is stored
+            (e.g. ``"inverse_filter"``).
+        tool_config : object
+            Tool-specific configuration instance.
+
+        Returns
+        -------
+        Configurator
+        """
+        new_tools = dict(self.tools) | {name: tool_config}
+        return dataclasses.replace(self, tools=new_tools)

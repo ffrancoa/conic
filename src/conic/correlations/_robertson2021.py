@@ -1,6 +1,6 @@
 import polars as pl
 
-from conic.core._utils import check_required_columns
+from conic._utils import check_required_columns
 
 IC_CLEANSAND_THRESHOLD: float = 1.7
 IC_SANDLIKE_THRESHOLD: float = 2.6

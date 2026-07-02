@@ -1,10 +1,10 @@
 import polars as pl
 import polars.selectors as cs
 
-from conic.core.calculate.prepare import (
+from conic.processing._cleansing import (
     _remove_rows_with_indicators,
 )
-from conic.engine._canonical import COL_DEPTH, COL_QC
+from conic.engine._defaults import COL_DEPTH, COL_QC
 
 
 def test_remove_rows():

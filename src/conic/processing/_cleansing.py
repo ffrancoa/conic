@@ -1,6 +1,6 @@
 import polars as pl
 
-from conic.core._utils import check_required_columns, has_column
+from conic._utils import check_required_columns, has_column
 
 
 def _expr_estimate_mean_spacing(col_depth: str, digits: int = 3) -> pl.Expr:

@@ -2,8 +2,8 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.core.calculate.prepare import align_sleeve_column
-from conic.engine._canonical import COL_DEPTH, COL_FS, COL_QC
+from conic.processing._cleansing import align_sleeve_column
+from conic.engine._defaults import COL_DEPTH, COL_FS, COL_QC
 
 # Signal with clear transitions for lag estimation.
 _BLOCK = [0.0] * 5 + [10.0] * 5

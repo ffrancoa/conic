@@ -8,7 +8,7 @@ from conic.datasets._metadata import (
     TAILINGS,
     SourceMetadata,
 )
-from conic.engine._canonical import (
+from conic.engine._defaults import (
     COL_DEPTH,
     COL_FS,
     COL_QC,

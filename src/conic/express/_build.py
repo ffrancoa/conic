@@ -2,8 +2,9 @@ import dataclasses
 from pathlib import Path
 from typing import Any
 
-from conic.engine.config import Configurator, InputColumns, OutputColumns
-from conic.engine.pipeline import Operation, Pipeliner
+from conic.engine import Configurator, Pipeliner
+from conic.engine._configurator import InputColumns, OutputColumns
+from conic.engine._pipeliner import Operation
 
 INPUT_COLUMNS = {field.name for field in dataclasses.fields(InputColumns)}
 OUTPUT_COLUMNS = {field.name for field in dataclasses.fields(OutputColumns)}
@@ -129,7 +130,7 @@ def build_pipeliner(
     steps : tuple of Operation
         Ordered sequence of operations to execute.
         Available operations are exposed in
-        ``conic.engine.catalog``.
+        ``conic.catalog``.
 
     Returns
     -------
@@ -138,7 +139,7 @@ def build_pipeliner(
 
     Examples
     --------
-    >>> from conic.engine import catalog
+    >>> from conic import catalog
     >>> pipe = build_pipeliner(
     ...     config="conic.toml",
     ...     steps=(

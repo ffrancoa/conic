@@ -1,7 +1,7 @@
 import polars as pl
 
-from conic.core._plugins import compute_qtn_plugin
-from conic.core._utils import check_required_columns
+from conic._plugins import compute_qtn_plugin
+from conic._utils import check_required_columns
 
 COL_TEMP = "_temp"
 

@@ -1,7 +1,6 @@
 import polars as pl
 
-from conic.engine.config import Configurator
-from conic.engine.pipeline import Pipeliner
+from conic.engine import Configurator, Pipeliner
 
 
 def process_standard(data: pl.DataFrame, config: Configurator) -> pl.DataFrame:

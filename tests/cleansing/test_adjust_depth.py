@@ -2,8 +2,8 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.core.calculate.prepare import adjust_depth_spacing
-from conic.engine._canonical import COL_DEPTH
+from conic.processing._cleansing import adjust_depth_spacing
+from conic.engine._defaults import COL_DEPTH
 
 
 def test_invalid_depth_col():
@@ -29,7 +29,9 @@ def test_start_depth_and_spacing():
 def test_spacing_only():
     inp_data = pl.DataFrame({COL_DEPTH: [0.05, 0.07, 0.10, 0.13]})
 
-    out_data = adjust_depth_spacing(inp_data, COL_DEPTH, start_depth=None, spacing=0.025)
+    out_data = adjust_depth_spacing(
+        inp_data, COL_DEPTH, start_depth=None, spacing=0.025
+    )
 
     returned = out_data[COL_DEPTH].to_list()
     expected = [0.05, 0.075, 0.10, 0.125]

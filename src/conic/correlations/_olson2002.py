@@ -1,6 +1,6 @@
 import polars as pl
 
-from conic.core._utils import check_required_columns
+from conic._utils import check_required_columns
 
 DEFAULT_ENVELOPE: str = "mean"
 MAX_SU_LIQ_RATIO: float = 0.15
