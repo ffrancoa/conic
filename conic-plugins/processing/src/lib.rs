@@ -1,4 +1,4 @@
-pub(crate) struct QtnVecs {
+pub struct QtnVecs {
     pub vec_size: usize,
     pub n_vec: Vec<f64>,
     pub qtn_vec: Vec<f64>,
@@ -6,28 +6,28 @@ pub(crate) struct QtnVecs {
     pub convg_vec: Vec<Option<bool>>,
 }
 
-pub(crate) fn calc_n(sv_eff: f64, ic: f64, p_ref: f64) -> f64 {
+pub fn calc_n(sv_eff: f64, ic: f64, p_ref: f64) -> f64 {
     let sv_eff_term = 0.05 * (sv_eff / p_ref);
     let ic_term = 0.381 * ic;
 
     (ic_term + sv_eff_term - 0.15).clamp(0.0, 1.0)
 }
 
-pub(crate) fn calc_qtn(sv_eff: f64, sv_tot: f64, qt: f64, n: f64, p_ref: f64) -> f64 {
+pub fn calc_qtn(sv_eff: f64, sv_tot: f64, qt: f64, n: f64, p_ref: f64) -> f64 {
     let qt_term = (qt - sv_tot) / p_ref;
     let cn = (p_ref / sv_eff).powf(n);
 
     (qt_term * cn).max(0.0001)
 }
 
-pub(crate) fn calc_ic(fr: f64, qtn: f64) -> f64 {
+pub fn calc_ic(fr: f64, qtn: f64) -> f64 {
     let fr_term = fr.log10() + 1.22;
     let qtn_term = 3.47 - qtn.log10();
 
     (fr_term.powi(2) + qtn_term.powi(2)).sqrt()
 }
 
-pub(crate) fn compute_qtn(
+pub fn compute_qtn(
     sv_eff: &[f64],
     sv_tot: &[f64],
     qt: &[f64],

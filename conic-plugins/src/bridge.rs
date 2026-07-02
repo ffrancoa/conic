@@ -3,10 +3,6 @@ use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
 use serde::Deserialize;
 
-use super::_calc;
-use super::_corr;
-use super::_filt;
-
 #[derive(Deserialize)]
 struct IterationKwargs {
     p_ref: f64,
@@ -39,7 +35,7 @@ fn compute_qtn(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Serie
     let fr_chunked = inputs[3].f64()?;
     let fr_slice = fr_chunked.cont_slice()?;
 
-    let qtn_vecs = _calc::compute_qtn(
+    let qtn_vecs = conic_processing::compute_qtn(
         sv_eff_slice,
         sv_tot_slice,
         qt_slice,
@@ -85,7 +81,7 @@ fn compute_qc1n(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Seri
     let fc_chunked = inputs[2].f64()?;
     let fc_slice = fc_chunked.cont_slice()?;
 
-    let result = _corr::compute_qc1n(
+    let result = conic_correlations::compute_qc1n(
         sv_eff_slice,
         qt_slice,
         fc_slice,
@@ -141,7 +137,7 @@ fn inverse_filter(inputs: &[Series], kwargs: InverseFilterKwargs) -> PolarsResul
     let sv_eff_slice = inputs[3].f64()?.cont_slice()?;
     let sv_tot_slice = inputs[4].f64()?.cont_slice()?;
 
-    let params = _filt::InverseFilterParams {
+    let params = conic_tools::InverseFilterParams {
         dc: kwargs.dc,
         dz: kwargs.dz,
         z50_ref: kwargs.z50_ref,
@@ -154,7 +150,7 @@ fn inverse_filter(inputs: &[Series], kwargs: InverseFilterKwargs) -> PolarsResul
         stall_tolerance: kwargs.stall_tolerance,
     };
 
-    let result = _filt::inverse_filter(
+    let result = conic_tools::inverse_filter(
         qt_slice,
         fs_slice,
         fr_slice,

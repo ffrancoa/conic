@@ -10,23 +10,29 @@ description: >
 Only for iterative/coupled kernels needing per-row convergence loops.
 If `pl.when/then/otherwise` expresses it, keep it in Python.
 
-## Modules
+## Workspace Layout
 
-- `_calc.rs`: Robertson 2016 solver (n, Qtn, Ic). Pure arithmetic.
-- `_corr.rs`: Boulanger & Idriss 2014 solver (qc1Ncs). Pure arithmetic.
-- `_filt.rs`: inverse filter solver (Boulanger & DeJong 2018).
-- `_impl.rs`: Polars bridge -> `#[polars_expr]` fns, Series extraction,
-  kwargs via serde (`IterationKwargs`), Struct assembly.
-- `lib.rs`: `PolarsAllocator`, `mod` declarations.
+Root `Cargo.toml` is a virtual workspace. All Rust code lives under
+`conic-plugins/`:
 
-Boundary: `_impl.rs` calls into `_calc`/`_corr`/`_filt`, never reverse.
+- `conic-plugins/` (cdylib): Polars plugin bridge.
+  - `src/lib.rs`: `PolarsAllocator`, `mod` declarations.
+  - `src/bridge.rs`: `#[polars_expr]` fns, Series extraction,
+    kwargs via serde (`IterationKwargs`), Struct assembly.
+- `conic-plugins/processing/` (rlib): Robertson 2016 solver (n, Qtn, Ic).
+- `conic-plugins/correlations/` (rlib): Boulanger & Idriss 2014 solver (qc1Ncs).
+- `conic-plugins/tools/` (rlib): inverse filter solver (Boulanger & DeJong 2018).
+  Depends on `conic-processing` for `calc_qtn`/`calc_ic`/`calc_n`.
+
+Boundary: `bridge.rs` calls into the three rlib crates, never reverse.
 
 ## Build
 
 Mixed Python+Rust via maturin; abi3 wheels, py312 ABI floor
 (`abi3-py312`). `extension-module` gated behind `default` feature so
 `cargo test` links without `libpython`. Dev: `maturin develop` (debug);
-CI does `--release` for PyPI.
+CI does `--release` for PyPI. `pyproject.toml` uses
+`manifest-path = "conic-plugins/Cargo.toml"`.
 
 ## Testing
 

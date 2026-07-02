@@ -1,0 +1,4 @@
+[package]
+name = "conic-processing"
+version = "0.6.4"
+edition = "2024"

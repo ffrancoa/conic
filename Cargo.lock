@@ -331,13 +331,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "conic"
+name = "conic-correlations"
+version = "0.6.4"
+
+[[package]]
+name = "conic-plugins"
 version = "0.6.4"
 dependencies = [
+ "conic-correlations",
+ "conic-processing",
+ "conic-tools",
  "polars",
  "pyo3",
  "pyo3-polars",
  "serde",
+]
+
+[[package]]
+name = "conic-processing"
+version = "0.6.4"
+
+[[package]]
+name = "conic-tools"
+version = "0.6.4"
+dependencies = [
+ "conic-processing",
 ]
 
 [[package]]

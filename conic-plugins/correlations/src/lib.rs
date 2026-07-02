@@ -1,4 +1,4 @@
-pub(crate) struct Qc1nVecs {
+pub struct Qc1nVecs {
     pub vec_size: usize,
     pub m_vec: Vec<f64>,
     pub qc1n_vec: Vec<f64>,
@@ -6,17 +6,17 @@ pub(crate) struct Qc1nVecs {
     pub convg_vec: Vec<Option<bool>>,
 }
 
-pub(crate) fn calc_ns(qc1ncs: f64) -> f64 {
+pub fn calc_ns(qc1ncs: f64) -> f64 {
     1.338 - 0.249 * qc1ncs.powf(0.264)
 }
 
-pub(crate) fn calc_cn(sv_eff: f64, m: f64, p_ref: f64) -> f64 {
+pub fn calc_cn(sv_eff: f64, m: f64, p_ref: f64) -> f64 {
     let sv_eff_term = (p_ref / sv_eff).powf(m);
 
     sv_eff_term.min(1.7)
 }
 
-pub(crate) fn compute_qc1n(
+pub fn compute_qc1n(
     sv_eff: &[f64],
     qt: &[f64],
     fc: &[f64],

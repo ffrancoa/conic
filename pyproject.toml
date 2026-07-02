@@ -36,6 +36,7 @@ dev = [
 ]
 
 [tool.maturin]
+manifest-path = "conic-plugins/Cargo.toml"
 module-name = "conic._lib"
 python-packages = ["conic"]
 python-source = "src"
@@ -43,7 +44,8 @@ python-source = "src"
 [tool.uv]
 cache-keys = [
     { file = "pyproject.toml" },
-    { file = "src/*.rs" },
+    { file = "conic-plugins/**/*.rs" },
+    { file = "conic-plugins/**/Cargo.toml" },
     { file = "Cargo.toml" },
     { file = "Cargo.lock" },
 ]

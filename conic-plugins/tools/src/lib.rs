@@ -1,8 +1,8 @@
-use crate::_calc;
+use conic_processing::{calc_ic, calc_n, calc_qtn};
 
 #[derive(Clone, Copy)]
 #[allow(dead_code)]
-pub(crate) struct InverseFilterParams {
+pub struct InverseFilterParams {
     pub dc: f64,
     pub dz: f64,
     pub z50_ref: f64,
@@ -15,16 +15,12 @@ pub(crate) struct InverseFilterParams {
     pub stall_tolerance: f64,
 }
 
-pub(crate) struct InverseFilterResult {
+pub struct InverseFilterResult {
     pub vec_size: usize,
     pub qt_inv: Vec<f64>,
     pub fs_inv: Vec<f64>,
     pub converged: bool,
 }
-
-// ---------------------------------------------------------------------------
-// Kernel helpers
-// ---------------------------------------------------------------------------
 
 fn kernel_half_window(dc: f64, dz: f64) -> usize {
     (30.0 * dc / dz).ceil() as usize
@@ -55,10 +51,6 @@ fn calc_c2(z_prime: f64) -> f64 {
 fn calc_w2(qt_ratio: f64, mq: f64) -> f64 {
     (2.0 / (1.0 + (1.0 / qt_ratio).powf(mq))).sqrt()
 }
-
-// ---------------------------------------------------------------------------
-// Convolution
-// ---------------------------------------------------------------------------
 
 fn convolve(qt: &[f64], params: &InverseFilterParams) -> Vec<f64> {
     let n = qt.len();
@@ -123,10 +115,6 @@ fn convolve(qt: &[f64], params: &InverseFilterParams) -> Vec<f64> {
     result
 }
 
-// ---------------------------------------------------------------------------
-// Smoothing
-// ---------------------------------------------------------------------------
-
 fn smooth(data: &mut [f64], span: usize) {
     let n = data.len();
     if span <= 1 || n <= 1 {
@@ -145,10 +133,6 @@ fn smooth(data: &mut [f64], span: usize) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Initial estimate
-// ---------------------------------------------------------------------------
-
 fn calc_initial_estimate(qt_measured: &[f64], qt_convolved: &[f64]) -> Vec<f64> {
     let n = qt_measured.len();
     let mut estimate = Vec::with_capacity(n);
@@ -161,10 +145,6 @@ fn calc_initial_estimate(qt_measured: &[f64], qt_convolved: &[f64]) -> Vec<f64> 
 
     estimate
 }
-
-// ---------------------------------------------------------------------------
-// Interface detection (state machine, direction-dependent)
-// ---------------------------------------------------------------------------
 
 fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
     let n = qt_inv.len();
@@ -250,10 +230,6 @@ fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Sleeve friction correction (radial line in Robertson Ic space)
-// ---------------------------------------------------------------------------
-
 fn correct_fs(
     qt_inv: &[f64],
     qt_meas: &[f64],
@@ -282,29 +258,29 @@ fn correct_fs(
 
         let mut n_exp = 1.0;
         for _ in 0..20 {
-            let qtn_curr = _calc::calc_qtn(sv_eff[i], sv_tot[i], qt_inv_kpa, n_exp, p_ref);
-            let ic_curr = _calc::calc_ic(fr_i, qtn_curr);
-            let n_next = _calc::calc_n(sv_eff[i], ic_curr, p_ref);
+            let qtn_curr = calc_qtn(sv_eff[i], sv_tot[i], qt_inv_kpa, n_exp, p_ref);
+            let ic_curr = calc_ic(fr_i, qtn_curr);
+            let n_next = calc_n(sv_eff[i], ic_curr, p_ref);
             if (n_next - n_exp).abs() < 1e-4 {
                 n_exp = n_next;
                 break;
             }
             n_exp = n_next;
         }
-        let qtn_inv = _calc::calc_qtn(sv_eff[i], sv_tot[i], qt_inv_kpa, n_exp, p_ref);
+        let qtn_inv = calc_qtn(sv_eff[i], sv_tot[i], qt_inv_kpa, n_exp, p_ref);
 
         let mut n_exp_m = 1.0;
         for _ in 0..20 {
-            let qtn_m = _calc::calc_qtn(sv_eff[i], sv_tot[i], qt_meas_kpa, n_exp_m, p_ref);
-            let ic_m = _calc::calc_ic(fr_i, qtn_m);
-            let n_next = _calc::calc_n(sv_eff[i], ic_m, p_ref);
+            let qtn_m = calc_qtn(sv_eff[i], sv_tot[i], qt_meas_kpa, n_exp_m, p_ref);
+            let ic_m = calc_ic(fr_i, qtn_m);
+            let n_next = calc_n(sv_eff[i], ic_m, p_ref);
             if (n_next - n_exp_m).abs() < 1e-4 {
                 n_exp_m = n_next;
                 break;
             }
             n_exp_m = n_next;
         }
-        let qtn_meas = _calc::calc_qtn(sv_eff[i], sv_tot[i], qt_meas_kpa, n_exp_m, p_ref);
+        let qtn_meas = calc_qtn(sv_eff[i], sv_tot[i], qt_meas_kpa, n_exp_m, p_ref);
 
         let log_qtn_meas = qtn_meas.log10();
         let log_qtn_inv = qtn_inv.log10();
@@ -331,11 +307,7 @@ fn correct_fs(
     fs_inv
 }
 
-// ---------------------------------------------------------------------------
-// Main entry point
-// ---------------------------------------------------------------------------
-
-pub(crate) fn inverse_filter(
+pub fn inverse_filter(
     qt: &[f64],
     fs: &[f64],
     fr: &[f64],
