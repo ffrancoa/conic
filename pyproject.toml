@@ -41,7 +41,6 @@ manifest-path = "conic-plugins/Cargo.toml"
 module-name = "conic._lib"
 python-packages = ["conic"]
 python-source = "src"
-data = "data"
 
 [tool.uv]
 cache-keys = [

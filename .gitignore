@@ -22,9 +22,6 @@ src/**/*.pyd
 # Rust build
 target/
 
-# CLI binary staging (populated by CI before maturin build)
-data/scripts/conic
-data/scripts/conic.exe
 wheels/
 *.whl
 
