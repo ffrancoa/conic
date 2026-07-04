@@ -33,7 +33,8 @@ build-backend = "maturin"
 dev = [
     "pytest>=9.1.1",
     "pytest-benchmark>=5.2.3",
-    "ruff>=0.15.18",
+    "ruff>=0.15.20",
+    "ty>=0.0.56"
 ]
 
 [tool.maturin]

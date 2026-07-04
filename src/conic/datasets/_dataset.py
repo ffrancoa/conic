@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from typing import cast
 
 import polars as pl
 
-from conic.datasets._registry import DatasetEntry
+from conic.datasets._registry import _ID_COL, DatasetEntry
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,9 +20,8 @@ class ConicDataset:
                 f"{sounding_id!r}"
             )
 
-        return cast(
-            pl.DataFrame,
-            self.data.filter(pl.col(self.meta.source.id_col) == sounding_id)
+        return (
+            self.data.filter(pl.col(_ID_COL) == sounding_id)
             .select(self.meta.columns)
-            .collect(),
+            .collect()
         )

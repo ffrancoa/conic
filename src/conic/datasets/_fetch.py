@@ -13,7 +13,9 @@ from conic.datasets._dataset import ConicDataset
 from conic.datasets._registry import DatasetEntry, _get_entries, _get_entry
 
 _TIMEOUT: float = 30.0
+
 _CHUNK: int = 1 << 20
+
 _USER_AGENT: str = "conic"
 
 

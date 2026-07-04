@@ -107,8 +107,8 @@ fn convolve(qt: &[f64], params: &InverseFilterParams) -> Vec<f64> {
             result[i] = qt_i;
         }
 
-        for k in 0..count {
-            weights[k] = 0.0;
+        for w in weights.iter_mut().take(count) {
+            *w = 0.0;
         }
     }
 
@@ -124,12 +124,12 @@ fn smooth(data: &mut [f64], span: usize) {
     let tmp = data.to_vec();
     let half = (span - 1) / 2;
 
-    for i in 0..n {
-        let sub_half = half.min(i).min(n - 1 - i);
-        let start = i - sub_half;
-        let end = i + sub_half + 1;
+    for (idx, sample) in data.iter_mut().enumerate().take(n) {
+        let sub_half = half.min(idx).min(n - 1 - idx);
+        let start = idx - sub_half;
+        let end = idx + sub_half + 1;
         let sum: f64 = tmp[start..end].iter().sum();
-        data[i] = sum / (end - start) as f64;
+        *sample = sum / (end - start) as f64;
     }
 }
 
@@ -199,11 +199,7 @@ fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
         if qualified && zone_width >= 2 {
             let center = (zone_start + zone_end) / 2;
             let clip_half = max_zone / 2;
-            let clipped_start = if center > clip_half {
-                center - clip_half
-            } else {
-                0
-            }
+            let clipped_start = center.saturating_sub(clip_half)
             .max(zone_start);
             let clipped_end = (center + clip_half).min(n).min(zone_end + 1);
 
@@ -218,11 +214,11 @@ fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
             let split_idx =
                 clipped_start + ((clipped_end - clipped_start) as f64 * split_frac) as usize;
 
-            for k in clipped_start..split_idx {
-                qt_inv[k] = val_before;
+            for cell in qt_inv.iter_mut().take(split_idx).skip(clipped_start) {
+                *cell = val_before;
             }
-            for k in split_idx..clipped_end.min(n) {
-                qt_inv[k] = val_after;
+            for cell in qt_inv.iter_mut().take(clipped_end.min(n)).skip(split_idx) {
+                *cell = val_after;
             }
         }
 

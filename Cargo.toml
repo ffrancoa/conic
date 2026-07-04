@@ -5,5 +5,6 @@ members = [
     "conic-plugins/tools",
     "conic-plugins/processing",
     "conic-plugins/correlations",
+    "conic-plugins/datasets",
 ]
 resolver = "3"

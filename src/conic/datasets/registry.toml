@@ -1,0 +1,65 @@
+[sources.canterbury]
+citation = """
+Geyin, M., Maurer, B.W., Bradley, B.A., Green, R.A., \
+van Ballegooy, S. (2020). CPT-Based Liquefaction Case Histories \
+Resulting from the 2010-2016 Canterbury, New Zealand, Earthquakes: \
+A Curated Digital Dataset. DesignSafe-CI."""
+doi = "10.17603/ds2-tygh-ht91"
+license = "ODC-By v1.0"
+record = "20839217"
+reference = "Geyin et al. (2020)"
+
+[sources.canterbury.entries.cptu]
+filename = "canterbury_cptu.parquet"
+sha256 = "9d2837f6dbe4571f71b38ce25aebb80f1e641a750b291e2643047e3807a59aeb"
+n_soundings = 4825
+
+[sources.nisqually]
+citation = """
+Rasanen, R.A., Geyin, M., Maurer, B.W. (2022). Select Liquefaction \
+Case Histories from the 2001 Nisqually, Washington, Earthquake: \
+A Digital Data Set and Assessment of Model Performance. \
+Earthquake Spectra, 39(3), 1534-1557."""
+doi = "10.17603/ds2-nsf8-7944"
+license = "CC BY 4.0"
+record = "21010441"
+reference = "Rasanen et al. (2022)"
+
+[sources.nisqually.entries.cptu]
+filename = "nisqually_cptu.parquet"
+sha256 = "de5870c1e807aafbd3e90091baee4b7ef2ca2664360635a491a836acd4063ddd"
+n_soundings = 15
+
+[sources.premstaller]
+citation = """
+Oberhollenzer, S., Premstaller, M., Marte, R., Tschuchnigg, F., \
+Erharter, G.H., Marcher, T. (2021). Cone Penetration Test Dataset \
+Premstaller Geotechnik. Data in Brief, 34, 106618."""
+doi = "10.1016/j.dib.2020.106618"
+license = "CC BY 4.0"
+record = "20805457"
+reference = "Oberhollenzer et al. (2021)"
+
+[sources.premstaller.entries.cptu]
+filename = "premstaller_cptu.parquet"
+sha256 = "7e7f25d5433dac56d2019b33ce743077868ad796211a249b8a8d6ea1140bb15a"
+n_soundings = 312
+
+[sources.premstaller.entries.scptu]
+filename = "premstaller_scptu.parquet"
+sha256 = "0a4775a24c49d5d5ca5898796355111d10106bb7a8b6b5e23b73c782c32f8128"
+n_soundings = 50
+
+[sources.tailings]
+citation = """
+Arnold, C., Macedo, J. (2023). A Novel Experimental Database on the \
+Cyclic Response of Mine Tailings. DesignSafe-CI."""
+doi = "10.17603/ds2-1k0a-dt17"
+license = "CC BY 4.0"
+record = "20807062"
+reference = "Arnold & Macedo (2023)"
+
+[sources.tailings.entries.cptu]
+filename = "tailings_cptu.parquet"
+sha256 = "ddfec64ca05ba95d65e55ef86538018267d89e0fb02685155029c42811bc8e22"
+n_soundings = 16

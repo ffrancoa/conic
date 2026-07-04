@@ -1,13 +1,7 @@
-import re
+import tomllib
 from dataclasses import dataclass
+from pathlib import Path
 
-from conic.datasets._metadata import (
-    CANTERBURY,
-    NISQUALLY,
-    PREMSTALLER,
-    TAILINGS,
-    SourceMetadata,
-)
 from conic.engine._defaults import (
     COL_DEPTH,
     COL_FS,
@@ -19,9 +13,33 @@ from conic.engine._defaults import (
     COL_VS,
 )
 
+_REGISTRY_PATH = Path(__file__).parent / "registry.toml"
+_ID_COL: str = "Sorted ID"
 
-def _get_zenodo_url(zenodo_record: str, filename: str) -> str:
-    return f"https://zenodo.org/records/{zenodo_record}/files/{filename}?download=1"
+_CPTU_COLUMNS: tuple[str, ...] = (
+    COL_DEPTH,
+    COL_QC,
+    COL_FS,
+    COL_U2,
+    COL_U0,
+    COL_SV_TOT,
+    COL_SV_EFF,
+)
+_SCPTU_COLUMNS: tuple[str, ...] = (*_CPTU_COLUMNS, COL_VS)
+
+_TEST_TYPES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "cptu": ("CPTu", _CPTU_COLUMNS),
+    "scptu": ("SCPTu", _SCPTU_COLUMNS),
+}
+
+
+@dataclass(frozen=True, slots=True)
+class SourceMetadata:
+    citation: str
+    doi: str
+    license: str
+    record: str
+    reference: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,72 +54,46 @@ class DatasetEntry:
 
     @property
     def url(self) -> str:
-        return _get_zenodo_url(self.source.record, self.filename)
+        return (
+            f"https://zenodo.org/records/{self.source.record}"
+            f"/files/{self.filename}?download=1"
+        )
 
 
-_CPTU_COLUMNS: tuple[str, ...] = (
-    COL_DEPTH,
-    COL_QC,
-    COL_FS,
-    COL_U2,
-    COL_U0,
-    COL_SV_TOT,
-    COL_SV_EFF,
-)
+def _load_registry() -> tuple[DatasetEntry, ...]:
+    with _REGISTRY_PATH.open("rb") as f:
+        raw = tomllib.load(f)
 
-_SCPTU_COLUMNS: tuple[str, ...] = (*_CPTU_COLUMNS, COL_VS)
+    entries: list[DatasetEntry] = []
 
+    for source_name, source_data in raw["sources"].items():
+        meta = SourceMetadata(
+            citation=source_data["citation"],
+            doi=source_data["doi"],
+            license=source_data["license"],
+            record=source_data["record"],
+            reference=source_data["reference"],
+        )
 
-ENTRIES: tuple[DatasetEntry, ...] = (
-    DatasetEntry(
-        name="canterbury_cptu",
-        filename="canterbury_cptu.parquet",
-        sha256="9d2837f6dbe4571f71b38ce25aebb80f1e641a750b291e2643047e3807a59aeb",
-        test_type="CPTu",
-        n_soundings=4825,
-        columns=_CPTU_COLUMNS,
-        source=CANTERBURY,
-    ),
-    DatasetEntry(
-        name="nisqually_cptu",
-        filename="nisqually_cptu.parquet",
-        sha256="de5870c1e807aafbd3e90091baee4b7ef2ca2664360635a491a836acd4063ddd",
-        test_type="CPTu",
-        n_soundings=15,
-        columns=_CPTU_COLUMNS,
-        source=NISQUALLY,
-    ),
-    DatasetEntry(
-        name="premstaller_cptu",
-        filename="premstaller_cptu.parquet",
-        sha256="7e7f25d5433dac56d2019b33ce743077868ad796211a249b8a8d6ea1140bb15a",
-        test_type="CPTu",
-        n_soundings=312,
-        columns=_CPTU_COLUMNS,
-        source=PREMSTALLER,
-    ),
-    DatasetEntry(
-        name="premstaller_scptu",
-        filename="premstaller_scptu.parquet",
-        sha256="0a4775a24c49d5d5ca5898796355111d10106bb7a8b6b5e23b73c782c32f8128",
-        test_type="SCPTu",
-        n_soundings=50,
-        columns=_SCPTU_COLUMNS,
-        source=PREMSTALLER,
-    ),
-    DatasetEntry(
-        name="tailings_cptu",
-        filename="tailings_cptu.parquet",
-        sha256="ddfec64ca05ba95d65e55ef86538018267d89e0fb02685155029c42811bc8e22",
-        test_type="CPTu",
-        n_soundings=16,
-        columns=_CPTU_COLUMNS,
-        source=TAILINGS,
-    ),
-)
+        for entry_key, entry_data in source_data["entries"].items():
+            test_label, columns = _TEST_TYPES[entry_key]
+            entries.append(
+                DatasetEntry(
+                    name=f"{source_name}_{entry_key}",
+                    filename=entry_data["filename"],
+                    sha256=entry_data["sha256"],
+                    test_type=test_label,
+                    n_soundings=entry_data["n_soundings"],
+                    columns=columns,
+                    source=meta,
+                )
+            )
+
+    return tuple(entries)
 
 
-_BY_NAME: dict[str, DatasetEntry] = {entry.name: entry for entry in ENTRIES}
+_ENTRIES: tuple[DatasetEntry, ...] = _load_registry()
+_BY_NAME: dict[str, DatasetEntry] = {entry.name: entry for entry in _ENTRIES}
 
 
 def _get_entry(name: str) -> DatasetEntry:
@@ -116,7 +108,7 @@ def _get_entry(name: str) -> DatasetEntry:
 
 def _get_entries(source: str) -> tuple[DatasetEntry, ...]:
     prefix = f"{source.lower()}_"
-    entries = tuple(entry for entry in ENTRIES if entry.name.startswith(prefix))
+    entries = tuple(entry for entry in _ENTRIES if entry.name.startswith(prefix))
 
     if not entries:
         available = ", ".join(sorted(_BY_NAME))
@@ -125,30 +117,3 @@ def _get_entries(source: str) -> tuple[DatasetEntry, ...]:
         )
 
     return entries
-
-
-def _title_from_citation(citation: str) -> str:
-    match = re.search(r"\(\d{4}\)\.\s*(.*?)\.", citation)
-    return match.group(1) if match else citation
-
-
-def list_datasets(name: str | None = None) -> None:
-    if name is None:
-        sources = tuple(
-            dict.fromkeys(entry.name.rsplit("_", 1)[0] for entry in ENTRIES)
-        )
-    else:
-        sources = (name,)
-
-    for source in sources:
-        entries = _get_entries(source)
-        meta = entries[0]
-
-        title = _title_from_citation(meta.source.citation)
-        variants = " · ".join(f"{e.test_type} ({e.n_soundings})" for e in entries)
-
-        print(f"\n▌ {title} [{source!r}]")
-        print(f"    Reference : {meta.source.reference}")
-        print(f"    Soundings : {variants}")
-        print(f"    DOI       : {meta.source.doi}")
-        print(f"    License   : {meta.source.license}")
