@@ -17,7 +17,9 @@ Root `Cargo.toml` is a virtual workspace with two top-level crates:
 - `conic-cli/` (bin): pure Rust CLI binary. Uses clap (with `cargo`
   feature for `crate_version!`/`crate_description!` macros) and
   indicatif. No PyO3 dependency. CI compiles it per-platform and
-  places it in `data/scripts/` so maturin includes it in the wheel.
+  passes `--data data` to maturin so the binary is included in the
+  wheel (the `data/` dir is created only in CI, not in the repo).
+  Subcommand `datasets --list` reads the embedded `registry.toml`.
 - `conic-plugins/` (cdylib): Polars plugin bridge.
   - `src/lib.rs`: `PolarsAllocator`, `mod` declarations.
   - `src/bridge.rs`: `#[polars_expr]` fns, Series extraction,
@@ -26,8 +28,18 @@ Root `Cargo.toml` is a virtual workspace with two top-level crates:
   - `correlations/` (rlib): Boulanger & Idriss 2014 solver (qc1Ncs).
   - `tools/` (rlib): inverse filter solver (Boulanger & DeJong 2018).
     Depends on `conic-processing` for `calc_qtn`/`calc_ic`/`calc_n`.
+  - `datasets/` (rlib): parses `registry.toml` (embedded via
+    `include_str!`) with `serde`/`toml`/`regex`. Exposes
+    `list_datasets()`. Consumed by `conic-cli` only; no pyo3 bridge.
 
 Boundary: `bridge.rs` calls into the three rlib crates, never reverse.
+
+## Style
+
+Prefer idiomatic iterators over indexed loops. Use `.iter_mut()`,
+`.enumerate()`, `.take()`, `.skip()` instead of `for i in 0..n`
+with manual indexing. Run `cargo clippy --workspace` and fix all
+warnings before finishing.
 
 ## Build
 
@@ -39,7 +51,9 @@ CI does `--release` for PyPI. `pyproject.toml` uses
 
 ## Testing
 
-No Rust-side tests. All tested from Python through the plugin interface.
+Rust-side tests exist in `conic-plugins/datasets/` (registry parsing,
+title extraction, entry lookup). Solver crates are tested from Python
+through the plugin interface.
 
 ## Plugin Pattern
 

@@ -7,13 +7,17 @@ description: >
 
 ## Module Layout
 
-- `_metadata.py`: `SourceMetadata(citation, doi, license, record,
-  reference, id_col="Sorted ID")`, one frozen instance per source.
-- `_registry.py`: `DatasetEntry(name, filename, sha256, test_type,
-  n_soundings, columns, source)`; `url` is a `@property` building the
-  Zenodo URL from `source.record` + `filename`. `ENTRIES` tuple indexed
-  by `_BY_NAME` on `entry.name` (`"{source}_{test_type.lower()}"`, e.g.
-  `"premstaller_scptu"`). `list_datasets(name=None)` prints the catalog.
+- `registry.toml`: single source of truth for all dataset metadata.
+  Each source has `citation`, `doi`, `license`, `record`, `reference`.
+  Each entry under `[sources.<name>.entries.<type>]` has `filename`,
+  `sha256`, `n_soundings`. The entry key (`cptu`/`scptu`) determines
+  `test_type` and columns; these are not stored in the TOML.
+- `_registry.py`: reads `registry.toml` via `tomllib`. Defines
+  `SourceMetadata` and `DatasetEntry` dataclasses. Constants
+  `_ID_COL`, `_CPTU_COLUMNS`, `_SCPTU_COLUMNS`, `_TEST_TYPES` derive
+  test type labels and column tuples from the entry key. `_ENTRIES`
+  and `_BY_NAME` are module-level singletons. Lookup via
+  `_get_entry(name)` and `_get_entries(source)`.
 - `_fetch.py`: https-only download, SHA-256 verify (mismatch ->
   `ValueError`), atomic write via temp file to content-addressed cache
   `root/<sha256>/filename`. Root = `cache_path` arg, else `CONIC_DATA`
@@ -22,7 +26,16 @@ description: >
 - `_dataset.py`: `ConicDataset(meta, data: LazyFrame)` with `__len__`
   and `get_sounding(id)`.
 - `__init__.py` exports: `ConicDataset`, `fetch_dataset`,
-  `load_dataset`, `DatasetEntry`, `list_datasets`.
+  `load_dataset`, `DatasetEntry`, `SourceMetadata`.
+  `list_datasets` is NOT in the Python API; it lives only in the
+  Rust CLI (`conic datasets --list`).
+
+## Rust Side
+
+The same `registry.toml` is embedded at compile time in
+`conic-plugins/datasets/` via `include_str!`. The Rust crate parses
+it with `serde`/`toml` and exposes `list_datasets()` for the CLI.
+No pyo3 bridge; the crate is consumed only by `conic-cli`.
 
 ## Parquet Schema
 
@@ -31,7 +44,7 @@ CPTu -> `Sorted ID`, `Original ID`, [Grouping label], `Area ratio (-)`,
 `Depth (m)`, `qc (MPa)`, `fs (kPa)`, `u2 (kPa)`, `u0 (kPa)`,
 `σv_tot (kPa)`, `σv_eff (kPa)`. SCPTu appends `Vs (m/s)`.
 
-- `Sorted ID`: dense int 1..N, the `id_col` selection key.
+- `Sorted ID`: dense int 1..N, the `_ID_COL` selection key.
 - `Original ID`: source identifier for traceability.
 - [Grouping label]: dataset-specific; omit when no meaningful grouping.
 - `Area ratio (-)`: per-sounding/location constant, never null.
@@ -47,7 +60,7 @@ CPTu -> `Sorted ID`, `Original ID`, [Grouping label], `Area ratio (-)`,
 - `fetch_dataset(source, test_type="all", *, cache_path=None)` ->
   pre-fetch one variant or all (`"all"`) into cache.
 - `ConicDataset.get_sounding(id)`: validates `1..n_soundings`, filters
-  by `source.id_col`, selects `meta.columns`, collects to `DataFrame`.
+  by `_ID_COL`, selects `meta.columns`, collects to `DataFrame`.
 
 ## Licensing
 
