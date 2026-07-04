@@ -14,12 +14,13 @@ If `pl.when/then/otherwise` expresses it, keep it in Python.
 
 Root `Cargo.toml` is a virtual workspace with two top-level crates:
 
-- `conic-cli/` (bin): pure Rust CLI binary. Uses clap (with `cargo`
-  feature for `crate_version!`/`crate_description!` macros) and
-  indicatif. No PyO3 dependency. CI compiles it per-platform and
+- `conic-cli/` (bin): pure Rust CLI binary. Uses clap, indicatif,
+  serde_json. No PyO3 dependency. CI compiles it per-platform and
   passes `--data data` to maturin so the binary is included in the
   wheel (the `data/` dir is created only in CI, not in the repo).
-  Subcommand `datasets --list` reads the embedded `registry.toml`.
+  `datasets --list` reads the embedded `registry.toml` (offline, no
+  Python). `datasets --fetch <source>` drives the Python server
+  (see below).
 - `conic-plugins/` (cdylib): Polars plugin bridge.
   - `src/lib.rs`: `PolarsAllocator`, `mod` declarations.
   - `src/bridge.rs`: `#[polars_expr]` fns, Series extraction,
@@ -34,12 +35,38 @@ Root `Cargo.toml` is a virtual workspace with two top-level crates:
 
 Boundary: `bridge.rs` calls into the three rlib crates, never reverse.
 
+## Python Server (CLI <-> Python IPC)
+
+For work that must run in Python without linking libpython (keeps the
+CLI a standalone binary that ships in the wheel), `conic-cli` spawns a
+Python server on demand and talks to it over stdio pipes.
+
+- Python side: `src/conic/_server.py`, run via `python -m conic._server`.
+  Reads newline-delimited JSON requests from stdin, dispatches by `cmd`,
+  writes one JSON response per line to stdout. It reassigns
+  `sys.stdout = sys.stderr` so stray library prints can't corrupt the
+  protocol stream, and imports heavy deps (polars) lazily inside the
+  handler so server boot stays cheap.
+- Rust side (`main.rs`): `PyServer` locates the interpreter
+  (`python3`/`python` sibling of the canonicalized `current_exe()`,
+  else PATH), spawns it, and does line-framed request/response via
+  `serde_json`. Shutdown = drop child stdin (EOF) then `wait()`.
+- Lifecycle: server per CLI invocation (spawned on demand, handles N
+  requests, closed at exit). NOT a cross-invocation daemon.
+- Protocol: `{"cmd": "fetch", "source": ...}` ->
+  `{"status": "ok"}` or `{"status": "error", "message": ...}`.
+  Extend the `_handle` dispatch with new `cmd`s (e.g. `process`).
+
 ## Style
 
 Prefer idiomatic iterators over indexed loops. Use `.iter_mut()`,
 `.enumerate()`, `.take()`, `.skip()` instead of `for i in 0..n`
 with manual indexing. Run `cargo clippy --workspace` and fix all
 warnings before finishing.
+
+No `#[cfg(test)]` blocks in the Rust crates; tests live on the Python
+side. Non-doc comments (`//`) are lowercase; doc comments (`///`) keep
+normal capitalization.
 
 ## Build
 
@@ -51,9 +78,8 @@ CI does `--release` for PyPI. `pyproject.toml` uses
 
 ## Testing
 
-Rust-side tests exist in `conic-plugins/datasets/` (registry parsing,
-title extraction, entry lookup). Solver crates are tested from Python
-through the plugin interface.
+No Rust-side tests. Everything is tested from Python: solvers through
+the plugin interface, datasets/CLI through the installed package.
 
 ## Plugin Pattern
 

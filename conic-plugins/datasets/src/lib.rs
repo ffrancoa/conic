@@ -137,36 +137,3 @@ pub fn list_datasets(name: Option<&str>) {
         println!("    License   : {}", source.license);
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn registry_parses() {
-        let reg = &*REGISTRY;
-        assert_eq!(reg.sources.len(), 4);
-    }
-
-    #[test]
-    fn source_has_entries() {
-        let reg = &*REGISTRY;
-        let prem = &reg.sources["premstaller"];
-        assert_eq!(prem.entries.len(), 2);
-        assert!(prem.entries.contains_key("cptu"));
-        assert!(prem.entries.contains_key("scptu"));
-    }
-
-    #[test]
-    fn title_extraction() {
-        let title = title_from_citation(
-            "Geyin, M. (2020). CPT-Based Liquefaction Case Histories. DesignSafe-CI.",
-        );
-        assert_eq!(title, "CPT-Based Liquefaction Case Histories");
-    }
-
-    #[test]
-    fn unknown_source_handled() {
-        list_datasets(Some("nonexistent"));
-    }
-}

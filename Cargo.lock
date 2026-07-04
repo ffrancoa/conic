@@ -433,6 +433,7 @@ dependencies = [
  "clap",
  "conic-datasets",
  "indicatif",
+ "serde_json",
 ]
 
 [[package]]

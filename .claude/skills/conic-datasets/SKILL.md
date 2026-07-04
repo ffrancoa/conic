@@ -37,6 +37,13 @@ The same `registry.toml` is embedded at compile time in
 it with `serde`/`toml` and exposes `list_datasets()` for the CLI.
 No pyo3 bridge; the crate is consumed only by `conic-cli`.
 
+CLI commands:
+- `conic datasets --list`: pure Rust, offline (embedded registry).
+- `conic datasets --fetch <source>`: the CLI delegates to the Python
+  server (`python -m conic._server`, see conic-rust skill), which calls
+  `fetch_dataset` (pure Python). Download logic is unchanged; the CLI
+  never links Python.
+
 ## Parquet Schema
 
 Canonical column order (on disk):
