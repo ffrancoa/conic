@@ -41,12 +41,22 @@ jobs:
           cargo build --release --target ${{ matrix.platform.target }} -p conic-cli
           mkdir -p data/scripts
           cp target/${{ matrix.platform.target }}/release/conic${{ matrix.platform.ext }} data/scripts/conic${{ matrix.platform.ext }}
+          # maturin has no build-time --data flag, so the data dir is declared
+          # under [tool.maturin] here only (kept out of the repo so dev and
+          # sdist builds, which have no data/ dir, do not fail with
+          # "No such data directory").
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("pyproject.toml")
+          text = path.read_text()
+          path.write_text(text.replace("[tool.maturin]\n", '[tool.maturin]\ndata = "data"\n', 1))
+          PY
 
       - name: Build wheel
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --data data
+          args: --release --out dist
           sccache: "true"
 
       - name: Upload wheel as artifact
