@@ -4,6 +4,17 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+## [0.6.7] — 2026-07-05
+
+### Added
+- `conic init` command to scaffold a project: given a name (positional or `--name`) it creates a folder with a default `config.toml`, a `main.py` starter, and a `pyproject.toml`; with no name it writes only a default `config.toml` in the current directory
+- `conic datasets --list` to browse the curated CPTu/SCPTu catalog offline, and `conic datasets --fetch <source>` to download a dataset into the local cache
+- Colored CLI output: styled `--help` and bold `info:`/`error:` message prefixes, emitted only when writing to a terminal
+
+### Removed
+- `list_datasets()` from `conic.datasets`; the catalog is now printed by the `conic datasets --list` CLI command
+- The empty packaged `data/` directory that caused `uv tool install conic` to place a stray `.gitkeep` on `PATH`
+
 ## [0.6.6] — 2026-07-02
 
 ### Added
@@ -113,7 +124,8 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 - On-demand reproducibility for pipeline runs implemented via `Pipeliner.run(df, metadata=True)`.
 - Core CPTu preprocessing functions inside `conic.preprocess`: `compute_hydrostatic`, `adjust_depth_spacing`, `clean_by_indicators`, and `filter_by_indicators`.
 
-[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.6...HEAD
+[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.7...HEAD
+[0.6.7]: https://github.com/ferrosoft/conic/compare/v0.6.6...v0.6.7
 [0.6.6]: https://github.com/ferrosoft/conic/compare/v0.6.4...v0.6.6
 [0.6.4]: https://github.com/ferrosoft/conic/compare/v0.6.3...v0.6.4
 [0.1.0]: https://github.com/ferrosoft/conic/releases/tag/v0.1.0
