@@ -1,61 +1,78 @@
-# parameters
-AREA_RATIO: float = 0.80
-GAMMA_WATER: float = 9.81
+import tomllib
+from pathlib import Path
 
-ROLLING: int = 1
-ROLLING_LABEL: str = "*"
+_DEFAULTS_PATH = Path(__file__).parent / "defaults.toml"
+
+with _DEFAULTS_PATH.open("rb") as _file:
+    _DEFAULTS = tomllib.load(_file)
+
+_PARAMETERS = _DEFAULTS["parameters"]
+_CLEANSING = _DEFAULTS["cleansing"]
+_SETTINGS = _DEFAULTS["settings"]
+_INPUT = _DEFAULTS["columns"]["input"]
+_OUTPUT = _DEFAULTS["columns"]["output"]
+_BI14 = _DEFAULTS["columns"]["correlation"]["bi14"]
+_R21 = _DEFAULTS["columns"]["correlation"]["r21"]
+_OS02 = _DEFAULTS["columns"]["correlation"]["os02"]
+
+# parameters
+AREA_RATIO: float = _PARAMETERS["area_ratio"]
+GAMMA_WATER: float = _PARAMETERS["gamma_water"]
+
+ROLLING: int = _PARAMETERS["rolling"]
+ROLLING_LABEL: str = _PARAMETERS["rolling_label"]
 
 # cleansing
-CLEAN_MODE: str = "replace"
-MAX_SLEEVE_OFFSET: int = 0
+CLEAN_MODE: str = _CLEANSING["clean_mode"]
+MAX_SLEEVE_OFFSET: int = _CLEANSING["max_sleeve_offset"]
 
 # settings
-P_REF: float = 101.33
-MAX_ITER: int = 999
-TOLERANCE: float = 1e-4
+P_REF: float = _SETTINGS["p_ref"]
+MAX_ITER: int = _SETTINGS["max_iter"]
+TOLERANCE: float = _SETTINGS["tolerance"]
 
 # columns.input
-COL_DEPTH: str = "Depth (m)"
-COL_QC: str = "qc (MPa)"
-COL_FS: str = "fs (kPa)"
-COL_U2: str = "u2 (kPa)"
+COL_DEPTH: str = _INPUT["depth"]
+COL_QC: str = _INPUT["qc"]
+COL_FS: str = _INPUT["fs"]
+COL_U2: str = _INPUT["u2"]
 
-COL_U0: str = "u0 (kPa)"
-COL_SV_TOT: str = "σv_tot (kPa)"
-COL_SV_EFF: str = "σv_eff (kPa)"
+COL_U0: str = _INPUT["u0"]
+COL_SV_TOT: str = _INPUT["sv_tot"]
+COL_SV_EFF: str = _INPUT["sv_eff"]
 
 COL_VS: str = "Vs (m/s)"
 
 # columns.output
-COL_QT: str = "qt (MPa)"
-COL_QN: str = "qn (MPa)"
+COL_QT: str = _OUTPUT["qt"]
+COL_QN: str = _OUTPUT["qn"]
 
-COL_QT1: str = "Qt1 (-)"
-COL_RF: str = "Rf (%)"
-COL_FR: str = "Fr (%)"
-COL_BQ: str = "Bq (-)"
-COL_U: str = "U (-)"
+COL_QT1: str = _OUTPUT["qt1"]
+COL_RF: str = _OUTPUT["rf"]
+COL_FR: str = _OUTPUT["fr"]
+COL_BQ: str = _OUTPUT["bq"]
+COL_U: str = _OUTPUT["u"]
 
-COL_N: str = "n (-)"
-COL_QTN: str = "Qtn (-)"
-COL_IC: str = "Ic (-)"
-COL_CONVG: str = "convg. (-)"
+COL_N: str = _OUTPUT["n"]
+COL_QTN: str = _OUTPUT["qtn"]
+COL_IC: str = _OUTPUT["ic"]
+COL_CONVG: str = _OUTPUT["convg"]
 
-COL_CD: str = "CD (-)"
-COL_IB: str = "IB (-)"
+COL_CD: str = _OUTPUT["cd"]
+COL_IB: str = _OUTPUT["ib"]
 
 # columns.correlation.bi14
-COL_FC_BI14: str = "FC (%) [BI14]"
-COL_M_BI14: str = "m (-) [BI14]"
-COL_QC1N_BI14: str = "qc1n (-) [BI14]"
-COL_QC1NCS_BI14: str = "qc1ncs (-) [BI14]"
-COL_CONVG_BI14: str = "convg. (-) [BI14]"
+COL_FC_BI14: str = _BI14["fc"]
+COL_M_BI14: str = _BI14["m"]
+COL_QC1N_BI14: str = _BI14["qc1n"]
+COL_QC1NCS_BI14: str = _BI14["qc1ncs"]
+COL_CONVG_BI14: str = _BI14["convg"]
 
 # columns.correlation.r21
-COL_KC_R21: str = "Kc (-) [R21]"
-COL_QTNCS_R21: str = "Qtn,cs (-) [R21]"
-COL_SU_LIQ_RATIO_R21: str = "Su_liq (-) [R21]"
+COL_KC_R21: str = _R21["kc"]
+COL_QTNCS_R21: str = _R21["qtncs"]
+COL_SU_LIQ_RATIO_R21: str = _R21["su_liq_ratio"]
 
 # columns.correlation.os02
-COL_QC1_OS02: str = "qc1 (MPa) [OS02]"
-COL_SU_LIQ_RATIO_OS02: str = "Su_liq (-) [OS02]"
+COL_QC1_OS02: str = _OS02["qc1"]
+COL_SU_LIQ_RATIO_OS02: str = _OS02["su_liq_ratio"]

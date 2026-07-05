@@ -1,0 +1,54 @@
+[parameters]
+area_ratio    = 0.80
+gamma_water   = 9.81
+rolling       = 1
+rolling_label = "*"
+
+[cleansing]
+clean_mode        = "replace"
+max_sleeve_offset = 0
+
+[settings]
+p_ref     = 101.33
+max_iter  = 999
+tolerance = 1e-4
+
+[columns.input]
+depth  = "Depth (m)"
+qc     = "qc (MPa)"
+fs     = "fs (kPa)"
+u2     = "u2 (kPa)"
+u0     = "u0 (kPa)"
+sv_tot = "σv_tot (kPa)"
+sv_eff = "σv_eff (kPa)"
+
+[columns.output]
+qt    = "qt (MPa)"
+qn    = "qn (MPa)"
+qt1   = "Qt1 (-)"
+rf    = "Rf (%)"
+fr    = "Fr (%)"
+bq    = "Bq (-)"
+u     = "U (-)"
+n     = "n (-)"
+qtn   = "Qtn (-)"
+ic    = "Ic (-)"
+convg = "convg. (-)"
+cd    = "CD (-)"
+ib    = "IB (-)"
+
+[columns.correlation.bi14]
+fc     = "FC (%) [BI14]"
+m      = "m (-) [BI14]"
+qc1n   = "qc1n (-) [BI14]"
+qc1ncs = "qc1ncs (-) [BI14]"
+convg  = "convg. (-) [BI14]"
+
+[columns.correlation.r21]
+kc           = "Kc (-) [R21]"
+qtncs        = "Qtn,cs (-) [R21]"
+su_liq_ratio = "Su_liq (-) [R21]"
+
+[columns.correlation.os02]
+qc1          = "qc1 (MPa) [OS02]"
+su_liq_ratio = "Su_liq (-) [OS02]"

@@ -20,7 +20,22 @@ Root `Cargo.toml` is a virtual workspace with two top-level crates:
   wheel (the `data/` dir is created only in CI, not in the repo).
   `datasets --list` reads the embedded `registry.toml` (offline, no
   Python). `datasets --fetch <source>` drives the Python server
-  (see below).
+  (see below). `init [NAME|--name NAME]` is pure Rust too. With a name
+  (`create_project`) it embeds `src/conic/engine/defaults.toml` via
+  `include_str!` (like `datasets --list` embeds `registry.toml`) and
+  writes `<NAME>/config.toml` (`fs::create_dir` + `fs::write`, no Python
+  server), dropping the trailing `[columns.correlation.*]` tables
+  (derived output names, rarely renamed): `scaffold_config()` truncates
+  at the first `[columns.correlation`, so those tables must stay last in
+  `defaults.toml`. It also writes `main.py` and `pyproject.toml` from
+  inline `const` templates: `{name}` <- the folder basename
+  (`dir.file_name()`), `{version}` <- `env!("CARGO_PKG_VERSION")` (kept
+  in lockstep with the Python package version). The user runs `uv sync`
+  themselves. The name is optional: a bare `conic init`
+  (`create_config`) writes only `config.toml` into the cwd. clap can't
+  bind one field to both a positional and `--name`, so `InitArgs` has
+  `name_pos` + `name_flag` in a `multiple = false` group (not required,
+  so bare `init` is valid), resolved `name_flag.or(name_pos)`.
 - `conic-plugins/` (cdylib): Polars plugin bridge.
   - `src/lib.rs`: `PolarsAllocator`, `mod` declarations.
   - `src/bridge.rs`: `#[polars_expr]` fns, Series extraction,

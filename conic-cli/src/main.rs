@@ -1,11 +1,26 @@
+use std::fs;
 use std::io::{BufRead, BufReader, IsTerminal, Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStderr, ChildStdin, ChildStdout, Command, Stdio};
 use std::time::Duration;
 
 use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::{Args, Parser, Subcommand};
 use indicatif::{ProgressBar, ProgressStyle};
+
+const DEFAULT_CONFIG: &str = include_str!("../../src/conic/engine/defaults.toml");
+
+const MAIN_TEMPLATE: &str = "import conic.express as cx\n\n\
+     config = cx.build_configurator(\"config.toml\")\n";
+
+const PYPROJECT_TEMPLATE: &str = "\
+[project]
+name = \"{name}\"
+version = \"0.1.0\"
+description = \"Add your description here\"
+requires-python = \">=3.12\"
+dependencies = [\"conic>={version}\"]
+";
 
 const HELP_STYLES: Styles = Styles::styled()
     .header(AnsiColor::Green.on_default().effects(Effects::BOLD))
@@ -32,6 +47,8 @@ struct Cli {
 enum Commands {
     #[command(about = "Browse and fetch curated CPTu/SCPTu datasets")]
     Datasets(DatasetsArgs),
+    #[command(about = "Initialize a conic project or a configuration file")]
+    Init(InitArgs),
 }
 
 #[derive(Args)]
@@ -47,6 +64,24 @@ struct DatasetsArgs {
         help = "Download a dataset by its source name"
     )]
     fetch: Option<String>,
+}
+
+#[derive(Args)]
+#[group(multiple = false)]
+struct InitArgs {
+    #[arg(
+        value_name = "NAME",
+        help = "Project folder to create; omit to only create config.toml here"
+    )]
+    name_pos: Option<String>,
+
+    #[arg(
+        short,
+        long = "name",
+        value_name = "NAME",
+        help = "Project folder to create"
+    )]
+    name_flag: Option<String>,
 }
 
 fn python_candidates() -> Vec<PathBuf> {
@@ -259,6 +294,77 @@ fn fetch(source: &str) {
     }
 }
 
+/// Scaffold config: `defaults.toml` without the trailing
+/// `[columns.correlation.*]` tables (derived output names users rarely rename).
+fn scaffold_config() -> String {
+    let body = match DEFAULT_CONFIG.find("[columns.correlation") {
+        Some(cut) => DEFAULT_CONFIG[..cut].trim_end(),
+        None => DEFAULT_CONFIG.trim_end(),
+    };
+    format!("{body}\n")
+}
+
+fn write_file(project: &str, dir: &Path, filename: &str, content: &str) {
+    if let Err(error) = fs::write(dir.join(filename), content) {
+        print_error(&format!(
+            "could not write {filename} in \"{project}\": {error}"
+        ));
+        std::process::exit(1);
+    }
+}
+
+fn create_project(name: &str) {
+    let dir = PathBuf::from(name);
+
+    if let Err(error) = fs::create_dir(&dir) {
+        let reason = if error.kind() == std::io::ErrorKind::AlreadyExists {
+            format!("\"{name}\" already exists; choose a different project name")
+        } else {
+            format!("could not create the project folder \"{name}\": {error}")
+        };
+        print_error(&reason);
+        std::process::exit(1);
+    }
+
+    let project_name = dir
+        .file_name()
+        .map(|component| component.to_string_lossy().into_owned())
+        .unwrap_or_else(|| name.to_string());
+    let pyproject = PYPROJECT_TEMPLATE
+        .replace("{name}", &project_name)
+        .replace("{version}", env!("CARGO_PKG_VERSION"));
+
+    write_file(name, &dir, "config.toml", &scaffold_config());
+    write_file(name, &dir, "main.py", MAIN_TEMPLATE);
+    write_file(name, &dir, "pyproject.toml", &pyproject);
+
+    let location = dir.canonicalize().unwrap_or(dir);
+    print_info(&format!(
+        "'{project_name}' project created at '{}'",
+        location.display()
+    ));
+}
+
+fn create_config() {
+    let path = PathBuf::from("config.toml");
+
+    if path.exists() {
+        print_error("\"config.toml\" already exists in the current folder");
+        std::process::exit(1);
+    }
+
+    if let Err(error) = fs::write(&path, scaffold_config()) {
+        print_error(&format!("could not write config.toml: {error}"));
+        std::process::exit(1);
+    }
+
+    let location = path.canonicalize().unwrap_or(path);
+    print_info(&format!(
+        "configuration file created at '{}'",
+        location.display()
+    ));
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -270,5 +376,9 @@ fn main() {
                 fetch(source);
             }
         }
+        Commands::Init(args) => match args.name_flag.or(args.name_pos) {
+            Some(name) => create_project(&name),
+            None => create_config(),
+        },
     }
 }

@@ -44,8 +44,19 @@ separately to rename tool outputs.
 
 ## Defaults
 
-Core: module constants in `engine/_defaults.py`, referenced by fields;
-mutable ones via `field(default_factory=...)`. Tool defaults in
+Canonical source is `engine/defaults.toml` (nested config schema, same
+shape as a user `config.toml`). `engine/_defaults.py` reads it once at
+import (`Path(__file__).parent / "defaults.toml"` + `tomllib`) and binds
+the module constants referenced by sub-model fields; mutable/`None`
+optionals stay in the dataclasses via `field(default_factory=...)` or
+`None`. `defaults.toml` must stay a valid config (a test asserts
+`Configurator.from_toml(defaults.toml) == Configurator()`), so it holds
+only schema fields and omits `None` optionals. `COL_VS` is dataset-only
+(`_registry.py`), not a config field, so it stays a literal in
+`_defaults.py` and is absent from `defaults.toml`. The Rust CLI embeds
+`defaults.toml` (`include_str!`) for `conic project create`, but the
+scaffold omits the trailing `[columns.correlation.*]` tables, so keep
+those sections last in the file. Tool defaults in
 `tools/<tool>/_defaults.py`.
 
 ## Rules
