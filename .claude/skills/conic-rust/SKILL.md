@@ -68,6 +68,18 @@ No `#[cfg(test)]` blocks in the Rust crates; tests live on the Python
 side. Non-doc comments (`//`) are lowercase; doc comments (`///`) keep
 normal capitalization.
 
+Formatting: root `rustfmt.toml` sets `max_width = 88` (the Rust analog
+of ruff's line length in `pyproject.toml`). Run `cargo fmt --all` (or
+rely on rust-analyzer format-on-save, which reads the same file); never
+hardcode wrapping. `cargo fmt --all --check` must pass.
+
+CLI help is colored via a `clap::builder::styling::Styles` const
+(`HELP_STYLES` in `main.rs`) wired with `styles = HELP_STYLES` on the
+root `#[command(...)]`; clap propagates it to subcommands. No extra
+deps: reuses clap's re-exported `anstyle`, tty-gated by clap's default
+`color` feature (honors `NO_COLOR`/`--color`). Same `anstyle` powers
+`styled_label` for `info:`/`error:` prefixes.
+
 ## Build
 
 Mixed Python+Rust via maturin; abi3 wheels, py312 ABI floor
