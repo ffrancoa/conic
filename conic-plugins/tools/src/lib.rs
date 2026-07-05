@@ -41,11 +41,7 @@ fn calc_c1(z_prime: f64) -> f64 {
 }
 
 fn calc_c2(z_prime: f64) -> f64 {
-    if z_prime <= 0.0 {
-        1.0
-    } else {
-        0.8
-    }
+    if z_prime <= 0.0 { 1.0 } else { 0.8 }
 }
 
 fn calc_w2(qt_ratio: f64, mq: f64) -> f64 {
@@ -86,7 +82,8 @@ fn convolve(qt: &[f64], params: &InverseFilterParams) -> Vec<f64> {
             let c2 = calc_c2(z_prime);
 
             let z50 = 1.0
-                + 2.0 * (c2 * params.z50_ref - 1.0)
+                + 2.0
+                    * (c2 * params.z50_ref - 1.0)
                     * (1.0 - 1.0 / (1.0 + qt_ratio.powf(params.m50)));
 
             let w1 = c1 / (1.0 + (z_prime.abs() / z50).powf(params.mz));
@@ -177,7 +174,11 @@ fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
         let increasing = grad[i] > 0.0;
         let mut qualified = grad[i].abs() > rate_lim;
 
-        let max_zone = if increasing { max_zone_inc } else { max_zone_dec };
+        let max_zone = if increasing {
+            max_zone_inc
+        } else {
+            max_zone_dec
+        };
 
         let mut j = i + 1;
         while j < n - 1 && (j - zone_start) < max_zone {
@@ -199,8 +200,7 @@ fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
         if qualified && zone_width >= 2 {
             let center = (zone_start + zone_end) / 2;
             let clip_half = max_zone / 2;
-            let clipped_start = center.saturating_sub(clip_half)
-            .max(zone_start);
+            let clipped_start = center.saturating_sub(clip_half).max(zone_start);
             let clipped_end = (center + clip_half).min(n).min(zone_end + 1);
 
             let val_before = qt_inv[clipped_start];
@@ -211,8 +211,8 @@ fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
             };
 
             let split_frac = if increasing { 0.4 } else { 0.6 };
-            let split_idx =
-                clipped_start + ((clipped_end - clipped_start) as f64 * split_frac) as usize;
+            let split_idx = clipped_start
+                + ((clipped_end - clipped_start) as f64 * split_frac) as usize;
 
             for cell in qt_inv.iter_mut().take(split_idx).skip(clipped_start) {
                 *cell = val_before;

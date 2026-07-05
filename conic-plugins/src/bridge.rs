@@ -130,7 +130,10 @@ fn inverse_filter_output(_input_fields: &[Field]) -> PolarsResult<Field> {
 }
 
 #[polars_expr(output_type_func=inverse_filter_output)]
-fn inverse_filter(inputs: &[Series], kwargs: InverseFilterKwargs) -> PolarsResult<Series> {
+fn inverse_filter(
+    inputs: &[Series],
+    kwargs: InverseFilterKwargs,
+) -> PolarsResult<Series> {
     let qt_slice = inputs[0].f64()?.cont_slice()?;
     let fs_slice = inputs[1].f64()?.cont_slice()?;
     let fr_slice = inputs[2].f64()?.cont_slice()?;
@@ -162,7 +165,8 @@ fn inverse_filter(inputs: &[Series], kwargs: InverseFilterKwargs) -> PolarsResul
 
     let qt_inv_series = Series::new("qt_inv".into(), result.qt_inv);
     let fs_inv_series = Series::new("fs_inv".into(), result.fs_inv);
-    let converged_vec: Vec<Option<bool>> = vec![Some(result.converged); result.vec_size];
+    let converged_vec: Vec<Option<bool>> =
+        vec![Some(result.converged); result.vec_size];
     let converged_series = Series::new("converged".into(), converged_vec);
 
     let struct_chunked = StructChunked::from_series(

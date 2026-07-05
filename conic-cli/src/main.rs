@@ -3,14 +3,25 @@ use std::path::PathBuf;
 use std::process::{Child, ChildStderr, ChildStdin, ChildStdout, Command, Stdio};
 use std::time::Duration;
 
+use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::{Args, Parser, Subcommand};
 use indicatif::{ProgressBar, ProgressStyle};
+
+const HELP_STYLES: Styles = Styles::styled()
+    .header(AnsiColor::Green.on_default().effects(Effects::BOLD))
+    .usage(AnsiColor::Green.on_default().effects(Effects::BOLD))
+    .literal(AnsiColor::Cyan.on_default().effects(Effects::BOLD))
+    .placeholder(AnsiColor::Cyan.on_default())
+    .valid(AnsiColor::Green.on_default().effects(Effects::BOLD))
+    .invalid(AnsiColor::Yellow.on_default().effects(Effects::BOLD))
+    .error(AnsiColor::Red.on_default().effects(Effects::BOLD));
 
 #[derive(Parser)]
 #[command(
     name    = env!("CARGO_BIN_NAME"),
     version = env!("CARGO_PKG_VERSION"),
     about   = env!("CARGO_PKG_DESCRIPTION"),
+    styles  = HELP_STYLES,
 )]
 struct Cli {
     #[command(subcommand)]
@@ -26,10 +37,15 @@ enum Commands {
 #[derive(Args)]
 #[group(required = true, multiple = false)]
 struct DatasetsArgs {
-    #[arg(short, long)]
+    #[arg(short, long, help = "List the curated datasets and their metadata")]
     list: bool,
 
-    #[arg(short, long, value_name = "SOURCE")]
+    #[arg(
+        short,
+        long,
+        value_name = "SOURCE",
+        help = "Download a dataset by its source name"
+    )]
     fetch: Option<String>,
 }
 
@@ -50,7 +66,12 @@ fn python_candidates() -> Vec<PathBuf> {
 
     // active virtualenv (dev: `cargo run` inside a venv).
     if let Ok(venv) = std::env::var("VIRTUAL_ENV") {
-        for rel in ["bin/python3", "bin/python", "Scripts/python.exe", "Scripts/python3.exe"] {
+        for rel in [
+            "bin/python3",
+            "bin/python",
+            "Scripts/python.exe",
+            "Scripts/python3.exe",
+        ] {
             let candidate = PathBuf::from(&venv).join(rel);
             if candidate.is_file() {
                 candidates.push(candidate);
@@ -95,13 +116,21 @@ impl PyServer {
             }
         }
 
-        Err("could not find a python interpreter to run the conic backend; \
+        Err(
+            "could not find a python interpreter to run the conic backend; \
              activate the environment where conic is installed"
-            .into())
+                .into(),
+        )
     }
 
-    fn request(&mut self, request: &serde_json::Value) -> Result<serde_json::Value, String> {
-        let stdin = self.stdin.as_mut().ok_or("the conic backend is not running")?;
+    fn request(
+        &mut self,
+        request: &serde_json::Value,
+    ) -> Result<serde_json::Value, String> {
+        let stdin = self
+            .stdin
+            .as_mut()
+            .ok_or("the conic backend is not running")?;
         let line = serde_json::to_string(request).map_err(|e| e.to_string())?;
 
         stdin
@@ -156,7 +185,11 @@ impl PyServer {
 }
 
 /// Bold, colored `label:` when the stream is a terminal, plain otherwise.
-fn styled_label(label: &str, is_tty: bool, color: clap::builder::styling::AnsiColor) -> String {
+fn styled_label(
+    label: &str,
+    is_tty: bool,
+    color: clap::builder::styling::AnsiColor,
+) -> String {
     if !is_tty {
         return format!("{label}:");
     }
@@ -196,7 +229,8 @@ fn fetch(source: &str) {
 
     let spinner = ProgressBar::new_spinner();
     spinner.set_style(
-        ProgressStyle::with_template("{spinner} {msg}").unwrap_or_else(|_| ProgressStyle::default_spinner()),
+        ProgressStyle::with_template("{spinner} {msg}")
+            .unwrap_or_else(|_| ProgressStyle::default_spinner()),
     );
     spinner.set_message(format!("Fetching {source}..."));
     spinner.enable_steady_tick(Duration::from_millis(100));

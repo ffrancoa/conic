@@ -43,7 +43,8 @@ fn test_type_label(key: &str) -> &'static str {
 static REGISTRY: LazyLock<Registry> =
     LazyLock::new(|| toml::from_str(REGISTRY_TOML).expect("invalid registry.toml"));
 
-static TITLE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\(\d{4}\)\.\s*(.*?)\.").unwrap());
+static TITLE_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\(\d{4}\)\.\s*(.*?)\.").unwrap());
 
 fn title_from_citation(citation: &str) -> &str {
     TITLE_RE
