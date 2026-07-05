@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Self
 
-from conic.engine._defaults import (
+from conic.config._defaults import (
     AREA_RATIO,
     CLEAN_MODE,
     COL_BQ,
@@ -13,6 +13,8 @@ from conic.engine._defaults import (
     COL_CONVG_BI14,
     COL_DEPTH,
     COL_FC_BI14,
+    COL_FC_RW98,
+    COL_FC_Y14,
     COL_FR,
     COL_FS,
     COL_IB,
@@ -244,10 +246,32 @@ class OS02Columns:
 
 
 @dataclass(frozen=True, slots=True)
+class RW98Columns:
+    fc: str = COL_FC_RW98
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
+class Y14Columns:
+    fc: str = COL_FC_Y14
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        _validate_keys(cls, data)
+        return cls(**data)
+
+
+@dataclass(frozen=True, slots=True)
 class CorrelationColumns:
     bi14: BI14Columns = dataclasses.field(default_factory=BI14Columns)
     r21: R21Columns = dataclasses.field(default_factory=R21Columns)
     os02: OS02Columns = dataclasses.field(default_factory=OS02Columns)
+    rw98: RW98Columns = dataclasses.field(default_factory=RW98Columns)
+    y14: Y14Columns = dataclasses.field(default_factory=Y14Columns)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
@@ -261,6 +285,12 @@ class CorrelationColumns:
 
         if "os02" in data and isinstance(data["os02"], dict):
             data = data | {"os02": OS02Columns.from_dict(data["os02"])}
+
+        if "rw98" in data and isinstance(data["rw98"], dict):
+            data = data | {"rw98": RW98Columns.from_dict(data["rw98"])}
+
+        if "y14" in data and isinstance(data["y14"], dict):
+            data = data | {"y14": Y14Columns.from_dict(data["y14"])}
 
         return cls(**data)
 

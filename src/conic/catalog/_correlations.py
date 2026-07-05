@@ -1,9 +1,9 @@
-from conic import correlations
-from conic.correlations import _boulanger2014 as bi14
-from conic.correlations import _olson2002 as os02
-from conic.correlations import _robertson2021 as r21
-from conic.engine import Configurator
-from conic.engine._pipeliner import Operation, Step, bind
+from conic.calculate import correlate
+from conic.calculate.correlate import _boulanger2014 as bi14
+from conic.calculate.correlate import _olson2002 as os02
+from conic.calculate.correlate import _robertson2021 as r21
+from conic.config import Configurator
+from conic.pipeline._core import Operation, Step, bind
 
 
 def add_r21_columns(*, max_su_liq_ratio: float = r21.MAX_SU_LIQ_RATIO) -> Operation:
@@ -12,7 +12,7 @@ def add_r21_columns(*, max_su_liq_ratio: float = r21.MAX_SU_LIQ_RATIO) -> Operat
         correlation_columns = config.columns.correlation.r21
 
         return bind(
-            correlations.add_r21_columns,
+            correlate.add_r21_columns,
             col_fr=output_columns.fr,
             col_qtn=output_columns.qtn,
             col_ic=output_columns.ic,
@@ -39,7 +39,7 @@ def add_os02_columns(
         correlation_columns = config.columns.correlation.os02
 
         return bind(
-            correlations.add_os02_columns,
+            correlate.add_os02_columns,
             col_sv_eff=input_columns.sv_eff,
             col_qt_rol=output_columns.qt + parameters.rolling_label,
             col_qc1=correlation_columns.qc1,
@@ -66,7 +66,7 @@ def add_bi14_columns(
         correlation_columns = config.columns.correlation.bi14
 
         return bind(
-            correlations.add_bi14_columns,
+            correlate.add_bi14_columns,
             col_ic=output_columns.ic,
             col_sv_eff=input_columns.sv_eff,
             col_qt_rol=output_columns.qt + parameters.rolling_label,
@@ -80,6 +80,36 @@ def add_bi14_columns(
             p_ref=settings.p_ref,
             max_iter=settings.max_iter,
             tolerance=settings.tolerance,
+        )
+
+    return Operation(build)
+
+
+def add_rw98_columns() -> Operation:
+    def build(config: Configurator) -> Step:
+        output_columns = config.columns.output
+        correlation_columns = config.columns.correlation.rw98
+
+        return bind(
+            correlate.add_rw98_columns,
+            col_ic=output_columns.ic,
+            col_fr=output_columns.fr,
+            col_fc=correlation_columns.fc,
+        )
+
+    return Operation(build)
+
+
+def add_y14_columns() -> Operation:
+    def build(config: Configurator) -> Step:
+        output_columns = config.columns.output
+        correlation_columns = config.columns.correlation.y14
+
+        return bind(
+            correlate.add_y14_columns,
+            col_ic=output_columns.ic,
+            col_fr=output_columns.fr,
+            col_fc=correlation_columns.fc,
         )
 
     return Operation(build)

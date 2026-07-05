@@ -1,4 +1,4 @@
-use conic_processing::{calc_ic, calc_n, calc_qtn};
+use conic_calculate::{calc_ic, calc_n, calc_qtn};
 
 #[derive(Clone, Copy)]
 #[allow(dead_code)]

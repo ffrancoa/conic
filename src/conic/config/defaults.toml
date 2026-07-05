@@ -52,3 +52,9 @@ su_liq_ratio = "Su_liq (-) [R21]"
 [columns.correlation.os02]
 qc1          = "qc1 (MPa) [OS02]"
 su_liq_ratio = "Su_liq (-) [OS02]"
+
+[columns.correlation.rw98]
+fc = "FC (%) [RW98]"
+
+[columns.correlation.y14]
+fc = "FC (%) [Y14]"

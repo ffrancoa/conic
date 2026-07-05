@@ -1,6 +1,6 @@
-from conic.engine import Configurator
-from conic.engine._pipeliner import Operation, Step, bind
-from conic.processing import _deriving
+from conic.calculate import _derive
+from conic.config import Configurator
+from conic.pipeline._core import Operation, Step, bind
 
 
 def compute_non_normalized_columns() -> Operation:
@@ -10,7 +10,7 @@ def compute_non_normalized_columns() -> Operation:
         output_columns = config.columns.output
 
         return bind(
-            _deriving.compute_non_normalized_columns,
+            _derive.compute_non_normalized_columns,
             area_ratio=parameters.area_ratio,
             col_sv_tot=input_columns.sv_tot,
             col_u2=input_columns.u2,
@@ -31,7 +31,7 @@ def compute_rolling_columns() -> Operation:
         output_columns = config.columns.output
 
         return bind(
-            _deriving.compute_rolling_columns,
+            _derive.compute_rolling_columns,
             rolling=parameters.rolling,
             col_fs=input_columns.fs,
             col_qt=output_columns.qt,
@@ -49,7 +49,7 @@ def compute_normalized_columns() -> Operation:
         output_columns = config.columns.output
 
         return bind(
-            _deriving.compute_normalized_columns,
+            _derive.compute_normalized_columns,
             col_sv_eff=input_columns.sv_eff,
             col_u0=input_columns.u0,
             col_u2=input_columns.u2,
@@ -73,7 +73,7 @@ def compute_behavior_columns() -> Operation:
         output_columns = config.columns.output
 
         return bind(
-            _deriving.compute_behavior_columns,
+            _derive.compute_behavior_columns,
             col_sv_eff=input_columns.sv_eff,
             col_sv_tot=input_columns.sv_tot,
             col_qt_rol=output_columns.qt + parameters.rolling_label,

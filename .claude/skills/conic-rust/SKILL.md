@@ -10,108 +10,75 @@ description: >
 Only for iterative/coupled kernels needing per-row convergence loops.
 If `pl.when/then/otherwise` expresses it, keep it in Python.
 
-## Workspace Layout
+## Workspace
 
-Root `Cargo.toml` is a virtual workspace with two top-level crates:
+Root `Cargo.toml` is a virtual workspace: `conic-cli/` (bin, no PyO3)
+and `conic-plugins/` (cdylib bridge) with rlib sub-crates
+`calculate/`, `correlate/`, `tools/`, `datasets/`. Boundary:
+`bridge.rs` calls into the rlibs, never the reverse. `datasets/` embeds
+`registry.toml` via `include_str!`, exposes
+`list_datasets(name: Option<&str>)`, and is consumed by `conic-cli`
+only (no pyo3 bridge).
 
-- `conic-cli/` (bin): pure Rust CLI binary. Uses clap, indicatif,
-  serde_json. No PyO3 dependency. CI compiles it per-platform and
-  passes `--data data` to maturin so the binary is included in the
-  wheel (the `data/` dir is created only in CI, not in the repo).
-  `datasets --list` reads the embedded `registry.toml` (offline, no
-  Python). `datasets --fetch <source>` drives the Python server
-  (see below). `init [NAME|--name NAME]` is pure Rust too. With a name
-  (`create_project`) it embeds `src/conic/engine/defaults.toml` via
-  `include_str!` (like `datasets --list` embeds `registry.toml`) and
-  writes `<NAME>/config.toml` (`fs::create_dir` + `fs::write`, no Python
-  server), dropping the trailing `[columns.correlation.*]` tables
-  (derived output names, rarely renamed): `scaffold_config()` truncates
-  at the first `[columns.correlation`, so those tables must stay last in
-  `defaults.toml`. It also writes `main.py` and `pyproject.toml` from
-  inline `const` templates: `{name}` <- the folder basename
-  (`dir.file_name()`), `{version}` <- `env!("CARGO_PKG_VERSION")` (kept
-  in lockstep with the Python package version). The user runs `uv sync`
-  themselves. The name is optional: a bare `conic init`
-  (`create_config`) writes only `config.toml` into the cwd. clap can't
-  bind one field to both a positional and `--name`, so `InitArgs` has
-  `name_pos` + `name_flag` in a `multiple = false` group (not required,
-  so bare `init` is valid), resolved `name_flag.or(name_pos)`.
-- `conic-plugins/` (cdylib): Polars plugin bridge.
-  - `src/lib.rs`: `PolarsAllocator`, `mod` declarations.
-  - `src/bridge.rs`: `#[polars_expr]` fns, Series extraction,
-    kwargs via serde (`IterationKwargs`), Struct assembly.
-  - `processing/` (rlib): Robertson 2016 solver (n, Qtn, Ic).
-  - `correlations/` (rlib): Boulanger & Idriss 2014 solver (qc1Ncs).
-  - `tools/` (rlib): inverse filter solver (Boulanger & DeJong 2018).
-    Depends on `conic-processing` for `calc_qtn`/`calc_ic`/`calc_n`.
-  - `datasets/` (rlib): parses `registry.toml` (embedded via
-    `include_str!`) with `serde`/`toml`/`regex`. Exposes
-    `list_datasets()`. Consumed by `conic-cli` only; no pyo3 bridge.
+## CLI Decisions
 
-Boundary: `bridge.rs` calls into the three rlib crates, never reverse.
+- Wheel bundling: CI compiles the binary per platform and patches
+  `[tool.maturin]` in `pyproject.toml` with `data = "data"` at build
+  time (maturin has no `--data` CLI flag). The `data/` dir exists only
+  in CI, never in the repo.
+- `init` is pure Rust: embeds `config/defaults.toml` via
+  `include_str!`; `scaffold_config()` truncates at the first
+  `[columns.correlation`, so those tables must stay last in
+  `defaults.toml`. Scaffolded `pyproject.toml` gets `{version}` from
+  `env!("CARGO_PKG_VERSION")`, kept in lockstep with the Python package
+  version; `{name}` is the folder basename. Bare `conic init` writes
+  only `config.toml` into the cwd.
+- clap cannot bind one field to both a positional and `--name`:
+  `InitArgs` holds `name_pos` + `name_flag` in a `multiple = false`
+  group (not required), resolved `name_flag.or(name_pos)`.
+- Colored help/labels reuse clap's re-exported `anstyle` (no extra
+  deps): `HELP_STYLES` const wired via `styles = ...` on the root
+  command (propagates to subcommands); same `anstyle` powers
+  `styled_label` for tty-gated `info:`/`error:` prefixes.
 
 ## Python Server (CLI <-> Python IPC)
 
-For work that must run in Python without linking libpython (keeps the
-CLI a standalone binary that ships in the wheel), `conic-cli` spawns a
-Python server on demand and talks to it over stdio pipes.
+The CLI never links libpython. Python-side work goes through
+`python -m conic._server`: spawned per CLI invocation (NOT a
+cross-invocation daemon), newline-delimited JSON over stdio pipes,
+shutdown = drop child stdin (EOF) then `wait()`.
 
-- Python side: `src/conic/_server.py`, run via `python -m conic._server`.
-  Reads newline-delimited JSON requests from stdin, dispatches by `cmd`,
-  writes one JSON response per line to stdout. It reassigns
-  `sys.stdout = sys.stderr` so stray library prints can't corrupt the
-  protocol stream, and imports heavy deps (polars) lazily inside the
-  handler so server boot stays cheap.
-- Rust side (`main.rs`): `PyServer` locates the interpreter
-  (`python3`/`python` sibling of the canonicalized `current_exe()`,
-  else PATH), spawns it, and does line-framed request/response via
-  `serde_json`. Shutdown = drop child stdin (EOF) then `wait()`.
-- Lifecycle: server per CLI invocation (spawned on demand, handles N
-  requests, closed at exit). NOT a cross-invocation daemon.
-- Protocol: `{"cmd": "fetch", "source": ...}` ->
-  `{"status": "ok"}` or `{"status": "error", "message": ...}`.
-  Extend the `_handle` dispatch with new `cmd`s (e.g. `process`).
+- `_server.py` redirects `sys.stdout` to `os.devnull` (responses go
+  through the handle saved before the swap) so stray library prints
+  cannot corrupt the protocol; heavy imports (polars) stay inside
+  handlers so boot is cheap.
+- Interpreter lookup order in `PyServer::start`: siblings of the
+  canonicalized `current_exe()`, then `$VIRTUAL_ENV`, then PATH.
+- Protocol: `{"cmd": ..., ...}` -> `{"status": "ok"}` or
+  `{"status": "error", "message": ...}`. Extend the `_handle` dispatch
+  for new commands (e.g. `process`).
 
 ## Style
 
-Prefer idiomatic iterators over indexed loops. Use `.iter_mut()`,
-`.enumerate()`, `.take()`, `.skip()` instead of `for i in 0..n`
-with manual indexing. Run `cargo clippy --workspace` and fix all
-warnings before finishing.
-
-No `#[cfg(test)]` blocks in the Rust crates; tests live on the Python
-side. Non-doc comments (`//`) are lowercase; doc comments (`///`) keep
-normal capitalization.
-
-Formatting: root `rustfmt.toml` sets `max_width = 88` (the Rust analog
-of ruff's line length in `pyproject.toml`). Run `cargo fmt --all` (or
-rely on rust-analyzer format-on-save, which reads the same file); never
-hardcode wrapping. `cargo fmt --all --check` must pass.
-
-CLI help is colored via a `clap::builder::styling::Styles` const
-(`HELP_STYLES` in `main.rs`) wired with `styles = HELP_STYLES` on the
-root `#[command(...)]`; clap propagates it to subcommands. No extra
-deps: reuses clap's re-exported `anstyle`, tty-gated by clap's default
-`color` feature (honors `NO_COLOR`/`--color`). Same `anstyle` powers
-`styled_label` for `info:`/`error:` prefixes.
+- Idiomatic iterators over indexed loops (`iter_mut`, `enumerate`,
+  `take`, `skip`).
+- `cargo clippy --workspace` clean; `cargo fmt --all --check` passes.
+  Root `rustfmt.toml` sets `max_width = 88` (matches ruff); never
+  hand-wrap.
+- No `#[cfg(test)]` blocks: everything is tested from Python (solvers
+  through the plugin interface, CLI through the installed package).
+- `//` comments lowercase; `///` doc comments normal capitalization.
 
 ## Build
 
-Mixed Python+Rust via maturin; abi3 wheels, py312 ABI floor
-(`abi3-py312`). `extension-module` gated behind `default` feature so
-`cargo test` links without `libpython`. Dev: `maturin develop` (debug);
-CI does `--release` for PyPI. `pyproject.toml` uses
-`manifest-path = "conic-plugins/Cargo.toml"`.
-
-## Testing
-
-No Rust-side tests. Everything is tested from Python: solvers through
-the plugin interface, datasets/CLI through the installed package.
+maturin, abi3 wheels, py312 ABI floor (`abi3-py312`).
+`extension-module` gated behind the `default` feature so `cargo test`
+links without libpython. `pyproject.toml` uses
+`manifest-path = "conic-plugins/Cargo.toml"`. Dev: `maturin develop`.
 
 ## Plugin Pattern
 
-`#[polars_expr]` takes input columns + kwargs, processes per row,
-returns a Struct unpacked Python-side. Register in `_plugins.py`
-(package root). Naming `<rust>` -> `<rust>_plugin`: `compute_qtn` ->
-`compute_qtn_plugin`, `compute_qc1n` -> `compute_qc1n_plugin`,
-`inverse_filter` -> `inverse_filter_plugin`.
+`#[polars_expr]` fn takes input columns + a serde kwargs struct
+(`IterationKwargs`, `InverseFilterKwargs`), processes per row, returns
+a Struct unpacked Python-side. Register in `_plugins.py` (package root)
+as `<rust>_plugin`: `compute_qtn` -> `compute_qtn_plugin`.

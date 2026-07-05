@@ -1,6 +1,6 @@
-from conic.engine import Configurator
-from conic.engine._pipeliner import Operation, Step, bind
-from conic.processing import _cleansing
+from conic.calculate import _clean
+from conic.config import Configurator
+from conic.pipeline._core import Operation, Step, bind
 
 
 def filter_input_columns() -> Operation:
@@ -8,7 +8,7 @@ def filter_input_columns() -> Operation:
         input_columns = config.columns.input
 
         return bind(
-            _cleansing.filter_input_columns,
+            _clean.filter_input_columns,
             col_depth=input_columns.depth,
             col_qc=input_columns.qc,
             col_fs=input_columns.fs,
@@ -27,7 +27,7 @@ def adjust_depth_spacing() -> Operation:
         cleansing = config.cleansing
 
         return bind(
-            _cleansing.adjust_depth_spacing,
+            _clean.adjust_depth_spacing,
             start_depth=cleansing.start_depth,
             spacing=cleansing.spacing,
             col_depth=input_columns.depth,
@@ -46,7 +46,7 @@ def align_sleeve_column() -> Operation:
         input_columns = config.columns.input
 
         return bind(
-            _cleansing.align_sleeve_column,
+            _clean.align_sleeve_column,
             col_depth=input_columns.depth,
             col_qc=input_columns.qc,
             col_fs=input_columns.fs,
@@ -62,7 +62,7 @@ def clean_by_indicators() -> Operation:
         cleansing = config.cleansing
 
         return bind(
-            _cleansing.clean_by_indicators,
+            _clean.clean_by_indicators,
             indicators=cleansing.indicators,
             mode=cleansing.clean_mode,
         )
@@ -76,7 +76,7 @@ def floor_input_columns() -> Operation:
         input_columns = config.columns.input
 
         return bind(
-            _cleansing.floor_input_columns,
+            _clean.floor_input_columns,
             col_sv_eff=input_columns.sv_eff,
             col_qc=input_columns.qc,
             col_fs=input_columns.fs,
@@ -92,7 +92,7 @@ def compute_hydrostatic_column(*, override: bool = False) -> Operation:
         input_columns = config.columns.input
 
         return bind(
-            _cleansing.compute_hydrostatic_column,
+            _clean.compute_hydrostatic_column,
             water_level=parameters.water_level,
             gamma_water=parameters.gamma_water,
             col_depth=input_columns.depth,
@@ -109,7 +109,7 @@ def compute_geostatic_columns(*, override: bool = False) -> Operation:
         input_columns = config.columns.input
 
         return bind(
-            _cleansing.compute_geostatic_columns,
+            _clean.compute_geostatic_columns,
             gamma_soil=parameters.gamma_soil,
             col_depth=input_columns.depth,
             col_sv_eff=input_columns.sv_eff,

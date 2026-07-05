@@ -17,24 +17,29 @@ description: >
 
 - Column names (`str`): `col_` prefix (`col_fs`, `col_qt`).
 - Column expressions (`pl.Expr`): `_column` suffix (`qt_column`,
-  `detrended_qc_column`, `qn_rol_kpa_column`).
+  `qn_rol_kpa_column`).
 - Name after domain meaning, not the operation. Be terse where context
   disambiguates (`lazy`, `digits`, `mode`).
 
 ## Column Literals
 
-Core columns: `COL_*` constants in `engine/_defaults.py`. Tool columns:
-`tools/<tool>/_defaults.py`. Never hardcode elsewhere. Correlation
-columns carry provenance: `Su_liq [R21]`.
+Core columns: `COL_*` constants in `config/_defaults.py` (bound from
+`defaults.toml` at import). Tool columns: `tools/<tool>/_defaults.py`.
+Never hardcode elsewhere; transient scratch columns (`COL_TEMP =
+"_temp"`) are the only exception. Correlation columns carry provenance:
+`Su_liq (-) [R21]`.
 
 ## Parameters (Pure Functions)
 
-Native Python types, no defaults. `col_*: str` positional after `lazy`;
-config values keyword-only after `*`.
+Native Python types. `col_*: str` positional after `lazy`; config
+values keyword-only after `*`. Configurator-sourced kwargs take no
+defaults; step-level toggles may (`override=False`, `digits=3`,
+`indicators=None`).
 
 ## Modules
 
-- Correlation: `_author_year.py`, re-exported via `correlations/__init__.py`.
+- Correlation: `_author_year.py` (`_olson2002.py`), re-exported via
+  `calculate/correlate/__init__.py`.
 - Private: leading `_`. Public: no underscore.
 - Envelope variants: `ENVELOPE_MAP: dict[str, float]` lookup, not
   `match/case`, when all branches map to a float.

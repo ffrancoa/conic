@@ -1,6 +1,6 @@
 import pytest
 
-from conic.engine import Configurator
+from conic.config import Configurator
 
 
 def test_copy_with_gamma_soil():

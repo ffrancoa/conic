@@ -2,9 +2,10 @@ import dataclasses
 from pathlib import Path
 from typing import Any
 
-from conic.engine import Configurator, Pipeliner
-from conic.engine._configurator import InputColumns, OutputColumns
-from conic.engine._pipeliner import Operation
+from conic.config import Configurator
+from conic.config._core import InputColumns, OutputColumns
+from conic.pipeline import Pipeliner
+from conic.pipeline._core import Operation
 
 INPUT_COLUMNS = {field.name for field in dataclasses.fields(InputColumns)}
 OUTPUT_COLUMNS = {field.name for field in dataclasses.fields(OutputColumns)}

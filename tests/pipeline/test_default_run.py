@@ -1,8 +1,9 @@
 import polars as pl
 
-from conic.engine import Configurator, Pipeliner
-from conic.engine._defaults import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
-from conic.engine._pipeliner import Step
+from conic.config import Configurator
+from conic.config._defaults import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
+from conic.pipeline import Pipeliner
+from conic.pipeline._core import Step
 
 
 def test_default_pipeliner():

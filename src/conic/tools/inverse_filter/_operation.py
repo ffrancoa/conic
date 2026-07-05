@@ -1,5 +1,5 @@
-from conic.engine import Configurator
-from conic.engine._pipeliner import Operation, Step, bind
+from conic.config import Configurator
+from conic.pipeline._core import Operation, Step, bind
 from conic.tools.inverse_filter._columns import Columns
 from conic.tools.inverse_filter._compute import compute_inverse_filter
 from conic.tools.inverse_filter._config import Config

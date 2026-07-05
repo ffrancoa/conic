@@ -4,6 +4,14 @@ Welcome to the **`conic` changelog**! The format is based on [Keep a Changelog](
 
 ## [Unreleased]
 
+### Added
+- Robertson & Wride (1998) fines-content correlation as `catalog.add_rw98_columns()`, deriving `FC (%) [RW98]` from `Ic` and `Fr`
+- Yi et al. (2014) fines-content correlation as `catalog.add_y14_columns()`, deriving `FC (%) [Y14]` from `Ic` and `Fr`
+- `conic.calculate.calibrate` module with `calibrate_bi14()`, which fits the Boulanger & Idriss (2014) site parameter from measured `Ic`/fines pairs and returns a `CalibrationResult` (coefficient, residual standard deviation, sample size)
+
+### Changed
+- Reorganized the module tree to group each concern in one place: `conic.engine` is split into `conic.config` (`Configurator`, defaults) and `conic.pipeline` (`Pipeliner`, `Step`, `Operation`, `bind`); all pure computation lives under `conic.calculate` (`_clean`, `_derive`, the `correlate` subpackage, and the `calibrate` subpackage). `conic.catalog`, `conic.datasets`, and the operation names are unchanged
+
 ## [0.6.7] — 2026-07-05
 
 ### Added

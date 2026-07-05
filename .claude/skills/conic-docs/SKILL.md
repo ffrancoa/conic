@@ -10,6 +10,13 @@ description: >
 NumPy style, max line 72 chars (PEP 257). No blank line between closing
 `"""` and the first line of code; no trailing blank lines inside.
 
+Coverage is deliberately narrow: the user-facing surface only —
+`express` functions and the `Configurator`/`Pipeliner` classes and
+public methods. Do NOT add docstrings to catalog factories, pure
+processing/correlation functions, `datasets`, `tools`, plugin
+wrappers, private fns (`_expr_*`, `_compute_*`, `_validate_*`), module
+constants, or `__init__.py` re-exports.
+
 Structure (later sections optional):
 1. **Summary**: one imperative sentence from the geotech user's view,
    not implementation.
@@ -26,10 +33,6 @@ Structure (later sections optional):
 Audience: a geotech engineer fluent in CPTu (`qc`, `fs`, `u2`, `header
 row`) but not necessarily Python. Explain Polars/Python behavior only
 when non-obvious (strict cast, schema inference depth).
-
-Document all public functions and public classes (+ `__init__` via the
-class docstring). Do NOT document private fns (`_expr_*`, `_compute_*`,
-`_validate_*`), module constants, or `__init__.py` re-exports.
 
 Avoid: restating the type hint as the whole param description;
 implementation details (belong in comments); references to internal

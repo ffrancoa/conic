@@ -1,4 +1,4 @@
 [package]
-name = "conic-correlations"
+name = "conic-calculate"
 version = "0.6.7"
 edition = "2024"

@@ -35,7 +35,7 @@ fn compute_qtn(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Serie
     let fr_chunked = inputs[3].f64()?;
     let fr_slice = fr_chunked.cont_slice()?;
 
-    let qtn_vecs = conic_processing::compute_qtn(
+    let qtn_vecs = conic_calculate::compute_qtn(
         sv_eff_slice,
         sv_tot_slice,
         qt_slice,
@@ -81,7 +81,7 @@ fn compute_qc1n(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Seri
     let fc_chunked = inputs[2].f64()?;
     let fc_slice = fc_chunked.cont_slice()?;
 
-    let result = conic_correlations::compute_qc1n(
+    let result = conic_correlate::compute_qc1n(
         sv_eff_slice,
         qt_slice,
         fc_slice,

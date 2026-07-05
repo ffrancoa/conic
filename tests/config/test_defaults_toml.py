@@ -1,10 +1,9 @@
 from pathlib import Path
 
-import conic.engine
+import conic.config
+from conic.config import Configurator
 
-from conic.engine import Configurator
-
-_DEFAULTS_TOML = Path(conic.engine.__file__).parent / "defaults.toml"
+_DEFAULTS_TOML = Path(conic.config.__file__).parent / "defaults.toml"
 
 
 def test_defaults_toml_matches_code_defaults():

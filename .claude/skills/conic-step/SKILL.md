@@ -5,7 +5,7 @@ description: >
   assembly in conic.
 ---
 
-## Core Types (all in `engine/_pipeliner.py`)
+## Core Types (all in `pipeline/_core.py`)
 
 - **Step**: `name` + `apply: LazyFrame -> LazyFrame`, closed over params.
 - **Operation**: wraps `build: Configurator -> Step`. Deferred binding.
@@ -14,53 +14,54 @@ description: >
 
 Lifecycle: `Operation.build(config)` -> `bind(fn, **kwargs)`.
 
-## Locations
+## Placement
 
-- Pure fns: `processing/` or `correlations/`. No engine imports.
-- Catalog factories: `catalog/{_prepare,_derive,_correlations}.py`.
+- Pure fns: `calculate/` (incl. `calculate/correlate/`). No config/pipeline imports.
+- Catalog factories: `catalog/{_clean,_derive,_correlations}.py`.
   User import: `from conic import catalog`.
-- Pipeline assembly: `engine/_pipeliner.py` `_standard_ops()`.
+- Pipeline assembly: `_standard_ops()` in `pipeline/_core.py`.
 - Tool ops: `tools/<tool>/_operation.py`.
-
-No processing logic in catalog or pipeliner.
+- No processing logic in catalog or pipeliner.
 
 ## Catalog Factory
 
-Takes optional step-level overrides, returns `Operation`. Inside
-`build(config)`: read from `config.parameters/.cleansing/.settings/
-.columns` (`input`/`output`/`correlation.<tag>`) using names
-`input_columns`, `output_columns`, `correlation_columns`; then
-`return bind(pure_fn, **kwargs)`. Conditional ops check a config flag
-and return a no-op `Step(name=..., apply=lambda lazy: lazy)`.
+Takes optional step-level overrides (keyword-only, may default), returns
+`Operation`. Inside `build(config)`: read config, then
+`return bind(pure_fn, **kwargs)`. Derived names are composed here
+(`col_qt_rol=output_columns.qt + parameters.rolling_label`).
+Conditional ops return a no-op
+`Step(name=..., apply=lambda lazy: lazy)` when disabled (e.g.
+`max_sleeve_offset == 0`).
 
 ## Tool Operation
 
-Autonomous subpackage `tools/<tool>/` owning `_config.py`, `_columns.py`,
-`_defaults.py`, `_compute.py`, `_operation.py`. `_operation.py` exposes
-`operation() -> Operation`. Inside `build`: `config.tools.get("<tool>")`,
-raise `ValueError` if None and `TypeError` if not the expected `Config`;
-read optional `config.tools.get("<tool>_columns", Columns())` (also type
--checked); then `bind`.
+Autonomous subpackage `tools/<tool>/` owning `_config.py`,
+`_columns.py`, `_defaults.py`, `_compute.py`, `_operation.py`, exposing
+`operation() -> Operation`. Inside `build`: missing tool config ->
+`ValueError`; wrong type -> `TypeError`; optional
+`config.tools.get("<tool>_columns", Columns())`, also type-checked.
 
 ## Pure Function Signatures
 
-`lazy: pl.LazyFrame` first, then positional `col_*: str` (no defaults),
-then keyword-only config values after `*` (no defaults). Returns
+`lazy: pl.LazyFrame` first, then positional `col_*: str`, then
+keyword-only config values after `*` (Configurator-sourced: no
+defaults; toggles like `override`/`digits` may default). Returns
 `pl.LazyFrame`.
 
 ## Pipeliner
 
 Frozen dataclass. `Pipeliner.standard(config)` builds from
-`_standard_ops()`; `.run(data) -> DataFrame` lazies input, applies
-steps, collects. Input validation implicit via `filter_input_columns`
-(first standard step).
+`_standard_ops()`; `Pipeliner.from_operations(config, ops)` for custom
+selections; `.run(data) -> DataFrame` lazies input, applies steps,
+collects. Input validation implicit via `filter_input_columns` (first
+standard step).
 
 ## Adding a Standard Op
 
-1. Pure fn in `processing/`. 2. Factory in `catalog/_prepare.py` or
+1. Pure fn in `calculate/`. 2. Factory in `catalog/_clean.py` or
 `catalog/_derive.py`. 3. Insert `Operation` at correct position in
-`_standard_ops()`. 4. Add defaults to `engine/_defaults.py` + fields to
-`engine/_configurator.py` if needed.
+`_standard_ops()`. 4. New defaults: add to `config/defaults.toml`, bind
+in `config/_defaults.py`, add the field to `config/_core.py`.
 
 ## Adding a Tool Op
 

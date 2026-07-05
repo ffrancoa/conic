@@ -5,7 +5,7 @@ from typing import Self
 
 import polars as pl
 
-from conic.engine._configurator import Configurator
+from conic.config._core import Configurator
 
 
 @dataclass(frozen=True, slots=True)

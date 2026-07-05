@@ -427,6 +427,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "conic-calculate"
+version = "0.6.7"
+
+[[package]]
 name = "conic-cli"
 version = "0.6.7"
 dependencies = [
@@ -437,7 +441,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "conic-correlations"
+name = "conic-correlate"
 version = "0.6.7"
 
 [[package]]
@@ -453,8 +457,8 @@ dependencies = [
 name = "conic-plugins"
 version = "0.6.7"
 dependencies = [
- "conic-correlations",
- "conic-processing",
+ "conic-calculate",
+ "conic-correlate",
  "conic-tools",
  "polars",
  "pyo3",
@@ -463,14 +467,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "conic-processing"
-version = "0.6.7"
-
-[[package]]
 name = "conic-tools"
 version = "0.6.7"
 dependencies = [
- "conic-processing",
+ "conic-calculate",
 ]
 
 [[package]]

@@ -14,6 +14,8 @@ _OUTPUT = _DEFAULTS["columns"]["output"]
 _BI14 = _DEFAULTS["columns"]["correlation"]["bi14"]
 _R21 = _DEFAULTS["columns"]["correlation"]["r21"]
 _OS02 = _DEFAULTS["columns"]["correlation"]["os02"]
+_RW98 = _DEFAULTS["columns"]["correlation"]["rw98"]
+_Y14 = _DEFAULTS["columns"]["correlation"]["y14"]
 
 # parameters
 AREA_RATIO: float = _PARAMETERS["area_ratio"]
@@ -76,3 +78,9 @@ COL_SU_LIQ_RATIO_R21: str = _R21["su_liq_ratio"]
 # columns.correlation.os02
 COL_QC1_OS02: str = _OS02["qc1"]
 COL_SU_LIQ_RATIO_OS02: str = _OS02["su_liq_ratio"]
+
+# columns.correlation.rw98
+COL_FC_RW98: str = _RW98["fc"]
+
+# columns.correlation.y14
+COL_FC_Y14: str = _Y14["fc"]

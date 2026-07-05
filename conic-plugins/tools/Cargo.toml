@@ -4,4 +4,4 @@ version = "0.6.7"
 edition = "2024"
 
 [dependencies]
-conic-processing = { path = "../processing" }
+conic-calculate = { path = "../calculate" }
