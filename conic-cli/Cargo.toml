@@ -9,7 +9,7 @@ name = "conic"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4.6.1", features = ["derive"] }
+clap = { version = "4.6.6", features = ["derive"] }
 conic-datasets = { path = "../conic-plugins/datasets" }
 indicatif =  { version = "0.18.6" }
 serde_json = { version = "1.0" }
