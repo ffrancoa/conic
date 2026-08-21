@@ -65,8 +65,7 @@ Welcome to the **`conic` changelog**! The format is based on
 ### Added
 - `conic.core.correlations`: Boulanger & Idriss (2014) correlation for fines content,
   stress-normalized tip resistance (qc1N), and clean-sand equivalent (qc1Ncs) via
-  iterative convergence; exposed as `add_bi14_columns()` and wired into the catalog and
-  standard pipeline
+  iterative convergence; exposed as `add_bi14_columns()` and wired into the catalog
 - Sleeve friction alignment via `align_sleeve_column()`, which estimates the optimal lag
   between qc and fs by cross-correlating detrended signals and shifts fs accordingly
 - `floor_input_columns()` guard step that replaces zero-valued input columns (qc, fs,
@@ -108,8 +107,8 @@ Welcome to the **`conic` changelog**! The format is based on
 ### Changed
 - `Configurator` and its sub-models are now plain Python dataclasses instead of Pydantic
   models — the Pydantic dependency is gone and import/startup time drops noticeably.
-  Build from dicts with `Configurator.from_dict()`, snapshot with `.to_dict()`, and note
-  that invalid values now raise a plain `ValueError`.
+  Build from dicts with `Configurator.from_dict()`, and note that invalid values now
+  raise a plain `ValueError`.
 - Minimum supported Python is back to `3.12` (0.6.0 had raised it to `3.14`); nothing in
   the library requires a newer interpreter.
 - Updated the Rust build stack to `polars` `0.54.4`, `pyo3` `0.28`, and `pyo3-polars`

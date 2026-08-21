@@ -471,15 +471,15 @@ class Configurator:
         """Return a copy with a new sleeve alignment offset."""
         return self._with_field("cleansing", "max_sleeve_offset", value)
 
-    def with_p_ref(self, value: str) -> Self:
+    def with_p_ref(self, value: float) -> Self:
         """Return a copy with a new reference pressure."""
         return self._with_field("settings", "p_ref", value)
 
-    def with_max_iter(self, value: str) -> Self:
+    def with_max_iter(self, value: int) -> Self:
         """Return a copy with a new iteration limit."""
         return self._with_field("settings", "max_iter", value)
 
-    def with_tolerance(self, value: str) -> Self:
+    def with_tolerance(self, value: float) -> Self:
         """Return a copy with a new convergence tolerance."""
         return self._with_field("settings", "tolerance", value)
 

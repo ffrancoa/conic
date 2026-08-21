@@ -56,27 +56,43 @@ fn title_from_citation(citation: &str) -> &str {
 
 fn wrap_title(title: &str, suffix: &str) -> String {
     let prefix = "\u{258C} ";
-    let first_budget = MAX_WIDTH - prefix.len() - suffix.len();
     let cont_indent = "  ";
-    let cont_budget = MAX_WIDTH - cont_indent.len();
+    let prefix_width = prefix.chars().count();
+    let cont_width = cont_indent.chars().count();
+    let suffix_width = suffix.chars().count();
 
     let words: Vec<&str> = title.split_whitespace().collect();
+
+    if words.is_empty() {
+        return format!("{prefix}{}", suffix.trim_start());
+    }
+
     let mut lines: Vec<String> = Vec::new();
     let mut current = String::new();
-    let mut is_first = true;
 
-    for word in &words {
-        let budget = if is_first { first_budget } else { cont_budget };
-        let needed = if current.is_empty() {
-            word.len()
+    for (index, word) in words.iter().enumerate() {
+        let indent = if lines.is_empty() {
+            prefix_width
         } else {
-            current.len() + 1 + word.len()
+            cont_width
+        };
+        let budget = MAX_WIDTH - indent;
+
+        let reserved = if index + 1 == words.len() {
+            suffix_width
+        } else {
+            0
+        };
+
+        let needed = if current.is_empty() {
+            word.chars().count() + reserved
+        } else {
+            current.chars().count() + 1 + word.chars().count() + reserved
         };
 
         if !current.is_empty() && needed > budget {
             lines.push(current);
             current = String::new();
-            is_first = false;
         }
 
         if current.is_empty() {
@@ -87,9 +103,7 @@ fn wrap_title(title: &str, suffix: &str) -> String {
         }
     }
 
-    if !current.is_empty() {
-        lines.push(current);
-    }
+    lines.push(current);
 
     let last = lines.len() - 1;
     lines[last].push_str(suffix);
