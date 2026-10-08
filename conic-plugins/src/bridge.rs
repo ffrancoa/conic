@@ -107,16 +107,15 @@ fn compute_qc1n(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Seri
 #[derive(Deserialize)]
 struct InverseFilterKwargs {
     dc: f64,
-    dz: f64,
     z50_ref: f64,
     mz: f64,
     m50: f64,
     mq: f64,
     mt: f64,
+    kernel_extent: Option<f64>,
     p_ref: f64,
     max_iter: usize,
     tolerance: f64,
-    stall_tolerance: f64,
 }
 
 fn inverse_filter_output(_input_fields: &[Field]) -> PolarsResult<Field> {
@@ -134,23 +133,27 @@ fn inverse_filter(
     inputs: &[Series],
     kwargs: InverseFilterKwargs,
 ) -> PolarsResult<Series> {
-    let qt_slice = inputs[0].f64()?.cont_slice()?;
-    let fs_slice = inputs[1].f64()?.cont_slice()?;
-    let fr_slice = inputs[2].f64()?.cont_slice()?;
-    let sv_eff_slice = inputs[3].f64()?.cont_slice()?;
-    let sv_tot_slice = inputs[4].f64()?.cont_slice()?;
+    let depth_slice = inputs[0].f64()?.cont_slice()?;
+    let qt_slice = inputs[1].f64()?.cont_slice()?;
+    let fs_slice = inputs[2].f64()?.cont_slice()?;
+    let fr_slice = inputs[3].f64()?.cont_slice()?;
+    let sv_eff_slice = inputs[4].f64()?.cont_slice()?;
+    let sv_tot_slice = inputs[5].f64()?.cont_slice()?;
+
+    let dz = conic_tools::calc_dz(depth_slice)
+        .map_err(|msg| polars_err!(ComputeError: "{}", msg))?;
 
     let params = conic_tools::InverseFilterParams {
         dc: kwargs.dc,
-        dz: kwargs.dz,
+        dz,
         z50_ref: kwargs.z50_ref,
         mz: kwargs.mz,
         m50: kwargs.m50,
         mq: kwargs.mq,
         mt: kwargs.mt,
+        kernel_extent: kwargs.kernel_extent,
         max_iter: kwargs.max_iter,
         tolerance: kwargs.tolerance,
-        stall_tolerance: kwargs.stall_tolerance,
     };
 
     let result = conic_tools::inverse_filter(

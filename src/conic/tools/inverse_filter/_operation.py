@@ -33,6 +33,7 @@ def operation() -> Operation:
 
         return bind(
             compute_inverse_filter,
+            col_depth=input_columns.depth,
             col_qt=output_columns.qt,
             col_fs=input_columns.fs,
             col_fr=output_columns.fr,
@@ -42,16 +43,15 @@ def operation() -> Operation:
             col_fs_inv=columns.fs_inv,
             col_convg=columns.convg,
             dc=tool_config.dc,
-            dz=tool_config.dz,
             z50_ref=tool_config.z50_ref,
             mz=tool_config.mz,
             m50=tool_config.m50,
             mq=tool_config.mq,
             mt=tool_config.mt,
+            kernel_extent=tool_config.kernel_extent,
             p_ref=settings.p_ref,
-            max_iter=settings.max_iter,
-            tolerance=settings.tolerance,
-            stall_tolerance=tool_config.stall_tolerance,
+            max_iter=tool_config.max_iter,
+            tolerance=tool_config.tolerance,
         )
 
     return Operation(build)

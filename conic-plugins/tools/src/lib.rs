@@ -1,7 +1,9 @@
 use conic_calculate::{calc_ic, calc_n, calc_qtn};
 
+const QT_FLOOR: f64 = 0.00001;
+const SPACING_TOLERANCE: f64 = 0.001;
+
 #[derive(Clone, Copy)]
-#[allow(dead_code)]
 pub struct InverseFilterParams {
     pub dc: f64,
     pub dz: f64,
@@ -10,9 +12,9 @@ pub struct InverseFilterParams {
     pub m50: f64,
     pub mq: f64,
     pub mt: f64,
+    pub kernel_extent: Option<f64>,
     pub max_iter: usize,
     pub tolerance: f64,
-    pub stall_tolerance: f64,
 }
 
 pub struct InverseFilterResult {
@@ -22,8 +24,42 @@ pub struct InverseFilterResult {
     pub converged: bool,
 }
 
-fn kernel_half_window(dc: f64, dz: f64) -> usize {
-    (30.0 * dc / dz).ceil() as usize
+pub fn calc_dz(depth: &[f64]) -> Result<f64, String> {
+    let n = depth.len();
+    if n < 2 {
+        return Err(format!(
+            "inverse filtering requires at least 2 depth readings; got {n}"
+        ));
+    }
+
+    let z_min = depth.iter().copied().fold(f64::INFINITY, f64::min);
+    let z_max = depth.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let dz = (z_max - z_min) / (n - 1) as f64;
+
+    if dz <= 0.0 {
+        return Err(format!(
+            "inverse filtering requires increasing depths; got a depth range of {} m",
+            z_max - z_min
+        ));
+    }
+
+    for (k, pair) in depth.windows(2).enumerate() {
+        let step = pair[1] - pair[0];
+        if step.is_nan() || (step - dz).abs() > SPACING_TOLERANCE * dz {
+            return Err(format!(
+                "inverse filtering requires uniformly increasing depths (relative \
+                 tolerance {SPACING_TOLERANCE}); step {k} is {step} m, expected {dz} m"
+            ));
+        }
+    }
+
+    Ok(dz * 1000.0)
+}
+
+fn kernel_half_window(params: &InverseFilterParams, n: usize) -> usize {
+    params.kernel_extent.map_or(n, |extent| {
+        ((extent * params.dc / params.dz).ceil() as usize).min(n)
+    })
 }
 
 fn smooth_half_window(dc: f64, dz: f64) -> usize {
@@ -33,24 +69,30 @@ fn smooth_half_window(dc: f64, dz: f64) -> usize {
 }
 
 fn calc_c1(z_prime: f64) -> f64 {
-    if z_prime <= 0.0 {
+    if z_prime >= 0.0 {
         1.0
     } else {
-        (1.0 - 0.125 * z_prime).max(0.5)
+        (1.0 + 0.125 * z_prime).max(0.5)
     }
 }
 
 fn calc_c2(z_prime: f64) -> f64 {
-    if z_prime <= 0.0 { 1.0 } else { 0.8 }
+    if z_prime >= 0.0 { 1.0 } else { 0.8 }
 }
 
 fn calc_w2(qt_ratio: f64, mq: f64) -> f64 {
     (2.0 / (1.0 + (1.0 / qt_ratio).powf(mq))).sqrt()
 }
 
-fn convolve(qt: &[f64], params: &InverseFilterParams) -> Vec<f64> {
+fn convolve(qt: &mut [f64], params: &InverseFilterParams) -> Vec<f64> {
+    for value in qt.iter_mut() {
+        if *value < QT_FLOOR {
+            *value = QT_FLOOR;
+        }
+    }
+
     let n = qt.len();
-    let hw = kernel_half_window(params.dc, params.dz);
+    let hw = kernel_half_window(params, n);
     let buf_size = 2 * hw + 1;
     let mut weights = vec![0.0; buf_size];
     let mut result = vec![0.0; n];
@@ -69,6 +111,7 @@ fn convolve(qt: &[f64], params: &InverseFilterParams) -> Vec<f64> {
         let mut sum_w = 0.0;
 
         for (k, j) in (j_start..j_end).enumerate() {
+            // i is the tip, j the soil element: z' = (z_soil - z_tip) / dc
             let z_prime = (j as f64 - i as f64) * params.dz / params.dc;
             let qt_j = qt[j];
 
@@ -77,7 +120,7 @@ fn convolve(qt: &[f64], params: &InverseFilterParams) -> Vec<f64> {
                 continue;
             }
 
-            let qt_ratio = qt_j / qt_i;
+            let qt_ratio = qt_i / qt_j;
             let c1 = calc_c1(z_prime);
             let c2 = calc_c2(z_prime);
 
@@ -315,7 +358,9 @@ pub fn inverse_filter(
     let n = qt.len();
     let smooth_span = smooth_half_window(params.dc, params.dz);
 
-    let qt_conv_initial = convolve(qt, params);
+    let mut qt_meas = qt.to_vec();
+    let qt_conv_initial = convolve(&mut qt_meas, params);
+    let qt = qt_meas.as_slice();
     let mut qt_inv = calc_initial_estimate(qt, &qt_conv_initial);
 
     let qt_sum: f64 = qt.iter().map(|v| v.abs()).sum();
@@ -345,14 +390,13 @@ pub fn inverse_filter(
             break;
         }
         if (err - prev_err).abs() < params.tolerance {
-            converged = true;
             break;
         }
         prev_err = err;
 
         qlast.copy_from_slice(&qt_inv);
 
-        let qt_conv = convolve(&qt_inv, params);
+        let qt_conv = convolve(&mut qt_inv, params);
         for i in 0..n {
             qt_inv[i] = qt[i] + (qt_inv[i] - qt_conv[i]);
         }
@@ -364,7 +408,7 @@ pub fn inverse_filter(
         z50_ref: 0.866,
         ..*params
     };
-    qt_inv = convolve(&qt_inv, &final_params);
+    qt_inv = convolve(&mut qt_inv, &final_params);
 
     if params.mt > 0.0 {
         correct_interfaces(&mut qt_inv, params);

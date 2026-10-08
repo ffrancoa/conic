@@ -4,12 +4,13 @@ from typing import Any, Self
 
 from conic.tools.inverse_filter._defaults import (
     DC,
-    DZ,
+    KERNEL_EXTENT,
     M50,
+    MAX_ITER,
     MQ,
     MT,
     MZ,
-    STALL_TOLERANCE,
+    TOLERANCE,
     Z50_REF,
 )
 
@@ -28,13 +29,14 @@ def _validate_keys(cls, data: dict[str, Any]) -> None:
 @dataclass(frozen=True, slots=True)
 class Config:
     dc: float = DC
-    dz: float = DZ
     z50_ref: float = Z50_REF
     mz: float = MZ
     m50: float = M50
     mq: float = MQ
     mt: float = MT
-    stall_tolerance: float = STALL_TOLERANCE
+    kernel_extent: float | None = KERNEL_EXTENT
+    max_iter: int = MAX_ITER
+    tolerance: float = TOLERANCE
 
     def __post_init__(self):
         if self.dc <= 0.0:
@@ -42,15 +44,28 @@ class Config:
                 f"cone diameter (`dc`) must be a positive number; got '{self.dc}'"
             )
 
-        if self.dz <= 0.0:
-            raise ValueError(
-                f"data spacing (`dz`) must be a positive number; got '{self.dz}'"
-            )
-
         if self.z50_ref <= 0.0:
             raise ValueError(
                 f"reference filter extension (`z50_ref`) must be a positive "
                 f"number; got '{self.z50_ref}'"
+            )
+
+        if self.kernel_extent is not None and self.kernel_extent <= 0.0:
+            raise ValueError(
+                f"kernel half-width (`kernel_extent`) must be a positive number of "
+                f"cone diameters or None for the full kernel; got "
+                f"'{self.kernel_extent}'"
+            )
+
+        if self.max_iter < 1:
+            raise ValueError(
+                f"the maximum number of iterations (`max_iter`) must be at least 1, "
+                f"got '{self.max_iter}'"
+            )
+
+        if self.tolerance >= 1.0:
+            raise ValueError(
+                f"convergence tolerance must be less than 1.0, got '{self.tolerance}'"
             )
 
     @classmethod
