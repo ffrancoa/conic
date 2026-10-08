@@ -50,6 +50,12 @@ class Config:
                 f"number; got '{self.z50_ref}'"
             )
 
+        if self.mt < 0.0:
+            raise ValueError(
+                f"interface rate threshold (`mt`) must be a non-negative number, "
+                f"0.0 disables the interface correction; got '{self.mt}'"
+            )
+
         if self.kernel_extent is not None and self.kernel_extent <= 0.0:
             raise ValueError(
                 f"kernel half-width (`kernel_extent`) must be a positive number of "

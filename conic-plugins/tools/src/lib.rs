@@ -186,87 +186,69 @@ fn calc_initial_estimate(qt_measured: &[f64], qt_convolved: &[f64]) -> Vec<f64> 
     estimate
 }
 
-fn correct_interfaces(qt_inv: &mut [f64], params: &InverseFilterParams) {
+fn correct_interfaces(qt_inv: &[f64], params: &InverseFilterParams) -> Vec<f64> {
     let n = qt_inv.len();
-    if n < 3 {
-        return;
-    }
+    let mut qt_corrected = qt_inv.to_vec();
 
     let dz_norm = params.dz / params.dc;
     let rate_lim = params.mt;
     let rate_enter = rate_lim / 5.0;
 
-    let max_zone_inc = (12.0 / dz_norm).ceil() as usize;
-    let max_zone_dec = (18.0 / dz_norm).ceil() as usize;
+    let grad: Vec<f64> = qt_inv
+        .windows(2)
+        .map(|pair| (pair[1] / pair[0]).ln() / dz_norm)
+        .collect();
 
-    let mut grad = vec![0.0f64; n - 1];
-    for i in 0..n - 1 {
-        if qt_inv[i] > 0.0 && qt_inv[i + 1] > 0.0 {
-            grad[i] = (qt_inv[i + 1].ln() - qt_inv[i].ln()) / dz_norm;
+    let mut zone: Option<(usize, bool)> = None;
+    for i in 0..grad.len() {
+        let Some((zone_start, increasing)) = zone else {
+            if grad[i].abs() > rate_enter {
+                zone = Some((i, grad[i] > 0.0));
+            }
+            continue;
+        };
+
+        let direction = if increasing { 1.0 } else { -1.0 };
+        if direction * grad[i] > rate_enter {
+            continue;
         }
-    }
+        zone = None;
 
-    let mut i = 0;
-    while i < n - 1 {
-        if grad[i].abs() <= rate_enter {
-            i += 1;
+        let zone_end = i;
+        let peak = grad[zone_start..zone_end]
+            .iter()
+            .map(|g| direction * g)
+            .fold(f64::NEG_INFINITY, f64::max);
+        if peak < rate_lim {
             continue;
         }
 
-        let zone_start = i;
-        let increasing = grad[i] > 0.0;
-        let mut qualified = grad[i].abs() > rate_lim;
-
-        let max_zone = if increasing {
-            max_zone_inc
-        } else {
-            max_zone_dec
-        };
-
-        let mut j = i + 1;
-        while j < n - 1 && (j - zone_start) < max_zone {
-            if grad[j].abs() <= rate_enter {
-                break;
-            }
-            if (grad[j] > 0.0) != increasing {
-                break;
-            }
-            if grad[j].abs() > rate_lim {
-                qualified = true;
-            }
-            j += 1;
+        let zone_width = (zone_end - zone_start) as f64 * dz_norm;
+        if zone_width <= 3.0 {
+            continue;
         }
 
-        let zone_end = j;
-        let zone_width = zone_end - zone_start;
-
-        if qualified && zone_width >= 2 {
+        let (max_width, split_frac) =
+            if increasing { (12.0, 0.4) } else { (18.0, 0.6) };
+        let (mut top, mut bottom) = (zone_start, zone_end);
+        if zone_width > max_width {
             let center = (zone_start + zone_end) / 2;
-            let clip_half = max_zone / 2;
-            let clipped_start = center.saturating_sub(clip_half).max(zone_start);
-            let clipped_end = (center + clip_half).min(n).min(zone_end + 1);
-
-            let val_before = qt_inv[clipped_start];
-            let val_after = if clipped_end < n {
-                qt_inv[clipped_end]
-            } else {
-                qt_inv[n - 1]
-            };
-
-            let split_frac = if increasing { 0.4 } else { 0.6 };
-            let split_idx = clipped_start
-                + ((clipped_end - clipped_start) as f64 * split_frac) as usize;
-
-            for cell in qt_inv.iter_mut().take(split_idx).skip(clipped_start) {
-                *cell = val_before;
-            }
-            for cell in qt_inv.iter_mut().take(clipped_end.min(n)).skip(split_idx) {
-                *cell = val_after;
-            }
+            let clip_half = (0.5 * max_width / dz_norm) as usize;
+            top = center.saturating_sub(clip_half);
+            bottom = (center + clip_half).min(n - 1);
         }
 
-        i = zone_end;
+        let split = top as f64 + split_frac * (bottom - top) as f64;
+        for (j, cell) in qt_corrected.iter_mut().enumerate().take(bottom).skip(top) {
+            *cell = if j as f64 <= split {
+                qt_inv[top]
+            } else {
+                qt_inv[bottom]
+            };
+        }
     }
+
+    qt_corrected
 }
 
 fn correct_fs(
@@ -294,11 +276,13 @@ fn correct_fs(
 
         let qt_inv_kpa = qt_inv[i] * 1000.0;
         let qt_meas_kpa = qt_meas[i] * 1000.0;
+        let qn_inv_kpa = qt_inv_kpa - sv_tot[i];
+        let fr_trial = fs[i] / qn_inv_kpa * 100.0;
 
         let mut n_exp = 1.0;
         for _ in 0..20 {
             let qtn_curr = calc_qtn(sv_eff[i], sv_tot[i], qt_inv_kpa, n_exp, p_ref);
-            let ic_curr = calc_ic(fr_i, qtn_curr);
+            let ic_curr = calc_ic(fr_trial, qtn_curr);
             let n_next = calc_n(sv_eff[i], ic_curr, p_ref);
             if (n_next - n_exp).abs() < 1e-4 {
                 n_exp = n_next;
@@ -337,7 +321,6 @@ fn correct_fs(
         let log_fr_inv = k_ratio * dy_inv + log_fr_center;
         let fr_inv = 10.0_f64.powf(log_fr_inv).max(0.001);
 
-        let qn_inv_kpa = qt_inv_kpa - sv_tot[i];
         let fs_inv_i = fr_inv / 100.0 * qn_inv_kpa;
 
         fs_inv.push(fs_inv_i.max(0.01));
@@ -411,7 +394,7 @@ pub fn inverse_filter(
     qt_inv = convolve(&mut qt_inv, &final_params);
 
     if params.mt > 0.0 {
-        correct_interfaces(&mut qt_inv, params);
+        qt_inv = correct_interfaces(&qt_inv, params);
     }
 
     let fs_inv = correct_fs(&qt_inv, qt, fs, fr, sv_eff, sv_tot, p_ref);
