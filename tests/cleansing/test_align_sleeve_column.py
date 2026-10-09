@@ -77,7 +77,7 @@ def test_k2_preserves_all_rows():
     assert len(result) == len(qc_vals)
 
 
-def test_k2_aligns_fs_with_null_tail():
+def test_k2_aligns_fs_with_nan_tail():
     k = 2
     qc_vals = _BLOCK * 4
     fs_vals = _lagged(qc_vals, k)
@@ -87,7 +87,8 @@ def test_k2_aligns_fs_with_null_tail():
     result = _align(lazy, max_sleeve_offset=5).collect()
 
     assert result[COL_FS][: n - k].to_list() == qc_vals[: n - k]
-    assert result[COL_FS][-k:].is_null().all()
+    assert result[COL_FS][-k:].is_nan().all()
+    assert result[COL_FS].null_count() == 0
 
 
 def test_k3_preserves_all_rows():
@@ -101,7 +102,7 @@ def test_k3_preserves_all_rows():
     assert len(result) == len(qc_vals)
 
 
-def test_k3_aligns_fs_with_null_tail():
+def test_k3_aligns_fs_with_nan_tail():
     k = 3
     qc_vals = _BLOCK * 5
     fs_vals = _lagged(qc_vals, k)
@@ -111,7 +112,8 @@ def test_k3_aligns_fs_with_null_tail():
     result = _align(lazy, max_sleeve_offset=5).collect()
 
     assert result[COL_FS][: n - k].to_list() == qc_vals[: n - k]
-    assert result[COL_FS][-k:].is_null().all()
+    assert result[COL_FS][-k:].is_nan().all()
+    assert result[COL_FS].null_count() == 0
 
 
 # --- degenerate / flat signal ---

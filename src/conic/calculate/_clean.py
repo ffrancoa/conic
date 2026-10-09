@@ -52,7 +52,7 @@ def _expr_estimate_sleeve_offset(
 
 def _expr_is_indicator(target_columns: pl.Expr, indicators: list[float]) -> pl.Expr:
     return target_columns.cast(pl.Float64).is_in(
-        pl.Series(indicators, dtype=pl.Float64)
+        pl.Series(indicators, dtype=pl.Float64).implode()
     )
 
 
@@ -129,7 +129,9 @@ def align_sleeve_column(
         col_qc, col_fs, max_sleeve_offset, indicators
     )
 
-    return lazy.with_columns(pl.col(col_fs).shift(sleeve_offset_column.first()))
+    return lazy.with_columns(
+        pl.col(col_fs).shift(sleeve_offset_column.first(), fill_value=float("nan"))
+    )
 
 
 def clean_by_indicators(

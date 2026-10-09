@@ -34,6 +34,9 @@ Welcome to the **`conic` changelog**! The format is based on
 - The Rust plugins (`Qtn`, `qc1N`, and inverse filtering) accept input columns split
   into several chunks, as produced by the streaming engine or by concatenated frames,
   instead of failing with "chunked array is not contiguous"
+- `catalog.align_sleeve_column()` fills the `fs` readings left without a counterpart
+  by the sleeve offset with `NaN` instead of `null`, so inverse filtering no longer
+  fails after sleeve alignment
 - Missing-value indicators are matched as `Float64`, so integer indicators (e.g.
   `-9999`) keep matching float columns under the stricter `is_in()` of Polars 2.0
 
