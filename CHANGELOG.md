@@ -6,6 +6,8 @@ Welcome to the **`conic` changelog**! The format is based on
 
 ## [Unreleased]
 
+## [0.6.8] — 2026-10-08
+
 ### Added
 - Robertson & Wride (1998) fines-content correlation as `catalog.add_rw98_columns()`,
   deriving `FC (%) [RW98]` from `Ic` and `Fr`
@@ -39,6 +41,27 @@ Welcome to the **`conic` changelog**! The format is based on
   fails after sleeve alignment
 - Missing-value indicators are matched as `Float64`, so integer indicators (e.g.
   `-9999`) keep matching float columns under the stricter `is_in()` of Polars 2.0
+- Inverse filtering in `conic.tools.inverse_filter` now matches the Boulanger & DeJong
+  (2018) reference implementation (`ngl_tools` 1.0.6): the kernel weights tip and soil
+  elements in the correct orientation; each convolution floors the iterated `qt` at
+  0.01 kPa without altering the input data; `Qtn` of the inverted profile uses `Fr`
+  from the measured `fs` and the inverted `qt`; and the interface correction keeps only
+  transition zones thicker than 3 cone diameters, truncates them to 12 (increasing) or
+  18 (decreasing) diameters around their center, and reassigns the upper 40% or 60%
+- Inverse filtering derives the depth spacing from the depth column, raising an error
+  when there are fewer than two readings or the depths are not uniformly increasing,
+  and reports convergence only when the change between iterations falls below
+  `tolerance`; an iteration that stalls still stops, but is reported as not converged
+- `inverse_filter.Config` gains `kernel_extent` (kernel half-width in cone diameters,
+  default 30, `None` for the full kernel), `max_iter` (default 500), and `tolerance`
+  (default 1e-6), which no longer come from the global settings; `mt` must be
+  non-negative, and 0 disables the interface correction
+- `conic datasets --list` wraps dataset titles by character count, so citations with
+  non-ASCII characters stay within the line width
+
+### Removed
+- `dz` and `stall_tolerance` from `inverse_filter.Config`; the depth spacing comes from
+  the depth column and a stalled iteration always stops
 
 ## [0.6.7] — 2026-07-05
 
@@ -244,7 +267,8 @@ Welcome to the **`conic` changelog**! The format is based on
 - Core CPTu preprocessing functions inside `conic.preprocess`: `compute_hydrostatic`,
   `adjust_depth_spacing`, `clean_by_indicators`, and `filter_by_indicators`.
 
-[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.7...HEAD
+[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.8...HEAD
+[0.6.8]: https://github.com/ferrosoft/conic/compare/v0.6.7...v0.6.8
 [0.6.7]: https://github.com/ferrosoft/conic/compare/v0.6.6...v0.6.7
 [0.6.6]: https://github.com/ferrosoft/conic/compare/v0.6.4...v0.6.6
 [0.6.4]: https://github.com/ferrosoft/conic/compare/v0.6.3...v0.6.4

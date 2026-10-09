@@ -429,11 +429,11 @@ dependencies = [
 
 [[package]]
 name = "conic-calculate"
-version = "0.6.7"
+version = "0.6.8"
 
 [[package]]
 name = "conic-cli"
-version = "0.6.7"
+version = "0.6.8"
 dependencies = [
  "clap",
  "conic-datasets",
@@ -443,11 +443,11 @@ dependencies = [
 
 [[package]]
 name = "conic-correlate"
-version = "0.6.7"
+version = "0.6.8"
 
 [[package]]
 name = "conic-datasets"
-version = "0.6.7"
+version = "0.6.8"
 dependencies = [
  "regex",
  "serde",
@@ -456,7 +456,7 @@ dependencies = [
 
 [[package]]
 name = "conic-plugins"
-version = "0.6.7"
+version = "0.6.8"
 dependencies = [
  "conic-calculate",
  "conic-correlate",
@@ -469,7 +469,7 @@ dependencies = [
 
 [[package]]
 name = "conic-tools"
-version = "0.6.7"
+version = "0.6.8"
 dependencies = [
  "conic-calculate",
 ]
