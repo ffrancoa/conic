@@ -23,16 +23,16 @@ fn compute_qtn_output(_input_fields: &[Field]) -> PolarsResult<Field> {
 
 #[polars_expr(output_type_func=compute_qtn_output)]
 fn compute_qtn(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Series> {
-    let sv_eff_chunked = inputs[0].f64()?;
+    let sv_eff_chunked = inputs[0].f64()?.rechunk();
     let sv_eff_slice = sv_eff_chunked.cont_slice()?;
 
-    let sv_tot_chunked = inputs[1].f64()?;
+    let sv_tot_chunked = inputs[1].f64()?.rechunk();
     let sv_tot_slice = sv_tot_chunked.cont_slice()?;
 
-    let qt_chunked = inputs[2].f64()?;
+    let qt_chunked = inputs[2].f64()?.rechunk();
     let qt_slice = qt_chunked.cont_slice()?;
 
-    let fr_chunked = inputs[3].f64()?;
+    let fr_chunked = inputs[3].f64()?.rechunk();
     let fr_slice = fr_chunked.cont_slice()?;
 
     let qtn_vecs = conic_calculate::compute_qtn(
@@ -72,13 +72,13 @@ fn compute_qc1n_output(_input_fields: &[Field]) -> PolarsResult<Field> {
 
 #[polars_expr(output_type_func=compute_qc1n_output)]
 fn compute_qc1n(inputs: &[Series], kwargs: IterationKwargs) -> PolarsResult<Series> {
-    let sv_eff_chunked = inputs[0].f64()?;
+    let sv_eff_chunked = inputs[0].f64()?.rechunk();
     let sv_eff_slice = sv_eff_chunked.cont_slice()?;
 
-    let qt_chunked = inputs[1].f64()?;
+    let qt_chunked = inputs[1].f64()?.rechunk();
     let qt_slice = qt_chunked.cont_slice()?;
 
-    let fc_chunked = inputs[2].f64()?;
+    let fc_chunked = inputs[2].f64()?.rechunk();
     let fc_slice = fc_chunked.cont_slice()?;
 
     let result = conic_correlate::compute_qc1n(
@@ -133,12 +133,23 @@ fn inverse_filter(
     inputs: &[Series],
     kwargs: InverseFilterKwargs,
 ) -> PolarsResult<Series> {
-    let depth_slice = inputs[0].f64()?.cont_slice()?;
-    let qt_slice = inputs[1].f64()?.cont_slice()?;
-    let fs_slice = inputs[2].f64()?.cont_slice()?;
-    let fr_slice = inputs[3].f64()?.cont_slice()?;
-    let sv_eff_slice = inputs[4].f64()?.cont_slice()?;
-    let sv_tot_slice = inputs[5].f64()?.cont_slice()?;
+    let depth_chunked = inputs[0].f64()?.rechunk();
+    let depth_slice = depth_chunked.cont_slice()?;
+
+    let qt_chunked = inputs[1].f64()?.rechunk();
+    let qt_slice = qt_chunked.cont_slice()?;
+
+    let fs_chunked = inputs[2].f64()?.rechunk();
+    let fs_slice = fs_chunked.cont_slice()?;
+
+    let fr_chunked = inputs[3].f64()?.rechunk();
+    let fr_slice = fr_chunked.cont_slice()?;
+
+    let sv_eff_chunked = inputs[4].f64()?.rechunk();
+    let sv_eff_slice = sv_eff_chunked.cont_slice()?;
+
+    let sv_tot_chunked = inputs[5].f64()?.rechunk();
+    let sv_tot_slice = sv_tot_chunked.cont_slice()?;
 
     let dz = conic_tools::calc_dz(depth_slice)
         .map_err(|msg| polars_err!(ComputeError: "{}", msg))?;

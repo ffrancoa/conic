@@ -22,10 +22,20 @@ Welcome to the **`conic` changelog**! The format is based on
   `conic.calculate` (`_clean`, `_derive`, the `correlate` subpackage, and the
   `calibrate` subpackage). `conic.catalog`, `conic.datasets`, and the operation names
   are unchanged
-- Raised the minimum runtime dependencies to `polars>=1.43.2` and
-  `platformdirs>=4.11.3`, and updated the Rust layer to `polars` 0.55, `pyo3` 0.29,
-  `pyo3-polars` 0.28, `clap` 4.6.6, `regex` 1.13, and `toml` 1.1.4. The `polars`
-  0.55 crate requires Rust 1.95 or newer to build from source
+- Raised the minimum runtime dependencies to
+  [`polars>=2.0.0`](https://github.com/pola-rs/polars/releases/tag/py-2.0.0) and
+  `platformdirs>=4.12.4`, and updated the Rust layer to `polars` 0.55, `pyo3` 0.29,
+  `pyo3-polars` 0.28, `clap` 4.6.6, `regex` 1.13, and `toml` 1.1.4. No `pyo3-polars`
+  release targets Polars 2.0 yet; the plugins built on these crates load in Polars
+  2.0. The `polars` 0.55 crate requires Rust 1.95 or newer to build from source
+- `Pipeliner.run()` collects with `engine="in-memory"` explicitly, since Polars 2.0
+  makes streaming the default engine of `LazyFrame.collect()`; conic operations act on
+  whole soundings, where batched execution brings no measurable gain
+- The Rust plugins (`Qtn`, `qc1N`, and inverse filtering) accept input columns split
+  into several chunks, as produced by the streaming engine or by concatenated frames,
+  instead of failing with "chunked array is not contiguous"
+- Missing-value indicators are matched as `Float64`, so integer indicators (e.g.
+  `-9999`) keep matching float columns under the stricter `is_in()` of Polars 2.0
 
 ## [0.6.7] — 2026-07-05
 

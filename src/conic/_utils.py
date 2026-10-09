@@ -9,5 +9,5 @@ def check_required_columns(lazy: LazyFrame, required_columns: set[str]) -> None:
         raise ColumnNotFoundError(f"missing required columns: {missing_columns}")
 
 
-def has_column(lazy: LazyFrame, col: str) -> bool:
-    return col in lazy.collect_schema().names()
+def has_column(lazy: LazyFrame, column: str) -> bool:
+    return column in lazy.collect_schema().names()

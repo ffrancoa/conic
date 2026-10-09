@@ -82,3 +82,15 @@ links without libpython. `pyproject.toml` uses
 (`IterationKwargs`, `InverseFilterKwargs`), processes per row, returns
 a Struct unpacked Python-side. Register in `_plugins.py` (package root)
 as `<rust>_plugin`: `compute_qtn` -> `compute_qtn_plugin`.
+
+- `is_elementwise=True` only when each output row depends on its own
+  input row alone (`compute_qtn`, `compute_qc1n`); whole-profile
+  kernels (`inverse_filter`) must be `False`, or the streaming engine
+  applies them per batch and returns wrong values without error.
+- Inputs may arrive in several chunks: `rechunk()` before
+  `cont_slice()`. `cont_slice()` also rejects nulls (missing values
+  must be NaN).
+- `tests/plugins/test_engines.py` checks streaming == in-memory per
+  plugin on a multi-chunk frame; extend it for every new plugin.
+- Rust `polars` 0.55 / `pyo3-polars` 0.28 run under Python Polars 2.0;
+  no `pyo3-polars` release pairs with 2.0 yet.

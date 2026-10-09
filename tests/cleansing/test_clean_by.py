@@ -5,11 +5,11 @@ from conic.config._defaults import COL_DEPTH, COL_QC
 
 
 def test_replace():
-    data = pl.DataFrame(
+    data = pl.LazyFrame(
         {COL_DEPTH: [0.0, 0.5, 1.5, 2.0, 2.5], COL_QC: [0.3, 1.1, 1.2, -8888, 1.7]}
     )
 
-    returned = clean_by_indicators(data, indicators=[-8888], mode="replace")
+    returned = clean_by_indicators(data, indicators=[-8888], mode="replace").collect()
     expected = pl.DataFrame(
         {
             COL_DEPTH: [0.0, 0.5, 1.5, 2.0, 2.5],
@@ -21,14 +21,14 @@ def test_replace():
 
 
 def test_remove():
-    data = pl.DataFrame(
+    data = pl.LazyFrame(
         {
             COL_DEPTH: [0.0, 0.5, 1.5, 2.0, 2.5],
             COL_QC: [-8888.0, 1.1, 1.2, -8888.0, 1.7],
         }
     )
 
-    returned = clean_by_indicators(data, indicators=[-8888], mode="remove")
+    returned = clean_by_indicators(data, indicators=[-8888], mode="remove").collect()
     expected = pl.DataFrame({COL_DEPTH: [0.5, 1.5, 2.5], COL_QC: [1.1, 1.2, 1.7]})
 
     assert returned.equals(expected)

@@ -53,7 +53,7 @@ defaults; toggles like `override`/`digits` may default). Returns
 Frozen dataclass. `Pipeliner.standard(config)` builds from
 `_standard_ops()`; `Pipeliner.from_operations(config, ops)` for custom
 selections; `.run(data) -> DataFrame` lazies input, applies steps,
-collects. Input validation implicit via `filter_input_columns` (first
+collects with `engine="in-memory"` (see conic-polars). Input validation implicit via `filter_input_columns` (first
 standard step).
 
 ## Adding a Standard Op

@@ -62,11 +62,11 @@ def test_below_level():
 
 
 def test_custom_depth_col():
-    inp_data = pl.DataFrame({"Other...": [0.0, 0.5, 1.0]})
+    inp_data = pl.LazyFrame({"Other...": [0.0, 0.5, 1.0]})
 
     out_data = compute_hydrostatic_column(
         inp_data, "Other...", COL_U0, water_level=0.0, gamma_water=GAMMA_WATER
-    )
+    ).collect()
 
     returned = out_data[COL_U0].to_list()
     expected = [0.0, 4.905, 9.810]

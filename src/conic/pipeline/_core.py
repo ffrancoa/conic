@@ -129,4 +129,4 @@ class Pipeliner:
         for step in self.steps:
             lazy = step.apply(lazy)
 
-        return lazy.collect()
+        return lazy.collect(engine="in-memory")

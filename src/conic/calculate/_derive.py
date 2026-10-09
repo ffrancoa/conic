@@ -6,7 +6,7 @@ from conic._utils import check_required_columns
 COL_TEMP = "_temp"
 
 
-def _compute_cd_columns(
+def _compute_ib_columns(
     lazy: pl.LazyFrame,
     col_fr: str,
     col_qtn: str,
@@ -199,4 +199,4 @@ def compute_behavior_columns(
         p_ref,
         max_iter,
         tolerance,
-    ).pipe(_compute_cd_columns, col_fr, col_qtn, col_cd, col_ib)
+    ).pipe(_compute_ib_columns, col_fr, col_qtn, col_cd, col_ib)

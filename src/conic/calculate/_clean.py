@@ -50,6 +50,12 @@ def _expr_estimate_sleeve_offset(
     )
 
 
+def _expr_is_indicator(target_columns: pl.Expr, indicators: list[float]) -> pl.Expr:
+    return target_columns.cast(pl.Float64).is_in(
+        pl.Series(indicators, dtype=pl.Float64)
+    )
+
+
 def _expr_replace_indicators(
     target_columns: pl.Expr,
     indicators: list[float],
@@ -57,7 +63,9 @@ def _expr_replace_indicators(
 ) -> pl.Expr:
 
     return (
-        pl.when(target_columns.is_in(indicators)).then(value).otherwise(target_columns)
+        pl.when(_expr_is_indicator(target_columns, indicators))
+        .then(value)
+        .otherwise(target_columns)
     )
 
 
@@ -65,7 +73,7 @@ def _remove_rows_with_indicators(
     lazy: pl.LazyFrame, target_columns: pl.Expr, indicators: list[float]
 ) -> pl.LazyFrame:
 
-    mask = target_columns.is_in(indicators)
+    mask = _expr_is_indicator(target_columns, indicators)
     global_mask = pl.any_horizontal(mask).not_()
 
     return lazy.filter(global_mask)
@@ -266,6 +274,8 @@ def filter_input_columns(
 
     check_required_columns(lazy, set(required_columns))
 
-    present_optional = [col for col in optional_columns if has_column(lazy, col)]
+    input_columns = required_columns + [
+        column for column in optional_columns if has_column(lazy, column)
+    ]
 
-    return lazy.select(required_columns + present_optional)
+    return lazy.select(input_columns)
