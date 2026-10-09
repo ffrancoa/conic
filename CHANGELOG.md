@@ -6,7 +6,7 @@ Welcome to the **`conic` changelog**! The format is based on
 
 ## [Unreleased]
 
-## [0.6.8] — 2026-10-08
+## [0.6.8] — 2026-10-09
 
 ### Added
 - Robertson & Wride (1998) fines-content correlation as `catalog.add_rw98_columns()`,
@@ -267,15 +267,15 @@ Welcome to the **`conic` changelog**! The format is based on
 - Core CPTu preprocessing functions inside `conic.preprocess`: `compute_hydrostatic`,
   `adjust_depth_spacing`, `clean_by_indicators`, and `filter_by_indicators`.
 
-[Unreleased]: https://github.com/ferrosoft/conic/compare/v0.6.8...HEAD
-[0.6.8]: https://github.com/ferrosoft/conic/compare/v0.6.7...v0.6.8
-[0.6.7]: https://github.com/ferrosoft/conic/compare/v0.6.6...v0.6.7
-[0.6.6]: https://github.com/ferrosoft/conic/compare/v0.6.4...v0.6.6
-[0.6.4]: https://github.com/ferrosoft/conic/compare/v0.6.3...v0.6.4
-[0.1.0]: https://github.com/ferrosoft/conic/releases/tag/v0.1.0
-[0.2.0]: https://github.com/ferrosoft/conic/releases/tag/v0.2.0
-[0.3.0]: https://github.com/ferrosoft/conic/releases/tag/v0.3.0
-[0.4.0]: https://github.com/ferrosoft/conic/releases/tag/v0.4.0
-[0.5.0]: https://github.com/ferrosoft/conic/releases/tag/v0.5.0
-[0.6.0]: https://github.com/ferrosoft/conic/releases/tag/v0.6.0
-[0.6.3]: https://github.com/ferrosoft/conic/releases/tag/v0.6.3
+[Unreleased]: https://github.com/ffrancoa/conic/compare/v0.6.8...HEAD
+[0.6.8]: https://github.com/ffrancoa/conic/compare/v0.6.7...v0.6.8
+[0.6.7]: https://github.com/ffrancoa/conic/compare/v0.6.6...v0.6.7
+[0.6.6]: https://github.com/ffrancoa/conic/compare/v0.6.4...v0.6.6
+[0.6.4]: https://github.com/ffrancoa/conic/compare/v0.6.3...v0.6.4
+[0.1.0]: https://github.com/ffrancoa/conic/releases/tag/v0.1.0
+[0.2.0]: https://github.com/ffrancoa/conic/releases/tag/v0.2.0
+[0.3.0]: https://github.com/ffrancoa/conic/releases/tag/v0.3.0
+[0.4.0]: https://github.com/ffrancoa/conic/releases/tag/v0.4.0
+[0.5.0]: https://github.com/ffrancoa/conic/releases/tag/v0.5.0
+[0.6.0]: https://github.com/ffrancoa/conic/releases/tag/v0.6.0
+[0.6.3]: https://github.com/ffrancoa/conic/releases/tag/v0.6.3

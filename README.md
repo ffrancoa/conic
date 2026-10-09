@@ -1,6 +1,6 @@
 <h1 align="center">
-  <a href="https://github.com/ferrosoft/conic">
-    <img src="https://raw.githubusercontent.com/ferrosoft/conic/refs/heads/main/conic-docs/assets/banner.png" alt="conic logo" width="80%">
+  <a href="https://github.com/ffrancoa/conic">
+    <img src="https://raw.githubusercontent.com/ffrancoa/conic/refs/heads/main/conic-docs/assets/banner.png" alt="conic logo" width="80%">
   </a>
 </h1>
 
