@@ -70,7 +70,7 @@ def _inverse_filter_expr() -> pl.Expr:
         mq=config.mq,
         mt=config.mt,
         kernel_extent=config.kernel_extent,
-        p_ref=P_REF,
+        p_ref=config.p_ref,
         max_iter=config.max_iter,
         tolerance=config.tolerance,
     )

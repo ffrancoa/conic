@@ -20,7 +20,7 @@ Lifecycle: `Operation.build(config)` -> `bind(fn, **kwargs)`.
 - Catalog factories: `catalog/{_clean,_derive,_correlations}.py`.
   User import: `from conic import catalog`.
 - Pipeline assembly: `_standard_ops()` in `pipeline/_core.py`.
-- Tool ops: `tools/<tool>/_operation.py`.
+- Tools: `tools/<tool>/`, run on processed data, outside the pipeline.
 - No processing logic in catalog or pipeliner.
 
 ## Catalog Factory
@@ -33,13 +33,15 @@ Conditional ops return a no-op
 `Step(name=..., apply=lambda lazy: lazy)` when disabled (e.g.
 `max_sleeve_offset == 0`).
 
-## Tool Operation
+## Tools
 
 Autonomous subpackage `tools/<tool>/` owning `_config.py`,
-`_columns.py`, `_defaults.py`, `_compute.py`, `_operation.py`, exposing
-`operation() -> Operation`. Inside `build`: missing tool config ->
-`ValueError`; wrong type -> `TypeError`; optional
-`config.tools.get("<tool>_columns", Columns())`, also type-checked.
+`_columns.py`, `_defaults.py`, `_compute.py`; no `Operation`, no
+`Configurator` access. The public fn takes the processed
+`pl.DataFrame` plus keyword-only `config: Config | None = None` and
+`columns: Columns | None = None` (defaults when `None`), validates its
+input columns, and returns a new `DataFrame` collected with
+`engine="in-memory"`.
 
 ## Pure Function Signatures
 
@@ -63,8 +65,8 @@ standard step).
 `_standard_ops()`. 4. New defaults: add to `config/defaults.toml`, bind
 in `config/_defaults.py`, add the field to `config/_core.py`.
 
-## Adding a Tool Op
+## Adding a Tool
 
-1. Create `tools/<tool>/` subpackage (files above). 2. Register
-`with_tool("<tool>", Config(...))` (+ optional `"<tool>_columns"`).
-3. Append `<tool>.operation()` to the pipeline steps.
+1. Create `tools/<tool>/` subpackage (files above). 2. Re-export the
+public fn, `Config` and `Columns` from its `__init__.py`. 3. Users run
+it on the output of `Pipeliner.run`.

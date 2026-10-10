@@ -10,6 +10,7 @@ from conic.tools.inverse_filter._defaults import (
     MQ,
     MT,
     MZ,
+    P_REF,
     TOLERANCE,
     Z50_REF,
 )
@@ -35,6 +36,7 @@ class Config:
     mq: float = MQ
     mt: float = MT
     kernel_extent: float | None = KERNEL_EXTENT
+    p_ref: float = P_REF
     max_iter: int = MAX_ITER
     tolerance: float = TOLERANCE
 
@@ -61,6 +63,12 @@ class Config:
                 f"kernel half-width (`kernel_extent`) must be a positive number of "
                 f"cone diameters or None for the full kernel; got "
                 f"'{self.kernel_extent}'"
+            )
+
+        if self.p_ref <= 0.0:
+            raise ValueError(
+                f"reference pressure (`p_ref`) must be a (reasonable) positive number; "
+                f"got '{self.p_ref}'"
             )
 
         if self.max_iter < 1:

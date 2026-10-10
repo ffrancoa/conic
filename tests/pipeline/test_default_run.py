@@ -3,7 +3,7 @@ import polars as pl
 from conic.config import Configurator
 from conic.config._defaults import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
 from conic.pipeline import Pipeliner
-from conic.pipeline._core import Step, _standard_ops
+from conic.pipeline._core import Step
 from conic.tools import inverse_filter
 
 
@@ -55,10 +55,8 @@ def test_custom_pipeliner():
 def test_inverse_filter_after_sleeve_alignment():
     config = Configurator.from_dict(
         {"parameters": {"gamma_soil": 20.0}, "cleansing": {"max_sleeve_offset": 3}}
-    ).with_tool("inverse_filter", inverse_filter.Config())
-    pipe = Pipeliner.from_operations(
-        config, (*_standard_ops(), inverse_filter.operation())
     )
+    pipe = Pipeliner.standard(config)
 
     qc_vals = ([1.0] * 5 + [6.0] * 5) * 6
     fs_vals = [10.0, 10.0] + [10.0 * qc for qc in qc_vals[:-2]]
@@ -72,7 +70,7 @@ def test_inverse_filter_after_sleeve_alignment():
         }
     )
 
-    out_data = pipe.run(inp_data)
+    out_data = inverse_filter.compute_inverse_filter(pipe.run(inp_data))
     columns = inverse_filter.Columns()
 
     assert out_data[COL_FS][-2:].is_nan().all()

@@ -6,12 +6,27 @@ Welcome to the **`conic` changelog**! The format is based on
 
 ## [Unreleased]
 
+### Changed
+- Tools run independently on processed data instead of as pipeline steps:
+  `inverse_filter.compute_inverse_filter(data, config=None, columns=None)` takes the
+  `DataFrame` returned by `Pipeliner.run()` and returns a new one. Its `Config` now
+  holds `p_ref`, and its `Columns` holds the input column names (`depth`, `qt`, `fs`,
+  `fr`, `sv_eff`, `sv_tot`) next to the outputs, all defaulting to the `Configurator`
+  defaults; the numerical results are unchanged
+
 ### Removed
 - `conic.calculate.calibrate` and its `calibrate_bi14()` / `CalibrationResult`, which
   fitted the Boulanger & Idriss (2014) fines-content intercept to measured `Ic`/fines
   pairs: it analyzed results across soundings rather than processing one, and did not
   generalize to the other correlations. The correlation itself,
   `catalog.add_bi14_columns()`, is unchanged
+- `Configurator.tools`, `Configurator.with_tool()`, and `inverse_filter.operation()`;
+  tools are no longer registered in the `Configurator` nor appended to a pipeline
+
+### Fixed
+- Rebuilding a `Configurator` from its dictionary form (as `build_configurator()` does
+  when applying overrides) no longer turns registered tool configurations into plain
+  dictionaries, since tools are no longer part of the `Configurator`
 
 ## [0.6.8] — 2026-10-09
 

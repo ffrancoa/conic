@@ -344,8 +344,6 @@ class Configurator:
         iterations, and convergence tolerance.
     columns : Columns
         Input, output, and correlation column name mappings.
-    tools : dict
-        Registered tool configurations, keyed by tool name.
 
     Examples
     --------
@@ -359,7 +357,6 @@ class Configurator:
     cleansing: Cleansing = dataclasses.field(default_factory=Cleansing)
     settings: Settings = dataclasses.field(default_factory=Settings)
     columns: Columns = dataclasses.field(default_factory=Columns)
-    tools: dict[str, object] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
@@ -482,21 +479,3 @@ class Configurator:
     def with_tolerance(self, value: float) -> Self:
         """Return a copy with a new convergence tolerance."""
         return self._with_field("settings", "tolerance", value)
-
-    def with_tool(self, name: str, tool_config: object) -> Self:
-        """Return a copy with a tool configuration registered.
-
-        Parameters
-        ----------
-        name : str
-            Key under which the tool config is stored
-            (e.g. ``"inverse_filter"``).
-        tool_config : object
-            Tool-specific configuration instance.
-
-        Returns
-        -------
-        Configurator
-        """
-        new_tools = dict(self.tools) | {name: tool_config}
-        return dataclasses.replace(self, tools=new_tools)

@@ -23,11 +23,13 @@ description: >
 
 ## Tools
 
-Register via `with_tool(name, obj)` into `config.tools`. A tool may
-span multiple keys: `inverse_filter` requires a `Config`;
-`inverse_filter_columns` optionally renames outputs (defaults to
-`Columns()` when absent). `Columns` is NOT nested in `Config`; register
-it separately.
+Tools are not part of the `Configurator`: each `tools/<tool>/` owns its
+`Config` (numeric parameters, including any `p_ref`) and `Columns`
+(input and output names), both following the sub-model pattern
+(frozen/slotted, `__post_init__` validation, `from_dict` with
+`_validate_keys`). Their defaults reuse the `config/_defaults.py`
+constants through `tools/<tool>/_defaults.py`; never duplicate
+literals.
 
 ## Defaults
 
