@@ -4,7 +4,7 @@ import polars.selectors as cs
 from conic.calculate._clean import (
     _remove_rows_with_indicators,
 )
-from conic.config._defaults import COL_DEPTH, COL_QC
+from conic.workflow._defaults import COL_DEPTH, COL_QC
 
 
 def test_remove_rows():

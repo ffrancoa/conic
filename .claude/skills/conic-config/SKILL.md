@@ -27,13 +27,13 @@ Tools are not part of the `Configurator`: each `tools/<tool>/` owns its
 `Config` (numeric parameters, including any `p_ref`) and `Columns`
 (input and output names), both following the sub-model pattern
 (frozen/slotted, `__post_init__` validation, `from_dict` with
-`_validate_keys`). Their defaults reuse the `config/_defaults.py`
+`_validate_keys`). Their defaults reuse the `workflow/_defaults.py`
 constants through `tools/<tool>/_defaults.py`; never duplicate
 literals.
 
 ## Defaults
 
-`config/defaults.toml` is the canonical source; `config/_defaults.py`
+`workflow/defaults.toml` is the canonical source; `workflow/_defaults.py`
 reads it once at import and binds the constants sub-model fields
 reference. Keep `defaults.toml` a valid config (a test asserts
 `from_toml(defaults.toml) == Configurator()`): schema fields only, omit

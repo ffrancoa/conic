@@ -1,4 +1,4 @@
-from conic.config import Configurator
+from conic.workflow import Configurator
 
 
 def test_default_columns():

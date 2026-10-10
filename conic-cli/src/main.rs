@@ -8,7 +8,7 @@ use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::{Args, Parser, Subcommand};
 use indicatif::{ProgressBar, ProgressStyle};
 
-const DEFAULT_CONFIG: &str = include_str!("../../src/conic/config/defaults.toml");
+const DEFAULT_CONFIG: &str = include_str!("../../src/conic/workflow/defaults.toml");
 
 const MAIN_TEMPLATE: &str = "import conic.express as cx\n\n\
      config = cx.build_configurator(\"config.toml\")\n";

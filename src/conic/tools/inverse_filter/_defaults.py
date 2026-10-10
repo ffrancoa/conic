@@ -1,10 +1,10 @@
-from conic.config._defaults import COL_DEPTH as COL_DEPTH
-from conic.config._defaults import COL_FR as COL_FR
-from conic.config._defaults import COL_FS as COL_FS
-from conic.config._defaults import COL_QT as COL_QT
-from conic.config._defaults import COL_SV_EFF as COL_SV_EFF
-from conic.config._defaults import COL_SV_TOT as COL_SV_TOT
-from conic.config._defaults import P_REF as P_REF
+from conic.workflow._defaults import COL_DEPTH as COL_DEPTH
+from conic.workflow._defaults import COL_FR as COL_FR
+from conic.workflow._defaults import COL_FS as COL_FS
+from conic.workflow._defaults import COL_QT as COL_QT
+from conic.workflow._defaults import COL_SV_EFF as COL_SV_EFF
+from conic.workflow._defaults import COL_SV_TOT as COL_SV_TOT
+from conic.workflow._defaults import P_REF as P_REF
 
 DC: float = 35.7
 Z50_REF: float = 4.2

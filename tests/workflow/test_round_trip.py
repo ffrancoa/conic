@@ -1,6 +1,6 @@
 import dataclasses
 
-from conic.config import Configurator
+from conic.workflow import Configurator
 
 
 def test_round_trip_defaults():

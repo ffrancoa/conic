@@ -2,7 +2,7 @@ from textwrap import dedent
 
 import pytest
 
-from conic.config import Configurator
+from conic.workflow import Configurator
 
 
 def test_read_from_toml(tmp_path):

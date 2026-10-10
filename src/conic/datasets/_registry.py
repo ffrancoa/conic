@@ -2,7 +2,7 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
-from conic.config._defaults import (
+from conic.workflow._defaults import (
     COL_DEPTH,
     COL_FS,
     COL_QC,

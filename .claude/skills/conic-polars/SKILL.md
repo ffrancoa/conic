@@ -15,8 +15,8 @@ description: >
   keeps the default engine.
 - Never set the engine globally (`pl.Config.set_engine_affinity`).
 - No Pandas. No row-level iteration (use the Rust plugin).
-- No processing logic in orchestration (`pipeline/_core.py`,
-  `catalog/`).
+- No processing logic in orchestration (`workflow/_pipeliner.py`,
+  `workflow/_step.py`, `workflow/catalog/`).
 
 ## Numeric
 

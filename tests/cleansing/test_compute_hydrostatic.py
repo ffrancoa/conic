@@ -3,7 +3,7 @@ import pytest
 from polars.exceptions import ColumnNotFoundError
 
 from conic.calculate._clean import compute_hydrostatic_column
-from conic.config._defaults import COL_DEPTH, COL_U0, GAMMA_WATER
+from conic.workflow._defaults import COL_DEPTH, COL_U0, GAMMA_WATER
 
 
 def _hydrostatic(lazy, *, water_level, gamma_water=GAMMA_WATER, **kwargs):

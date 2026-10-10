@@ -5,7 +5,7 @@ import pytest
 from polars.exceptions import ColumnNotFoundError
 
 from conic.calculate.correlate import add_rw98_columns
-from conic.config._defaults import COL_FC_RW98, COL_FR, COL_IC
+from conic.workflow._defaults import COL_FC_RW98, COL_FR, COL_IC
 
 
 def _rw98(ic, fr):

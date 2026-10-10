@@ -23,8 +23,8 @@ description: >
 
 ## Column Literals
 
-Core columns: `COL_*` constants in `config/_defaults.py` (bound from
-`defaults.toml` at import). Tool columns: `tools/<tool>/_defaults.py`.
+Core columns: `COL_*` constants in `workflow/_defaults.py` (bound from
+`defaults.toml` at import; correlation tables as `CORR_*`). Tool columns: `tools/<tool>/_defaults.py`.
 Never hardcode elsewhere; transient scratch columns (`COL_TEMP =
 "_temp"`) are the only exception. Correlation columns carry provenance:
 `Su_liq (-) [R21]`.

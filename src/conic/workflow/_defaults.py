@@ -11,11 +11,11 @@ _CLEANSING = _DEFAULTS["cleansing"]
 _SETTINGS = _DEFAULTS["settings"]
 _INPUT = _DEFAULTS["columns"]["input"]
 _OUTPUT = _DEFAULTS["columns"]["output"]
-_BI14 = _DEFAULTS["columns"]["correlation"]["bi14"]
-_R21 = _DEFAULTS["columns"]["correlation"]["r21"]
-_OS02 = _DEFAULTS["columns"]["correlation"]["os02"]
-_RW98 = _DEFAULTS["columns"]["correlation"]["rw98"]
-_Y14 = _DEFAULTS["columns"]["correlation"]["y14"]
+CORR_BI14 = _DEFAULTS["columns"]["correlation"]["bi14"]
+CORR_R21 = _DEFAULTS["columns"]["correlation"]["r21"]
+CORR_OS02 = _DEFAULTS["columns"]["correlation"]["os02"]
+CORR_RW98 = _DEFAULTS["columns"]["correlation"]["rw98"]
+CORR_Y14 = _DEFAULTS["columns"]["correlation"]["y14"]
 
 # parameters
 AREA_RATIO: float = _PARAMETERS["area_ratio"]
@@ -64,23 +64,23 @@ COL_CD: str = _OUTPUT["cd"]
 COL_IB: str = _OUTPUT["ib"]
 
 # columns.correlation.bi14
-COL_FC_BI14: str = _BI14["fc"]
-COL_M_BI14: str = _BI14["m"]
-COL_QC1N_BI14: str = _BI14["qc1n"]
-COL_QC1NCS_BI14: str = _BI14["qc1ncs"]
-COL_CONVG_BI14: str = _BI14["convg"]
+COL_FC_BI14: str = CORR_BI14["fc"]
+COL_M_BI14: str = CORR_BI14["m"]
+COL_QC1N_BI14: str = CORR_BI14["qc1n"]
+COL_QC1NCS_BI14: str = CORR_BI14["qc1ncs"]
+COL_CONVG_BI14: str = CORR_BI14["convg"]
 
 # columns.correlation.r21
-COL_KC_R21: str = _R21["kc"]
-COL_QTNCS_R21: str = _R21["qtncs"]
-COL_SU_LIQ_RATIO_R21: str = _R21["su_liq_ratio"]
+COL_KC_R21: str = CORR_R21["kc"]
+COL_QTNCS_R21: str = CORR_R21["qtncs"]
+COL_SU_LIQ_RATIO_R21: str = CORR_R21["su_liq_ratio"]
 
 # columns.correlation.os02
-COL_QC1_OS02: str = _OS02["qc1"]
-COL_SU_LIQ_RATIO_OS02: str = _OS02["su_liq_ratio"]
+COL_QC1_OS02: str = CORR_OS02["qc1"]
+COL_SU_LIQ_RATIO_OS02: str = CORR_OS02["su_liq_ratio"]
 
 # columns.correlation.rw98
-COL_FC_RW98: str = _RW98["fc"]
+COL_FC_RW98: str = CORR_RW98["fc"]
 
 # columns.correlation.y14
-COL_FC_Y14: str = _Y14["fc"]
+COL_FC_Y14: str = CORR_Y14["fc"]

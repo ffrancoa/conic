@@ -3,7 +3,7 @@ import pytest
 from polars.exceptions import ColumnNotFoundError
 
 from conic.calculate._clean import adjust_depth_spacing
-from conic.config._defaults import COL_DEPTH
+from conic.workflow._defaults import COL_DEPTH
 
 
 def test_invalid_depth_col():

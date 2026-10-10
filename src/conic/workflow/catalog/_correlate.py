@@ -2,8 +2,8 @@ from conic.calculate import correlate
 from conic.calculate.correlate import _boulanger2014 as bi14
 from conic.calculate.correlate import _olson2002 as os02
 from conic.calculate.correlate import _robertson2021 as r21
-from conic.config import Configurator
-from conic.pipeline._core import Operation, Step, bind
+from conic.workflow._configurator import Configurator
+from conic.workflow._step import Operation, Step, bind
 
 
 def add_r21_columns(*, max_su_liq_ratio: float = r21.MAX_SU_LIQ_RATIO) -> Operation:

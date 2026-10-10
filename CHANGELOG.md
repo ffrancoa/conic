@@ -7,6 +7,14 @@ Welcome to the **`conic` changelog**! The format is based on
 ## [Unreleased]
 
 ### Changed
+- Configuration, pipeline, and catalog are grouped under `conic.workflow`:
+  `Configurator`, `Pipeliner`, and the configuration sections (`Parameters`,
+  `Cleansing`, `Settings`, `Columns` and the correlation columns) are imported from
+  `conic.workflow`, replacing `conic.config` and `conic.pipeline`, which are removed
+  without compatibility aliases. The catalog moves to `conic.workflow.catalog` and is
+  still importable as `from conic import catalog`; the correlation-table constants of
+  the defaults module take the `CORR_` prefix (`CORR_BI14`, `CORR_R21`, `CORR_OS02`,
+  `CORR_RW98`, `CORR_Y14`), matching `COL_`
 - Tools run independently on processed data instead of as pipeline steps:
   `inverse_filter.compute_inverse_filter(data, config=None, columns=None)` takes the
   `DataFrame` returned by `Pipeliner.run()` and returns a new one. Its `Config` now

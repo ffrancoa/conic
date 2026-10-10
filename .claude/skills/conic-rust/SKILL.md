@@ -26,7 +26,7 @@ only (no pyo3 bridge).
   `[tool.maturin]` in `pyproject.toml` with `data = "data"` at build
   time (maturin has no `--data` CLI flag). The `data/` dir exists only
   in CI, never in the repo.
-- `init` is pure Rust: embeds `config/defaults.toml` via
+- `init` is pure Rust: embeds `workflow/defaults.toml` via
   `include_str!`; `scaffold_config()` truncates at the first
   `[columns.correlation`, so those tables must stay last in
   `defaults.toml`. Scaffolded `pyproject.toml` gets `{version}` from

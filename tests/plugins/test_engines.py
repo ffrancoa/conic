@@ -9,7 +9,8 @@ from conic._plugins import (
     compute_qtn_plugin,
     inverse_filter_plugin,
 )
-from conic.config._defaults import (
+from conic.tools.inverse_filter import Config
+from conic.workflow._defaults import (
     COL_DEPTH,
     COL_FC_BI14,
     COL_FR,
@@ -21,7 +22,6 @@ from conic.config._defaults import (
     P_REF,
     TOLERANCE,
 )
-from conic.tools.inverse_filter import Config
 
 N_ROWS = 600
 N_CHUNKS = 3

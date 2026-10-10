@@ -5,7 +5,7 @@ description: >
   assembly in conic.
 ---
 
-## Core Types (all in `pipeline/_core.py`)
+## Core Types (`workflow/_step.py`)
 
 - **Step**: `name` + `apply: LazyFrame -> LazyFrame`, closed over params.
 - **Operation**: wraps `build: Configurator -> Step`. Deferred binding.
@@ -16,10 +16,13 @@ Lifecycle: `Operation.build(config)` -> `bind(fn, **kwargs)`.
 
 ## Placement
 
-- Pure fns: `calculate/` (incl. `calculate/correlate/`). No config/pipeline imports.
-- Catalog factories: `catalog/{_clean,_derive,_correlations}.py`.
-  User import: `from conic import catalog`.
-- Pipeline assembly: `_standard_ops()` in `pipeline/_core.py`.
+- Pure fns: `calculate/` (incl. `calculate/correlate/`). No `workflow` imports.
+- Catalog factories: `workflow/catalog/{_clean,_derive,_correlate}.py`
+  (mirroring `calculate/`), importing `_step` and `_configurator`
+  directly, never `workflow/__init__`. User import:
+  `from conic import catalog` (lazy re-export in `conic/__init__.py`).
+- Pipeline assembly: `_standard_ops()` in `workflow/_pipeliner.py`.
+- Public imports: `from conic.workflow import Configurator, Pipeliner`.
 - Tools: `tools/<tool>/`, run on processed data, outside the pipeline.
 - No processing logic in catalog or pipeliner.
 
@@ -60,10 +63,10 @@ standard step).
 
 ## Adding a Standard Op
 
-1. Pure fn in `calculate/`. 2. Factory in `catalog/_clean.py` or
-`catalog/_derive.py`. 3. Insert `Operation` at correct position in
-`_standard_ops()`. 4. New defaults: add to `config/defaults.toml`, bind
-in `config/_defaults.py`, add the field to `config/_core.py`.
+1. Pure fn in `calculate/`. 2. Factory in `workflow/catalog/_clean.py`
+or `workflow/catalog/_derive.py`. 3. Insert `Operation` at correct position in
+`_standard_ops()`. 4. New defaults: add to `workflow/defaults.toml`, bind
+in `workflow/_defaults.py`, add the field to `workflow/_sections.py`.
 
 ## Adding a Tool
 

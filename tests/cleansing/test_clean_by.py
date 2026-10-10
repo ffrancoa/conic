@@ -1,7 +1,7 @@
 import polars as pl
 
 from conic.calculate._clean import clean_by_indicators
-from conic.config._defaults import COL_DEPTH, COL_QC
+from conic.workflow._defaults import COL_DEPTH, COL_QC
 
 
 def test_replace():
