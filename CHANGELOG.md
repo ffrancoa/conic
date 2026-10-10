@@ -6,6 +6,13 @@ Welcome to the **`conic` changelog**! The format is based on
 
 ## [Unreleased]
 
+### Removed
+- `conic.calculate.calibrate` and its `calibrate_bi14()` / `CalibrationResult`, which
+  fitted the Boulanger & Idriss (2014) fines-content intercept to measured `Ic`/fines
+  pairs: it analyzed results across soundings rather than processing one, and did not
+  generalize to the other correlations. The correlation itself,
+  `catalog.add_bi14_columns()`, is unchanged
+
 ## [0.6.8] — 2026-10-09
 
 ### Added

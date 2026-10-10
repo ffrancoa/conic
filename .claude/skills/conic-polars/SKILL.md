@@ -11,8 +11,8 @@ description: >
 - All processing on `pl.LazyFrame`. Collect only at the pipeline
   boundary (`Pipeliner.run`), always with `engine="in-memory"`:
   Polars 2.0 defaults to streaming, and conic ops are whole-profile.
-  Other collects (`ConicDataset.get_sounding`, `calibrate_bi14`) are
-  row filters or aggregations and keep the default engine.
+  The other collect (`ConicDataset.get_sounding`) is a row filter and
+  keeps the default engine.
 - Never set the engine globally (`pl.Config.set_engine_affinity`).
 - No Pandas. No row-level iteration (use the Rust plugin).
 - No processing logic in orchestration (`pipeline/_core.py`,
