@@ -8,9 +8,7 @@ name = "_lib"
 crate-type = ["cdylib"]
 
 [dependencies]
-conic-tools = { path = "tools" }
-conic-calculate = { path = "calculate" }
-conic-correlate = { path = "correlate" }
+conic-kernels = { path = "kernels" }
 polars = { version = "0.55.2", default-features = false }
 pyo3 = { version = "0.29.2", features = ["abi3-py312", "generate-import-lib"] }
 pyo3-polars = { version = "0.28.0", features = ["derive", "dtype-struct", "dtype-array"] }

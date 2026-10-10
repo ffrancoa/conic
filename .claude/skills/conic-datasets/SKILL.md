@@ -16,7 +16,7 @@ them via `_TEST_TYPES` and exposes `_get_entry(name)` /
 `_get_entries(source)`; entry names are `f"{source}_{entry_key}"`.
 
 The same `registry.toml` is embedded at compile time in
-`conic-plugins/datasets/` (`include_str!`); keep both consumers in
+`conic-cli/src/datasets.rs` (`include_str!`); keep both consumers in
 mind when editing it. `list_datasets` is NOT in the Python API; it
 lives only in the Rust CLI (`conic datasets --list`, offline).
 `conic datasets --fetch <source>` delegates to the Python server

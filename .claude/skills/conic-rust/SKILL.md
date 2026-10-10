@@ -12,13 +12,23 @@ If `pl.when/then/otherwise` expresses it, keep it in Python.
 
 ## Workspace
 
-Root `Cargo.toml` is a virtual workspace: `conic-cli/` (bin, no PyO3)
-and `conic-plugins/` (cdylib bridge) with rlib sub-crates
-`calculate/`, `correlate/`, `tools/`, `datasets/`. Boundary:
-`bridge.rs` calls into the rlibs, never the reverse. `datasets/` embeds
-`registry.toml` via `include_str!`, exposes
-`list_datasets(name: Option<&str>)`, and is consumed by `conic-cli`
-only (no pyo3 bridge).
+Root `Cargo.toml` is a virtual workspace. Crate boundaries follow
+consumers and dependencies; domains are modules mirroring Python
+(2024 module style: `engine.rs` next to `engine/`, no `mod.rs`).
+
+- `conic-plugins/` (cdylib `_lib`): `src/bridge.rs` declares
+  `bridge/engine.rs` and `bridge/tools.rs`, each holding its kwargs
+  structs and `#[polars_expr]` fns. Only crate depending on polars,
+  pyo3, and serde.
+- `conic-plugins/kernels/` (rlib `conic-kernels`, no dependencies):
+  `engine/compute_qtn.rs`, `engine/correlate/compute_qc1n.rs`,
+  `tools/inverse_filter/compute_qt_inv.rs` plus private stage modules
+  (`convolution`, `smoothing`, `interfaces`, `fs_correction`,
+  `depth_spacing`; `calc_dz` re-exported from `inverse_filter`). The
+  bridge calls into kernels, never the reverse.
+- `conic-cli/` (bin, no PyO3): `src/datasets.rs` embeds
+  `registry.toml` via `include_str!` and exposes
+  `list_datasets(name: Option<&str>)` (no pyo3 bridge).
 
 ## CLI Decisions
 
@@ -80,12 +90,14 @@ links without libpython. `pyproject.toml` uses
 
 `#[polars_expr]` fn takes input columns + a serde kwargs struct
 (`IterationKwargs`, `InverseFilterKwargs`), processes per row, returns
-a Struct unpacked Python-side. Register in `_plugins.py` (package root)
-as `<rust>_plugin`: `compute_qtn` -> `compute_qtn_plugin`.
+a Struct unpacked Python-side. One name across the three layers: kernel
+file, kernel entry fn and `#[polars_expr]` fn share it, and
+`_plugins.py` (package root) registers `<name>_plugin`:
+`compute_qtn`, `compute_qc1n`, `compute_qt_inv`.
 
 - `is_elementwise=True` only when each output row depends on its own
   input row alone (`compute_qtn`, `compute_qc1n`); whole-profile
-  kernels (`inverse_filter`) must be `False`, or the streaming engine
+  kernels (`compute_qt_inv`) must be `False`, or the streaming engine
   applies them per batch and returns wrong values without error.
 - Inputs may arrive in several chunks: `rechunk()` before
   `cont_slice()`. `cont_slice()` also rejects nulls (missing values

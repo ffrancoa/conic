@@ -2,9 +2,6 @@
 members = [
     "conic-cli",
     "conic-plugins",
-    "conic-plugins/tools",
-    "conic-plugins/calculate",
-    "conic-plugins/correlate",
-    "conic-plugins/datasets",
+    "conic-plugins/kernels",
 ]
 resolver = "3"

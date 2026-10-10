@@ -6,8 +6,8 @@ from polars.testing import assert_frame_equal
 
 from conic._plugins import (
     compute_qc1n_plugin,
+    compute_qt_inv_plugin,
     compute_qtn_plugin,
-    inverse_filter_plugin,
 )
 from conic.tools.inverse_filter import Config
 from conic.workflow._defaults import (
@@ -53,10 +53,10 @@ def _sounding() -> pl.LazyFrame:
     return pl.concat(chunks, rechunk=False).lazy()
 
 
-def _inverse_filter_expr() -> pl.Expr:
+def _compute_qt_inv_expr() -> pl.Expr:
     config = Config()
 
-    return inverse_filter_plugin(
+    return compute_qt_inv_plugin(
         COL_DEPTH,
         COL_QT,
         COL_FS,
@@ -94,7 +94,7 @@ PLUGINS = {
         max_iter=MAX_ITER,
         tolerance=TOLERANCE,
     ),
-    "inverse_filter": _inverse_filter_expr,
+    "compute_qt_inv": _compute_qt_inv_expr,
 }
 
 

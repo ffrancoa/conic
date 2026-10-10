@@ -1,3 +1,5 @@
+mod datasets;
+
 use std::fs;
 use std::io::{BufRead, BufReader, IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
@@ -371,7 +373,7 @@ fn main() {
     match cli.command {
         Commands::Datasets(args) => {
             if args.list {
-                conic_datasets::list_datasets(None);
+                datasets::list_datasets(None);
             } else if let Some(source) = args.fetch.as_deref() {
                 fetch(source);
             }

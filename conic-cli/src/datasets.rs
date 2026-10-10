@@ -4,7 +4,7 @@ use std::sync::LazyLock;
 use regex::Regex;
 use serde::Deserialize;
 
-const REGISTRY_TOML: &str = include_str!("../../../src/conic/datasets/registry.toml");
+const REGISTRY_TOML: &str = include_str!("../../src/conic/datasets/registry.toml");
 
 const MAX_WIDTH: usize = 72;
 #[derive(Deserialize)]

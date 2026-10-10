@@ -1,6 +1,6 @@
 import polars as pl
 
-from conic._plugins import inverse_filter_plugin
+from conic._plugins import compute_qt_inv_plugin
 from conic._utils import check_required_columns
 from conic.tools.inverse_filter._columns import Columns
 from conic.tools.inverse_filter._config import Config
@@ -34,7 +34,7 @@ def compute_inverse_filter(
 
     return (
         lazy.with_columns(
-            inverse_filter_plugin(
+            compute_qt_inv_plugin(
                 depth=columns.depth,
                 qt=columns.qt,
                 fs=columns.fs,

@@ -1,4 +1,4 @@
 [package]
-name = "conic-calculate"
+name = "conic-kernels"
 version = "0.6.8"
 edition = "2024"

@@ -47,7 +47,7 @@ def compute_qc1n_plugin(
     )
 
 
-def inverse_filter_plugin(
+def compute_qt_inv_plugin(
     depth: IntoExprColumn,
     qt: IntoExprColumn,
     fs: IntoExprColumn,
@@ -68,7 +68,7 @@ def inverse_filter_plugin(
 ) -> pl.Expr:
 
     return register_plugin_function(
-        function_name="inverse_filter",
+        function_name="compute_qt_inv",
         plugin_path=LIB_PATH,
         args=[depth, qt, fs, fr, sv_eff, sv_tot],
         kwargs={

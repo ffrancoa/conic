@@ -12,6 +12,10 @@ Welcome to the **`conic` changelog**! The format is based on
   order, instead of rebuilding the whole pipeline with `Pipeliner.from_operations()`
 
 ### Changed
+- Internal Rust reorganization: the `calculate`, `correlate`, and `tools` crates are
+  merged into one dependency-free `conic-kernels` crate with modules mirroring the
+  Python layout, the plugin bridge is split by domain, the inverse-filter plugin is
+  renamed `compute_qt_inv`, and the dataset catalog moves into the CLI crate
 - `conic.calculate` is renamed to `conic.engine`, keeping its layout (`_clean`,
   `_derive`, and the `correlate` subpackage): it holds the pure computation functions
   that the catalog binds into pipeline steps. This is unrelated to the `conic.engine`
