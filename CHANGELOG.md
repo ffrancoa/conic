@@ -6,6 +6,11 @@ Welcome to the **`conic` changelog**! The format is based on
 
 ## [Unreleased]
 
+### Added
+- `extras=` on `Pipeliner.standard()` and `express.process_standard()`: a tuple of
+  catalog operations (e.g. correlations) run after the standard sequence in the given
+  order, instead of rebuilding the whole pipeline with `Pipeliner.from_operations()`
+
 ### Changed
 - `conic.calculate` is renamed to `conic.engine`, keeping its layout (`_clean`,
   `_derive`, and the `correlate` subpackage): it holds the pure computation functions

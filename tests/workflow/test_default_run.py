@@ -1,8 +1,12 @@
 import polars as pl
+import pytest
+from polars.testing import assert_frame_equal
 
+from conic import catalog
 from conic.tools import inverse_filter
 from conic.workflow import Configurator, Pipeliner
 from conic.workflow._defaults import COL_DEPTH, COL_FS, COL_QC, COL_U0, COL_U2
+from conic.workflow._pipeliner import _standard_ops
 from conic.workflow._step import Step
 
 
@@ -75,3 +79,36 @@ def test_inverse_filter_after_sleeve_alignment():
     assert out_data[COL_FS][-2:].is_nan().all()
     assert out_data[COL_FS].null_count() == 0
     assert out_data[columns.qt_inv].is_finite().all()
+
+
+def test_standard_pipeliner_with_extras():
+    config = Configurator.from_dict({"parameters": {"gamma_soil": 20.0}})
+    extras = (catalog.add_bi14_columns(), catalog.add_rw98_columns())
+
+    pipe = Pipeliner.standard(config, extras=extras)
+    expected_pipe = Pipeliner.from_operations(config, (*_standard_ops(), *extras))
+
+    inp_data = pl.DataFrame(
+        {
+            COL_DEPTH: [2.0, 2.4, 3.0, 3.4, 4.0],
+            COL_QC: [0.9, 1.3, 1.5, 1.2, 1.4],
+            COL_FS: [35.2, 45.1, 23.4, 53.2, 47.7],
+            COL_U2: [10.5, 20.4, 14.5, 19.5, 30.6],
+        }
+    )
+
+    returned = [step.name for step in pipe.steps]
+    expected = [step.name for step in expected_pipe.steps]
+
+    assert returned == expected
+    assert_frame_equal(pipe.run(inp_data), expected_pipe.run(inp_data))
+
+
+def test_standard_pipeliner_rejects_non_operation_extras():
+    config = Configurator()
+
+    with pytest.raises(TypeError, match="expected Operation"):
+        Pipeliner.standard(
+            config,
+            extras=(catalog.add_bi14_columns,),  # ty: ignore[invalid-argument-type]
+        )

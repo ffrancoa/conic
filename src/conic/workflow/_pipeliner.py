@@ -54,19 +54,42 @@ class Pipeliner:
     steps: tuple[Step, ...]
 
     @classmethod
-    def standard(cls, config: Configurator) -> Self:
+    def standard(
+        cls, config: Configurator, *, extras: tuple[Operation, ...] = ()
+    ) -> Self:
         """Create a pipeliner with the full standard sequence.
 
         Parameters
         ----------
         config : Configurator
             Processing configuration.
+        extras : tuple of Operation, default ()
+            Catalog operations, such as correlations, run after
+            the standard sequence in the given order.
 
         Returns
         -------
         Pipeliner
+
+        Raises
+        ------
+        TypeError
+            If an element of ``extras`` is not an
+            ``Operation``.
+
+        Examples
+        --------
+        >>> pipe = Pipeliner.standard(
+        ...     config, extras=(catalog.add_bi14_columns(),)
+        ... )
         """
-        return cls.from_operations(config, _standard_ops())
+        for extra in extras:
+            if not isinstance(extra, Operation):
+                raise TypeError(
+                    f"expected Operation in `extras`, got {type(extra).__name__!r}"
+                )
+
+        return cls.from_operations(config, (*_standard_ops(), *extras))
 
     @classmethod
     def from_operations(

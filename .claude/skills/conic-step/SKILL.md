@@ -55,8 +55,10 @@ defaults; toggles like `override`/`digits` may default). Returns
 
 ## Pipeliner
 
-Frozen dataclass. `Pipeliner.standard(config)` builds from
-`_standard_ops()`; `Pipeliner.from_operations(config, ops)` for custom
+Frozen dataclass. `Pipeliner.standard(config, *, extras=())` builds
+from `_standard_ops()` followed by `extras` (any `Operation`, e.g.
+correlations; non-`Operation` -> `TypeError`, no other checks);
+`express.process_standard()` forwards `extras`; `Pipeliner.from_operations(config, ops)` for custom
 selections; `.run(data) -> DataFrame` lazies input, applies steps,
 collects with `engine="in-memory"` (see conic-polars). Input validation implicit via `filter_input_columns` (first
 standard step).
