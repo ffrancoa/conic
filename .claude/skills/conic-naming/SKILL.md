@@ -39,7 +39,7 @@ defaults; step-level toggles may (`override=False`, `digits=3`,
 ## Modules
 
 - Correlation: `_author_year.py` (`_olson2002.py`), re-exported via
-  `calculate/correlate/__init__.py`.
+  `engine/correlate/__init__.py`.
 - Private: leading `_`. Public: no underscore.
 - Envelope variants: `ENVELOPE_MAP: dict[str, float]` lookup, not
   `match/case`, when all branches map to a float.

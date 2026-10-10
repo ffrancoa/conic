@@ -7,6 +7,11 @@ Welcome to the **`conic` changelog**! The format is based on
 ## [Unreleased]
 
 ### Changed
+- `conic.calculate` is renamed to `conic.engine`, keeping its layout (`_clean`,
+  `_derive`, and the `correlate` subpackage): it holds the pure computation functions
+  that the catalog binds into pipeline steps. This is unrelated to the `conic.engine`
+  of 0.6.x and earlier, which held the configuration and pipeline layer now found in
+  `conic.workflow`
 - Configuration, pipeline, and catalog are grouped under `conic.workflow`:
   `Configurator`, `Pipeliner`, and the configuration sections (`Parameters`,
   `Cleansing`, `Settings`, `Columns` and the correlation columns) are imported from

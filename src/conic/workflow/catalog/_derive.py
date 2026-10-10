@@ -1,4 +1,4 @@
-from conic.calculate import _derive
+from conic.engine import _derive
 from conic.workflow._configurator import Configurator
 from conic.workflow._step import Operation, Step, bind
 

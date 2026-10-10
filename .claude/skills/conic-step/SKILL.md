@@ -16,9 +16,9 @@ Lifecycle: `Operation.build(config)` -> `bind(fn, **kwargs)`.
 
 ## Placement
 
-- Pure fns: `calculate/` (incl. `calculate/correlate/`). No `workflow` imports.
+- Pure fns: `engine/` (incl. `engine/correlate/`). No `workflow` imports.
 - Catalog factories: `workflow/catalog/{_clean,_derive,_correlate}.py`
-  (mirroring `calculate/`), importing `_step` and `_configurator`
+  (mirroring `engine/`), importing `_step` and `_configurator`
   directly, never `workflow/__init__`. User import:
   `from conic import catalog` (lazy re-export in `conic/__init__.py`).
 - Pipeline assembly: `_standard_ops()` in `workflow/_pipeliner.py`.
@@ -63,7 +63,7 @@ standard step).
 
 ## Adding a Standard Op
 
-1. Pure fn in `calculate/`. 2. Factory in `workflow/catalog/_clean.py`
+1. Pure fn in `engine/`. 2. Factory in `workflow/catalog/_clean.py`
 or `workflow/catalog/_derive.py`. 3. Insert `Operation` at correct position in
 `_standard_ops()`. 4. New defaults: add to `workflow/defaults.toml`, bind
 in `workflow/_defaults.py`, add the field to `workflow/_sections.py`.

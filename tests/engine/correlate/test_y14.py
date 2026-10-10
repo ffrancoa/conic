@@ -4,7 +4,7 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.calculate.correlate import add_y14_columns
+from conic.engine.correlate import add_y14_columns
 from conic.workflow._defaults import COL_FC_Y14, COL_FR, COL_IC
 
 

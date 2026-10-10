@@ -1,6 +1,6 @@
 import polars as pl
 
-from conic.calculate._clean import clean_by_indicators
+from conic.engine._clean import clean_by_indicators
 from conic.workflow._defaults import COL_DEPTH, COL_QC
 
 

@@ -2,7 +2,7 @@ import polars as pl
 import pytest
 from polars.exceptions import ColumnNotFoundError
 
-from conic.calculate._clean import adjust_depth_spacing
+from conic.engine._clean import adjust_depth_spacing
 from conic.workflow._defaults import COL_DEPTH
 
 

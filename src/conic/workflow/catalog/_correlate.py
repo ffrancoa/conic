@@ -1,7 +1,7 @@
-from conic.calculate import correlate
-from conic.calculate.correlate import _boulanger2014 as bi14
-from conic.calculate.correlate import _olson2002 as os02
-from conic.calculate.correlate import _robertson2021 as r21
+from conic.engine import correlate
+from conic.engine.correlate import _boulanger2014 as bi14
+from conic.engine.correlate import _olson2002 as os02
+from conic.engine.correlate import _robertson2021 as r21
 from conic.workflow._configurator import Configurator
 from conic.workflow._step import Operation, Step, bind
 
